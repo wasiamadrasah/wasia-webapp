@@ -337,7 +337,6 @@ export default function HomePage() {
   const [feedSearch, setFeedSearch] = useState("")
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null)
   const [instituteName, setInstituteName] = useState("ওয়াসিয়া আহমদিয়া সুন্নিয়া মাদ্রাসা")
-  const [activeLeadershipTab, setActiveLeadershipTab] = useState<"president" | "headmaster">("president")
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -955,21 +954,24 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* 1. PRESIDENT MESSAGE SECTION (STANDALONE) */}
+      {/* PRESIDENT & PRINCIPAL / LEADERSHIP MESSAGE SECTION (COMBINED ONE SECTION) */}
       {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative bg-[#F7F9F8] py-12 md:py-18 border-b border-[#E2E7E4] overflow-hidden">
+      <section className="relative bg-[#F7F9F8] py-14 md:py-20 border-b border-[#E2E7E4] overflow-hidden">
         {/* Subtle Islamic Geometric Pattern Background */}
         <IslamicPatternBackground opacity={0.08} color="#075E54" />
         <IslamicCornerOrnament position="top-right" />
         <IslamicCornerOrnament position="bottom-left" />
-        <div className="absolute left-0 bottom-0 w-72 h-72 rounded-full bg-[#075E54]/5 blur-3xl pointer-events-none" />
+        <div className="absolute left-0 top-1/3 -translate-y-1/2 w-80 h-80 rounded-full bg-[#075E54]/5 blur-3xl pointer-events-none" />
+        <div className="absolute right-0 bottom-1/3 w-80 h-80 rounded-full bg-[#B68A18]/5 blur-3xl pointer-events-none" />
 
-        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 space-y-14 md:space-y-18">
+          
+          {/* 1. PRESIDENT SUBSECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
             {/* Portrait & Profile (4 cols) */}
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-4">
-              <div className="relative w-40 h-56 sm:w-48 sm:h-64 rounded-t-[54px] rounded-b-2xl border-2 border-[#B68A18] bg-[#064A42] p-1.5 shadow-md overflow-hidden">
-                <div className="relative w-full h-full rounded-t-[46px] rounded-b-xl overflow-hidden bg-[#064A42]">
+              <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl border border-[#E2E7E4] bg-white p-1.5 shadow-sm overflow-hidden">
+                <div className="relative w-full h-full rounded-xl overflow-hidden bg-[#F0F7F5]">
                   {leadership.president?.profile_photo ? (
                     <Image
                       src={leadership.president.profile_photo}
@@ -978,7 +980,7 @@ export default function HomePage() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-white">
+                    <div className="flex h-full w-full items-center justify-center text-[#075E54]">
                       <GraduationCap className="h-16 w-16" />
                     </div>
                   )}
@@ -1020,22 +1022,6 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* 3 Pillars */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">১. সুশাসন ও স্বচ্ছতা</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">দক্ষ ও সুশৃঙ্খল প্রশাসনিক ব্যবস্থাপনা</p>
-                </div>
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">২. অবকাঠামোগত উন্নয়ন</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">আধুনিক ক্লাসরুম ও ক্যাম্পাস সুবিধা</p>
-                </div>
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">৩. দ্বীনি তাহযীব</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">আদর্শ চরিত্র ও সুন্নাহর বাস্তবায়ন</p>
-                </div>
-              </div>
-
               {/* Actions */}
               <div className="pt-2 flex flex-wrap items-center gap-3.5">
                 <Link
@@ -1054,25 +1040,25 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* 2. PRINCIPAL / MUHTAMIM MESSAGE SECTION (STANDALONE) */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="relative bg-white py-12 md:py-18 border-b border-[#E2E7E4] overflow-hidden">
-        {/* Subtle Islamic Geometric Pattern Background */}
-        <IslamicPatternBackground opacity={0.07} color="#075E54" />
-        <IslamicCornerOrnament position="top-left" />
-        <IslamicCornerOrnament position="bottom-right" />
-        <div className="absolute right-0 top-0 w-72 h-72 rounded-full bg-[#B68A18]/5 blur-3xl pointer-events-none" />
+          {/* Divider between President & Principal */}
+          <div className="relative flex items-center justify-center py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#E2E7E4]" />
+            </div>
+            <div className="relative flex items-center gap-2 bg-[#F7F9F8] px-4">
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#B68A18]" />
+              <span className="h-2 w-2 rotate-45 bg-[#075E54]" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#B68A18]" />
+            </div>
+          </div>
 
-        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+          {/* 2. PRINCIPAL / HEADMASTER SUBSECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
             {/* Portrait & Profile (4 cols) */}
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-4">
-              <div className="relative w-40 h-56 sm:w-48 sm:h-64 rounded-t-[54px] rounded-b-2xl border-2 border-[#075E54] bg-[#064A42] p-1.5 shadow-md overflow-hidden">
-                <div className="relative w-full h-full rounded-t-[46px] rounded-b-xl overflow-hidden bg-[#064A42]">
+              <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl border border-[#E2E7E4] bg-white p-1.5 shadow-sm overflow-hidden">
+                <div className="relative w-full h-full rounded-xl overflow-hidden bg-[#F0F7F5]">
                   {leadership.headmaster?.profile_photo ? (
                     <Image
                       src={leadership.headmaster.profile_photo}
@@ -1081,7 +1067,7 @@ export default function HomePage() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-white">
+                    <div className="flex h-full w-full items-center justify-center text-[#075E54]">
                       <GraduationCap className="h-16 w-16" />
                     </div>
                   )}
@@ -1117,26 +1103,10 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="relative rounded-2xl bg-[#F7F9F8] p-5 sm:p-7 border border-[#E2E7E4]">
+              <div className="relative rounded-2xl bg-white p-5 sm:p-7 border border-[#E2E7E4]">
                 <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal">
                   “বিসমিল্লাহির রাহমানির রাহীম। আসসালামু আলাইকুম ওয়ারাহমাতুল্লাহ। সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ে তুলতে মাদ্রাসা শিক্ষা একটি অনন্য মাধ্যম। জাগতিক ও পারলৌকিক উভয় জীবনে সফলতার দ্বারপ্রান্তে উপনীত হতে এই শিক্ষা অগ্রণী ভূমিকা রাখতে সক্ষম। একজন মাদ্রাসা শিক্ষার্থী একাধারে ইলমে দ্বীন অর্জনের সুযোগ লাভ করে, তেমনি আধুনিক সব বিষয়েও জ্ঞান অর্জনের সুযোগ পায়। এই প্রতিষ্ঠানকে একটি মডেল শিক্ষাপ্রতিষ্ঠানে পরিণত করাই আমাদের প্রধান স্বপ্ন ও অঙ্গীকার।”
                 </p>
-              </div>
-
-              {/* 3 Pillars */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">১. কুরআন ও সুন্নাহ</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">বিশুদ্ধ ইসলামিক জ্ঞান ও তাজভীদ</p>
-                </div>
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">২. ডিজিটাল শিক্ষা</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">বিজ্ঞান, কম্পিউটার ও ইংরেজি দক্ষতা</p>
-                </div>
-                <div className="rounded-xl bg-white p-3.5 border border-[#E2E7E4] shadow-2xs">
-                  <span className="text-[13px] font-bold text-[#075E54] block">৩. তারবিয়াহ ও শৃঙ্খলা</span>
-                  <p className="text-[12px] text-[#5F6B67] mt-0.5">উত্তম শিষ্টাচার ও আমলি জিন্দেগি</p>
-                </div>
               </div>
 
               {/* Actions */}
@@ -1157,6 +1127,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
