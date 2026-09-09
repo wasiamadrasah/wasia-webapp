@@ -20,9 +20,11 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute =
     pathname === adminPrefix || pathname.startsWith(`${adminPrefix}/`)
 
-  // 1. Admin portal is ONLY accessible on the console subdomain.
-  //    Block it everywhere else with a hard 404 (no rewrite — URL not disclosed).
-  if (isAdminRoute && !isWorkspaceSubdomain) {
+  const isLocalDev = hostname.includes("localhost") || hostname.includes("127.0.0.1")
+
+  // 1. In production, admin portal is ONLY accessible on the console subdomain.
+  //    In local dev, both console.localhost:3000 and localhost:3000/admin are supported.
+  if (isAdminRoute && !isWorkspaceSubdomain && !isLocalDev) {
     return new NextResponse(null, { status: 404 })
   }
 
@@ -144,6 +146,23 @@ export async function proxy(request: NextRequest) {
   }
 
   // Route security checks
+  if (isAdminRoute && isLocalDev) {
+    if (pathname === "/admin/login") {
+      if (token?.role === "admin") {
+        return NextResponse.redirect(new URL("/admin/dashboard", request.url))
+      }
+      return NextResponse.next({ request: { headers: requestHeaders } })
+    }
+    if (pathname === "/admin") {
+      return NextResponse.redirect(new URL(token?.role === "admin" ? "/admin/dashboard" : "/admin/login", request.url))
+    }
+    if (token?.role !== "admin") {
+      const redirectUrl = new URL("/admin/login", request.url)
+      redirectUrl.searchParams.set("callbackUrl", pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
   if (isTeacherRoute && token?.role !== "teacher") {
     return NextResponse.redirect(new URL("/teacher/login", request.url))
   }
