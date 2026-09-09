@@ -78,7 +78,7 @@ export function LoginForm({
         loadNewCaptcha()
         setUserInputCode("")
       } else if (result?.ok) {
-        const isWorkspace = typeof window !== "undefined" && window.location.hostname.startsWith("workspace.")
+        const isWorkspace = typeof window !== "undefined" && (window.location.hostname.startsWith("console.") || window.location.hostname.startsWith("workspace."))
         const targetPath = isWorkspace ? "/dashboard" : "/admin/dashboard"
         window.location.href = `${targetPath}?status=success&message=Signed in successfully`
       }

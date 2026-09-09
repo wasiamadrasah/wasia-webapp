@@ -45,7 +45,7 @@ export default async function AdminLayout({
   const headersList = await headers()
   const pathname = headersList.get("x-pathname") ?? ""
   const host = headersList.get("host") ?? ""
-  const isSubdomain = host.startsWith("workspace.")
+  const isSubdomain = host.startsWith("console.")
 
   // Allow login page without authentication
   if (pathname === "/admin/login" || pathname === "/login") {

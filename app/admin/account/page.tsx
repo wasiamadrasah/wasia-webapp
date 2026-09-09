@@ -168,7 +168,7 @@ export default function AdminAccountPage() {
         toast.success(result.message || "Email changed successfully")
         setOtpStep(false); setNewEmail(session?.user?.email ?? ""); setOtpCode("")
         if (result.requiresReauth) {
-          const isWorkspace = typeof window !== "undefined" && window.location.hostname.startsWith("workspace.")
+          const isWorkspace = typeof window !== "undefined" && (window.location.hostname.startsWith("console.") || window.location.hostname.startsWith("workspace."))
           const callbackUrl = isWorkspace
             ? `${window.location.protocol}//${window.location.host}/login`
             : `${window.location.protocol}//${window.location.host}/admin/login`

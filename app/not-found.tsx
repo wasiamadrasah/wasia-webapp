@@ -6,7 +6,7 @@ export default async function GlobalNotFound() {
   const headersList = await headers()
   const host = headersList.get("host") ?? ""
   const isAdmissionPortal = host.startsWith("admission.")
-  const isWorkspace = host.startsWith("workspace.") || host.startsWith("admin.")
+  const isWorkspace = host.startsWith("console.") || host.startsWith("workspace.") || host.startsWith("admin.")
 
   if (isWorkspace) {
     /* ── Admin / Workspace portal 404 (indigo/navy theme) ── */

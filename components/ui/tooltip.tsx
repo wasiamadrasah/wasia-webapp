@@ -41,7 +41,7 @@ function TooltipContent({
   const isWorkspace =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/teacher") ||
-    (typeof window !== "undefined" && window.location.hostname.startsWith("workspace."))
+    (typeof window !== "undefined" && (window.location.hostname.startsWith("console.") || window.location.hostname.startsWith("workspace.")))
 
   return (
     <TooltipPrimitive.Portal>

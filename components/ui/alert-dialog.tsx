@@ -56,7 +56,7 @@ function AlertDialogContent({
   const isWorkspace =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/teacher") ||
-    (typeof window !== "undefined" && window.location.hostname.startsWith("workspace."))
+    (typeof window !== "undefined" && (window.location.hostname.startsWith("console.") || window.location.hostname.startsWith("workspace.")))
 
   const sizeClasses: Record<string, string> = {
     sm: "max-w-sm",

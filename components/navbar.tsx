@@ -68,7 +68,7 @@ export function Navbar() {
   }
 
   const handleSignOut = () => {
-    const isWorkspace = typeof window !== "undefined" && window.location.hostname.startsWith("workspace.")
+    const isWorkspace = typeof window !== "undefined" && (window.location.hostname.startsWith("console.") || window.location.hostname.startsWith("workspace."))
     const callbackUrl = isWorkspace
       ? `${window.location.protocol}//${window.location.host}/login`
       : `${window.location.protocol}//${window.location.host}/admin/login`

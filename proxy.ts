@@ -10,7 +10,7 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const pathname = url.pathname
   const hostname = request.headers.get('host') || ''
-  const isWorkspaceSubdomain = hostname.startsWith('workspace.')
+  const isWorkspaceSubdomain = hostname.startsWith('console.')
 
   // 0. Bypass middleware completely for next-auth api endpoints
   if (pathname.startsWith("/api/auth/")) {
@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute =
     pathname === adminPrefix || pathname.startsWith(`${adminPrefix}/`)
 
-  // 1. Admin portal is ONLY accessible on the workspace subdomain.
+  // 1. Admin portal is ONLY accessible on the console subdomain.
   //    Block it everywhere else with a hard 404 (no rewrite — URL not disclosed).
   if (isAdminRoute && !isWorkspaceSubdomain) {
     return new NextResponse(null, { status: 404 })
@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
   const requestHeaders = new Headers(request.headers)
 
-  // 3. Workspace subdomain routing
+  // 3. Console subdomain routing
   if (isWorkspaceSubdomain) {
     // Strip "/admin" prefix if present on subdomain to maintain clean URLs
     if (isAdminRoute) {
@@ -66,22 +66,22 @@ export async function proxy(request: NextRequest) {
     const rewrittenPath = `/admin${pathname}`
     requestHeaders.set("x-pathname", rewrittenPath)
 
-    // Handle authentication checks for workspace subdomain
+    // Handle authentication checks for console subdomain
     if (pathname === "/login" || pathname === "/") {
       if (token?.role === "admin") {
         return NextResponse.redirect(new URL("/dashboard", request.url))
       }
       if (token?.role === "teacher") {
-        return NextResponse.redirect(new URL(`${url.protocol}//${hostname.replace('workspace.', '')}/teacher/dashboard`))
+        return NextResponse.redirect(new URL(`${url.protocol}//${hostname.replace('console.', '')}/teacher/dashboard`))
       }
       if (token?.role === "student") {
-        return NextResponse.redirect(new URL(`${url.protocol}//${hostname.replace('workspace.', '')}/student/dashboard`))
+        return NextResponse.redirect(new URL(`${url.protocol}//${hostname.replace('console.', '')}/student/dashboard`))
       }
       if (pathname === "/") {
         return NextResponse.redirect(new URL("/login", request.url))
       }
     } else {
-      // Require admin permissions for all workspace subdomain pages
+      // Require admin permissions for all console subdomain pages
       if (token?.role !== "admin") {
         const redirectUrl = new URL("/login", request.url)
         redirectUrl.searchParams.set("callbackUrl", pathname)
@@ -98,7 +98,7 @@ export async function proxy(request: NextRequest) {
     })
   }
 
-  // 4. Non-workspace routing (Teacher, Student, and Public layouts)
+  // 4. Non-console routing (Teacher, Student, and Public layouts)
   requestHeaders.set("x-pathname", pathname)
 
   const isTeacherRoute = pathname === teacherPrefix || pathname.startsWith(`${teacherPrefix}/`)
@@ -113,7 +113,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/teacher/dashboard", request.url))
     }
     if (token?.role === "admin") {
-      return NextResponse.redirect(new URL(`${url.protocol}//workspace.${hostname}/dashboard`))
+      return NextResponse.redirect(new URL(`${url.protocol}//console.${hostname}/dashboard`))
     }
     if (token?.role === "student") {
       return NextResponse.redirect(new URL("/student/dashboard", request.url))
@@ -131,7 +131,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/student/dashboard", request.url))
     }
     if (token?.role === "admin") {
-      return NextResponse.redirect(new URL(`${url.protocol}//workspace.${hostname}/dashboard`))
+      return NextResponse.redirect(new URL(`${url.protocol}//console.${hostname}/dashboard`))
     }
     if (token?.role === "teacher") {
       return NextResponse.redirect(new URL("/teacher/dashboard", request.url))
