@@ -19,7 +19,7 @@ async function seedAdminUser() {
     const testAdmin = {
       email: "sadiworkmail@gmail.com",
       password: "s01836650S@&#",
-      role: "admin",
+      role: "superadmin",
     }
 
     console.log("🔍 Checking if admin table exists...")
