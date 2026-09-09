@@ -1,0 +1,19 @@
+.public-site {
+  font-family: var(--font-sans);
+}
+
+.public-page-transition {
+  animation: publicFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes publicFadeIn {
+  from {
+    opacity: 0.85;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
