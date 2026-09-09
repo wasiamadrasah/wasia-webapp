@@ -68,11 +68,11 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg shadow-slate-200/60">
-      <div className="bg-[#006a4e] px-5 py-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-          <Share2 className="h-4 w-4" />
-          Share Article
+    <div className="overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs">
+      <div className="bg-[#064A42] border-b border-[#043731] px-5 py-4">
+        <h3 className="flex items-center gap-2 text-[15px] font-heading font-bold text-white">
+          <Share2 className="h-4 w-4 text-[#B68A18]" />
+          সংবাদটি শেয়ার করুন
         </h3>
       </div>
       <div className="p-5">
@@ -83,26 +83,27 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex flex-col items-center justify-center p-3 text-white rounded-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${link.color}`}
-              title={`Share on ${link.name}`}
+              className={`flex flex-col items-center justify-center p-3 text-white rounded-lg transition-opacity duration-200 hover:opacity-90 active:scale-95 ${link.color}`}
+              title={`${link.name}-এ শেয়ার করুন`}
             >
               {link.icon}
             </a>
           ))}
         </div>
         <button
+          type="button"
           onClick={handleCopyLink}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 active:scale-98 transition"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#E2E7E4] bg-[#F7F8F5] px-4 py-2.5 text-[14px] font-semibold text-[#17211E] hover:bg-[#F0F7F5] active:scale-98 transition"
         >
           {copied ? (
             <>
-              <Check className="h-4 w-4 text-emerald-600" />
-              <span className="text-emerald-700">Copied!</span>
+              <Check className="h-4 w-4 text-[#075E54]" />
+              <span className="text-[#075E54]">লিংক কপি হয়েছে!</span>
             </>
           ) : (
             <>
-              <Link className="h-4 w-4 text-slate-500" />
-              <span>Copy Link</span>
+              <Link className="h-4 w-4 text-[#5F6B67]" />
+              <span>লিংক কপি করুন</span>
             </>
           )}
         </button>

@@ -1,20 +1,30 @@
 # Madrasah Design System & Public Frontend Guidelines
 
-## Design Philosophy
+## Design Philosophy: Classic + Modern
 
-**Clean, mature, and academic.**
-No gradients, no oversized typography, and no tiny text. The visual feel balances modern academic rigor with authentic Islamic character.
+**A blend of timeless Islamic institutional heritage and crisp modern web standards.**
+
+- **Classic Heritage:**
+  - Distinctive, dignified typography (**BenSen** for authoritative titles/headings, **Kalpurush** for clean body text, **Amiri** for Quranic & Arabic accents).
+  - Authentic institutional color harmony: Deep Evergreen (`#075E54`), Dark Forest (`#064A42`), Warm Institutional Gold (`#B68A18`), and Soft Off-White canvas (`#F7F8F5`).
+  - Structured, balanced layout symmetry, clean editorial framing, and solid colors (no cheesy neon gradients or distracting gimmicks).
+
+- **Modern Execution:**
+  - Responsive, fluid layout grids (`max-w-7xl`, consistent 8px/12px/16px radii).
+  - Fast, accessible, and clean component architecture with smooth, subtle micro-interactions (`200ms ease-out`).
+  - High-contrast readability (minimum `15px` / standard `16px` Kalpurush body text) and clear visual hierarchy.
 
 ```text
-                 MODERN
-                    │
-             ┌──────┴──────┐
-             │             │
-         ACADEMIC       ISLAMIC
-             │             │
-             └──────┬──────┘
-                    │
-                TRUSTED
+               CLASSIC + MODERN
+                     │
+              ┌──────┴──────┐
+              │             │
+        HERITAGE &       CLEAN &
+         ACADEMIC       RESPONSIVE
+              │             │
+              └──────┬──────┘
+                     │
+                 DIGNIFIED
 ```
 
 ---
@@ -23,23 +33,23 @@ No gradients, no oversized typography, and no tiny text. The visual feel balance
 
 ### Font Families
 
-1. **English (Primary UI & Body):** `Inter`
+1. **Main UI & Body (Bengali & General):** `Kalpurush` (`/fonts/kalpurush.woff2`)
    ```css
-   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+   font-family: var(--font-kalpurush), "Kalpurush", sans-serif;
    ```
-   *Usage:* Navigation, headings, buttons, body text, data numbers, forms, labels.
+   *Usage:* Navigation, body text, buttons, metadata, forms, tables, notices, and general content.
 
-2. **Bangla (Bengali Content):** `Noto Sans Bengali`
+2. **Headings & Titles:** `BenSen` (`/fonts/BenSenHandwriting.ttf`)
    ```css
-   font-family: "Noto Sans Bengali", sans-serif;
+   font-family: var(--font-bensen), "BenSen", var(--font-kalpurush), sans-serif;
    ```
-   *Usage:* Whenever Bengali content or localized notices/articles appear.
+   *Usage:* All page headings (`h1`–`h6`), banner titles, card titles, section headers, and callouts.
 
-3. **Arabic (Islamic & Quranic Quotes):** `Amiri`
+3. **Arabic (Quranic & Islamic Quotes):** `Amiri`
    ```css
    font-family: "Amiri", serif;
    ```
-   *Usage:* Quranic verses, Hadith quotes, Arabic headings/names, and Islamic decorative accents.
+   *Usage:* Quranic verses, Hadith quotes, Arabic greetings, and calligraphic accents.
 
 ### Font Scale & Hierarchy
 
@@ -49,15 +59,15 @@ No gradients, no oversized typography, and no tiny text. The visual feel balance
 | **Page Heading** | `36px` | `30px` | `700` (Bold) | `1.2` |
 | **Section Heading** | `30px` | `26px` | `700` (Bold) | `1.25` |
 | **Card Heading** | `18px` | `18px` | `600` (SemiBold) | `1.3` |
-| **Navigation Link** | `14px` | `14px` | `600` (SemiBold) | `1.4` |
+| **Navigation Link** | `15px` | `15px` | `600` (SemiBold) | `1.4` |
 | **Body Text** | `16px` | `15px` | `400` (Regular) | `1.6` |
-| **Small / Meta Text** | `13px` | `13px` | `400` (Regular) | `1.5` |
-| **Button Label** | `14px` | `14px` | `600` (SemiBold) | `1` |
+| **Small / Meta Text** | `15px` | `15px` | `400` (Regular) | `1.5` |
+| **Button Label** | `15px` | `15px` | `600` (SemiBold) | `1` |
 | **Arabic Verse** | `27px` | `23px` | `400` (Regular) | `1.8` |
 
 > [!IMPORTANT]
 > - Do **not** use oversized 60–70px headings. For an educational institution, 48px provides clear hierarchy without startup-style visual noise.
-> - Do **not** use body text under 15px. 16px is the standard default for academic legibility.
+> - **Kalpurush font size must never be less than 15px in any element (metadata, captions, buttons, body text).** Default standard is 16px.
 
 ---
 

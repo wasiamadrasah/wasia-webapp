@@ -1,48 +1,34 @@
-import { Outfit } from "next/font/google"
-import Link from "next/link"
 import Image from "next/image"
 import {
   Images,
-  Building2,
-  Grid2X2,
-  Trophy,
-  FlaskConical,
-  BookOpen,
-  Monitor,
-  Drama,
   Play,
 } from "lucide-react"
 
 import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import { PublicHero } from "@/components/layout/public-hero"
 import {
-  getPhotoGalleryCategories,
   getPhotoGalleryItems,
-  getVideoGalleryCategories,
   getVideoGalleryItems,
 } from "@/lib/gallery"
 import { createPageMetadata } from "@/lib/seo"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export const metadata = createPageMetadata({
-  title: "Gallery",
+  title: "ফটোগ্যালারি ও ক্যাম্পাস চিত্র",
   description:
-    "Explore campus life, classrooms, achievements, cultural events, sports, and memorable moments at Purba Bakalia City Corporation High School.",
+    "ওয়াছিয়া আহমাদিয়া সুন্নিয়া মাদ্রাসার ক্যাম্পাস, শ্রেণিকক্ষ, দ্বীনি অনুষ্ঠান, ক্রীড়া ও বিভিন্ন একাডেমিক কার্যক্রমের চিত্রমালা।",
   path: "/gallery",
   keywords: [
-    "school gallery",
-    "PBCCHS gallery",
-    "campus photos",
-    "school events",
-    "student activities",
+    "মাদ্রাসা গ্যালারি",
+    "ফটোগ্যালারি",
+    "ক্যাম্পাস ছবি",
+    "মাদ্রাসা অনুষ্ঠান",
+    "madrasah gallery",
+    "wasia madrasah photo gallery",
   ],
 })
-
-type GalleryPageProps = {
-  searchParams?: Promise<{
-    category?: string
-  }>
-}
 
 type GalleryItem = {
   id: string
@@ -54,29 +40,30 @@ type GalleryItem = {
   createdAt: string | null
 }
 
-const categoryIconMap = new Map([
-  ["campus", Building2],
-  ["sports", Trophy],
-  ["science lab", FlaskConical],
-  ["science-lab", FlaskConical],
-  ["science_lab", FlaskConical],
-  ["cultural events", Drama],
-  ["cultural-events", Drama],
-  ["cultural_events", Drama],
-  ["classrooms", Monitor],
-  ["library", BookOpen],
-])
+const categoryTranslationMap: Record<string, string> = {
+  campus: "ক্যাম্পাস",
+  sports: "খেলাধুলা",
+  "science lab": "বিজ্ঞানাগার",
+  "science-lab": "বিজ্ঞানাগার",
+  "science_lab": "বিজ্ঞানাগার",
+  "cultural events": "অনুষ্ঠান",
+  "cultural-events": "অনুষ্ঠান",
+  "cultural_events": "অনুষ্ঠান",
+  classrooms: "শ্রেণিকক্ষ",
+  library: "পাঠাগার",
+  general: "সাধারণ",
+}
 
 function formatCategoryLabel(value: string) {
+  const normalized = value.trim().toLowerCase()
+  if (categoryTranslationMap[normalized]) {
+    return categoryTranslationMap[normalized]
+  }
   return value
     .replace(/[_-]+/g, " ")
     .trim()
     .replace(/\s+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-function getCategoryIcon(value: string) {
-  return categoryIconMap.get(value.trim().toLowerCase()) ?? Grid2X2
 }
 
 function byNewest(a: GalleryItem, b: GalleryItem) {
@@ -86,18 +73,8 @@ function byNewest(a: GalleryItem, b: GalleryItem) {
   return bTime - aTime
 }
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
-
-export default async function GalleryPage({ searchParams }: GalleryPageProps) {
-  const params = (await searchParams) ?? {}
-  const selectedCategory = (params.category ?? "all").trim().toLowerCase()
-
-  const [photoCategories, videoCategories, photos, videos] = await Promise.all([
-    getPhotoGalleryCategories(),
-    getVideoGalleryCategories(),
+export default async function GalleryPage() {
+  const [photos, videos] = await Promise.all([
     getPhotoGalleryItems(200),
     getVideoGalleryItems(200),
   ])
@@ -126,98 +103,24 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
       })),
   ].sort(byNewest)
 
-  const categoryNames = Array.from(
-    new Set([
-      ...photoCategories,
-      ...videoCategories,
-      ...galleryItems.map((item) => item.category),
-    ])
-  )
-    .filter(Boolean)
-    .sort((a, b) => formatCategoryLabel(a).localeCompare(formatCategoryLabel(b)))
-
-  const categories = [
-    {
-      label: "All",
-      value: "all",
-      icon: Grid2X2,
-    },
-    ...categoryNames.map((category) => ({
-      label: formatCategoryLabel(category),
-      value: category,
-      icon: getCategoryIcon(category),
-    })),
-  ]
-
-  const visibleItems =
-    selectedCategory === "all"
-      ? galleryItems
-      : galleryItems.filter((item) => item.category === selectedCategory)
-
   return (
-    <main>
-      {/* HERO */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <Images className="h-3.5 w-3.5 text-emerald-400" />
-            <span>PHOTO GALLERY</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Campus{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              Gallery
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Explore memorable moments, academic activities, cultural programs,
-            sports, achievements, and everyday campus life at Purba Bakalia
-            City Corporation High School.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Gallery" className="text-sm" plainCurrent />
-          </div>
-        </div>
-      </section>
+    <main className="min-h-screen bg-[#F7F8F5] text-[#17211E]">
+      {/* Public Hero adhering to Madrasah Design System */}
+      <PublicHero
+        title="ফটোগ্যালারি ও ক্যাম্পাস চিত্র"
+        subtitle="মাদ্রাসার একাডেমিক কার্যক্রম, জাতীয় ও ধর্মীয় অনুষ্ঠান, প্রতিযোগিতা এবং ক্যাম্পাস জীবনের স্মরণীয় মুহূর্তসমূহ।"
+        badgeText="ফটো ও ভিডিও গ্যালারি"
+        badgeIcon={Images}
+        breadcrumbCurrent="গ্যালারি"
+        breadcrumbParent={{ label: "হোম", href: "/" }}
+      />
 
-
-      {/* CATEGORY FILTER */}
-      <section className="sticky top-0 z-20 border-b border-slate-100 bg-white/90 px-6 py-4 backdrop-blur-xl md:px-10">
-        <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto pb-1">
-          {categories.map(({ label, value, icon: Icon }) => (
-            <Link
-              key={label}
-              href={
-                value === "all"
-                  ? "/gallery"
-                  : `/gallery?category=${encodeURIComponent(value)}`
-              }
-              className={`group inline-flex shrink-0 items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-bold transition-all duration-300 ${
-                selectedCategory === value
-                  ? "border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-600/20"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* GALLERY */}
-      <section className="bg-slate-50 px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-7xl">
-
+      {/* GALLERY GRID */}
+      <section className="py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {visibleItems.map((item) => {
+            {galleryItems.map((item) => {
               const CardElement = item.type === "video" ? "a" : "div"
 
               return (
@@ -230,33 +133,40 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
                         rel: "noreferrer",
                       }
                     : {})}
-                  className="group overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                  className="group overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
-                  <div className="relative aspect-square overflow-hidden">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#064A42]">
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.label}
                         fill
                         unoptimized
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-950 to-emerald-900 text-white">
-                        <Play className="h-12 w-12" />
+                      <div className="flex h-full w-full items-center justify-center bg-[#064A42] text-white">
+                        <Play className="h-10 w-10 text-[#B68A18]" />
                       </div>
                     )}
 
+                    {/* Gradient Overlay for Readable Text */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <span className="inline-flex rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
-                        {item.type === "video"
-                          ? `Video / ${formatCategoryLabel(item.category)}`
-                          : formatCategoryLabel(item.category)}
+                    {/* Video Badge */}
+                    {item.type === "video" && (
+                      <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#075E54] text-white shadow-sm">
+                        <Play className="h-3.5 w-3.5 fill-current" />
+                      </div>
+                    )}
+
+                    {/* Bottom Label & Category */}
+                    <div className="absolute bottom-3.5 left-3.5 right-3.5 space-y-1">
+                      <span className="inline-flex rounded-full bg-white/20 px-2.5 py-0.5 text-[12px] font-semibold text-white backdrop-blur-sm">
+                        {formatCategoryLabel(item.category)}
                       </span>
 
-                      <h3 className="mt-3 text-lg font-black leading-6 text-white">
+                      <h3 className="font-heading text-[16px] font-bold leading-snug text-white line-clamp-2">
                         {item.label}
                       </h3>
                     </div>
@@ -266,39 +176,21 @@ export default async function GalleryPage({ searchParams }: GalleryPageProps) {
             })}
           </div>
 
-          {visibleItems.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-              <p className="text-sm font-semibold text-slate-700">
-                No gallery items found.
-              </p>
-              <p className="mt-2 text-sm text-slate-500">
-                Published photo and video gallery items will appear here.
+          {/* Empty State */}
+          {galleryItems.length === 0 && (
+            <div className="rounded-2xl border border-[#E2E7E4] bg-white p-12 text-center shadow-xs">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                <Images className="h-6 w-6" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#17211E]">
+                কোনো ছবি বা ভিডিও পাওয়া যায়নি
+              </h3>
+              <p className="mt-1 text-[15px] text-[#5F6B67]">
+                গ্যালারিতে এখনো কোনো আইটেম যুক্ত করা হয়নি।
               </p>
             </div>
-          ) : null}
+          )}
 
-          {/* FOOTNOTE */}
-          <div className="mt-16 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100">
-              <Building2 className="h-8 w-8 text-emerald-700" />
-            </div>
-
-            <h3 className="mt-5 text-2xl font-black text-slate-900">
-              More Moments Coming Soon
-            </h3>
-
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-              New event albums, academic activities, and student achievements
-              will be regularly added through the administration panel.
-            </p>
-
-            <Link
-              href="/contact"
-              className="mt-6 inline-flex items-center rounded-full bg-emerald-600 px-7 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20"
-            >
-              Contact School
-            </Link>
-          </div>
         </div>
       </section>
     </main>

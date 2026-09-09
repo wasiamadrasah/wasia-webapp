@@ -1,5 +1,52 @@
+@font-face {
+  font-family: "Kalpurush";
+  src: url("/fonts/kalpurush.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BenSen";
+  src: url("/fonts/BenSenHandwriting.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 .public-site {
+  --font-sans: var(--font-kalpurush), "Kalpurush", sans-serif;
+  --font-heading: var(--font-bensen), "BenSen", var(--font-kalpurush), "Kalpurush", sans-serif;
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: clip;
+}
+
+.public-site header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+
+/* Base font size is 16px for body, keeping standard text legible */
+.public-site p,
+.public-site li,
+.public-site label,
+.public-site input,
+.public-site select,
+.public-site textarea {
+  font-size: 16px;
+}
+
+.public-site h1,
+.public-site h2,
+.public-site h3,
+.public-site h4,
+.public-site h5,
+.public-site h6,
+.public-site .font-heading {
+  font-family: var(--font-heading);
 }
 
 .public-page-transition {
@@ -16,4 +63,3 @@
     transform: translateY(0);
   }
 }
-

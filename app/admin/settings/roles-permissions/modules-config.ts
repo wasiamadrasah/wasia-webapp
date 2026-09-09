@@ -107,6 +107,7 @@ export const SYSTEM_PERMISSION_MODULES: SystemPermissionModule[] = [
     features: [
       { id: "settings_account", name: "Account Settings", actions: ["view", "edit"] },
       { id: "settings_institute", name: "Institute Settings", actions: ["view", "edit"] },
+      { id: "settings_id_generation", name: "ID Generation Setting", actions: ["view", "edit"] },
       { id: "settings_online_admission", name: "Online Admission Setting", actions: ["view", "edit"] },
       { id: "settings_notifications", name: "Notification Setting", actions: ["view", "edit"] },
       { id: "settings_whatsapp", name: "WhatsApp Messaging", actions: ["view", "edit"] },

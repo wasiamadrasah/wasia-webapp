@@ -1,228 +1,443 @@
-import { Outfit } from "next/font/google"
 import Image from "next/image"
-import { Quote, Calendar, User, GraduationCap, Mail, Phone } from "lucide-react"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import Link from "next/link"
+import {
+  Quote,
+  Calendar,
+  GraduationCap,
+  Mail,
+  Phone,
+  Clock,
+  ArrowRight,
+  BookOpen,
+  ShieldCheck,
+  Building,
+} from "lucide-react"
+import { PublicHero } from "@/components/layout/public-hero"
 import { createPageMetadata } from "@/lib/seo"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { getHomepageLeadershipCardsForAdmin } from "@/lib/homepage"
+import { sanitizeHTML } from "@/lib/utils"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export const metadata = createPageMetadata({
-  title: "Headmaster",
-  description: "Read the headmaster's message, profile, qualifications, contact information, and leadership vision.",
+  title: "অধ্যক্ষ ও মুহতামিম মহোদয়ের বাণী",
+  description: "ওয়াসিয়া কামিল মাদ্রাসার অধ্যক্ষ ও মুহতামিম মহোদয়ের বাণী, প্রোফাইল, শিক্ষাগত যোগ্যতা এবং প্রাতিষ্ঠানিক দিকনির্দেশনা।",
   path: "/headmaster",
-  keywords: ["headmaster", "principal", "school leadership", "headmaster message"],
+  keywords: ["অধ্যক্ষ", "মুহতামিম", "অধ্যক্ষের বাণী", "মাদ্রাসা প্রধান", "মাদ্রাসার নেতৃত্ব"],
 })
 
-type CurrentHeadmaster = {
-  name: string
-  designation: string
-  image: string
-  joiningYear: string
-  qualification: string
-  email: string
-  phone: string
-  message: string
-}
-
-type FormerHeadmaster = {
+type FormerLeader = {
   name: string
   period: string
+  qualification: string
 }
 
-const currentHeadmaster: CurrentHeadmaster = {
-  name: "Nasima Yasmin",
-  designation: "Headmaster (Acting)",
-  image: "/images/personnel/headmaster.png",
-  joiningYear: "Present",
-  qualification: "M.Ed, B.Ed",
-  email: "hm@pbcchs.edu.bd",
-  phone: "+8801309131385",
-  message: `Located in the heart of Chattogram—a land of unparalleled natural beauty—Purba Bakalia City Corporation High School stands as a proud symbol of educational excellence. Since its establishment in 2003, this esteemed institution has played a noteworthy role in nurturing and sharpening the intellect and potential of its students, paving the way for them to become capable and responsible citizens of the future.
-
-Education is the cornerstone of human resource development and national progress. With this belief, Purba Bakalia City Corporation High School has been working tirelessly with well-structured plans to produce self-reliant, morally grounded, and skilled individuals who will contribute meaningfully to society. Alongside the academic curriculum, the school places great emphasis on the mental, physical, social, and moral development of its students. Our mission is to ensure academic excellence while also fostering character, discipline, and integrity.
-
-To achieve this goal, our highly qualified and dedicated teaching staff have been putting in relentless effort. Each year, our students continue to demonstrate their merit in public examinations across the Science, Business Studies, and Humanities streams.
-
-We live in an era driven by information and technology. In fulfilling the vision of a transparent, efficient, and digital Bangladesh, there is no alternative to embracing ICT. Keeping pace with the times, we have integrated modern technology into our administrative and academic systems. With the help of digital tools, we are efficiently managing student attendance, examination results, and academic records, and delivering timely updates to parents and guardians via SMS.
-
-Our institution is not only focused on academics but also upholds a proud tradition of excellence in co-curricular activities. Whether it is the National Education Week, Creative Talent Search, Student Cabinet Elections, World Literature Reading Programs, or various other competitions—our students have consistently made their mark. The contributions of our Scout group and Red Crescent Unit in humanitarian and volunteer services are also extensive and commendable.
-
-With the united efforts of students, teachers, and guardians, we believe this school will continue to uphold its rich heritage while moving confidently toward a brighter future.
-
-With sincere gratitude,
-Nasima Yasmin
-Head Teacher
-Purba Bakalia City Corporation High School`,
-}
-
-const formerHeadmasters: FormerHeadmaster[] = [
+const formerLeaders: FormerLeader[] = [
   {
-    name: "Former Headmaster Name 1",
-    period: "2018 - 2023",
+    name: "মাওলানা হাফেজ কারী আব্দুল্লাহ আল-মামুন (রহ.)",
+    period: "২০১৮ — ২০২৪",
+    qualification: "দাওরায়ে হাদিস, কামিল (ফিকহ)",
   },
   {
-    name: "Former Headmaster Name 2",
-    period: "2012 - 2017",
+    name: "মাওলানা মুফতি আব্দুর রহমান (রহ.)",
+    period: "২০১২ — ২০১৮",
+    qualification: "কামিল (হাদিস), এম.এ. (ইসলামিক স্টাডিজ)",
   },
   {
-    name: "Former Headmaster Name 3",
-    period: "2007 - 2011",
+    name: "মাওলানা কাসেম আলী (রহ.)",
+    period: "২০০৫ — ২০১২",
+    qualification: "দাওরায়ে হাদিস, কামিল (তাফসির)",
   },
   {
-    name: "Former Headmaster Name 4",
-    period: "2003 - 2006",
+    name: "মাওলানা নূরুল ইসলাম (রহ.)",
+    period: "১৯৯৮ — ২০০৫",
+    qualification: "কামিল (আদব ও সাহিত্য)",
   },
 ]
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+export default async function HeadmasterPage() {
+  const [instituteSettings, leadershipCards] = await Promise.all([
+    getInstituteSettings(),
+    getHomepageLeadershipCardsForAdmin(20).catch(() => []),
+  ])
 
-export default function HeadmasterPage() {
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    "ওয়াসিয়া কামিল মাদ্রাসা"
+
+  // Find headmaster/principal card
+  const headmasterCard =
+    leadershipCards.find(
+      (card) =>
+        card.role_slug === "headmaster" ||
+        card.role_slug === "principal" ||
+        card.role_slug === "chief_education_officer"
+    ) || null
+
+  const leaderStaff = headmasterCard?.staff
+  const leaderName =
+    headmasterCard?.leader_name ||
+    leaderStaff?.full_name_en ||
+    "সৈয়দ মুহাম্মদ আবু ছালেহ"
+
+  const leaderDesignation =
+    headmasterCard?.role_title ||
+    leaderStaff?.designation ||
+    "অধ্যক্ষ ও সম্পাদক"
+
+  const leaderPhoto =
+    headmasterCard?.leader_photo_url ||
+    leaderStaff?.profile_photo ||
+    "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80"
+
+  const rawMessage = headmasterCard?.leader_message || ""
+  const isHtmlMessage = /<[a-z][\s\S]*>/i.test(rawMessage)
+
+  const defaultMessageParagraphs = [
+    "বিসমিল্লাহির রাহমানির রাহীম। আসসালামু আলাইকুম ওয়ারাহমাতুল্লাহ।",
+    "সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ে তুলতে মাদ্রাসা শিক্ষা একটি অনন্য মাধ্যম। জাগতিক ও পারলৌকিক উভয় জীবনে সফলতার দ্বারপ্রান্তে উপনীত হতে এই শিক্ষা অগ্রণী ভূমিকা রাখতে সক্ষম। কারণ, একজন মাদ্রাসা শিক্ষার্থী একাধারে কুরআন, হাদিস, ফিকহ তথা ইলমে দ্বীন অর্জনের সুযোগ যেমন লাভ করে, তেমনি বাংলা, গণিত, ইংরেজি, বিজ্ঞান ও কম্পিউটারসহ জীবন চলার পথে প্রয়োজনীয় আধুনিক সব বিষয়েও জ্ঞান অর্জনের সুযোগ পায়। ফলে একজন মুসলিম হিসেবে পূর্ণাঙ্গ জীবন গঠনের পথ অত্যন্ত সহজতর হয়ে ওঠে।",
+    "সেই মহৎ লক্ষ্যকে সামনে রেখেই চান্দগাঁও থানাধীন ওয়াছিয়া আহমাদিয়া সুন্নিয়া মাদ্রাসা তার প্রাতিষ্ঠানিক অভিভাবকত্ব অব্যাহত রেখেছে। আমাদের একান্ত বিশ্বাস, শিক্ষার্থীরা তাদের সুপ্ত মেধার বিকাশ ঘটিয়ে কুসংস্কার ও কূপমণ্ডূকতার অভিশাপ থেকে সমাজকে মুক্ত করবে। শিক্ষা, স্বাস্থ্য ও জ্ঞান-বিজ্ঞানের আলোকিত বিশ্ব ধরায় প্রিয় মাতৃভূমির জন্য একটি মর্যাদাপূর্ণ অবস্থান গড়ে তুলতে তারা নিরলসভাবে কাজ করে যাবে।",
+    "স্বনির্ভর জাতি গঠন ও সুনাগরিক তৈরির ক্ষেত্রে আদর্শ শিক্ষাপ্রতিষ্ঠানের কোনো বিকল্প নেই। সার্বিক মানদণ্ডে এই প্রতিষ্ঠানকে একটি আদর্শ ও মডেল প্রতিষ্ঠানে পরিণত করাই আমাদের প্রধান স্বপ্ন ও অঙ্গীকার।",
+    "আল্লাহ তাআলা ও তাঁর প্রিয় হাবিব সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম আমাদের সহায় হোন। আমিন, বিহুরমাতি সায়্যিদিল মুরসালীন সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম।",
+  ]
+
+  const parsedParagraphs =
+    !isHtmlMessage && rawMessage.trim()
+      ? rawMessage
+          .split(/\n\s*\n/)
+          .map((part) => part.trim())
+          .filter(Boolean)
+      : []
+
+  const displayParagraphs =
+    parsedParagraphs.length > 0 ? parsedParagraphs : defaultMessageParagraphs
+
+  const contactEmail =
+    instituteSettings.contact.email?.trim() || "principal@wasiamadrasah.edu.bd"
+  const contactPhone =
+    instituteSettings.contact.telephone?.trim() ||
+    instituteSettings.contact.mobile?.trim() ||
+    "+880 1800-000000"
+
+  const toBn = (n: number) => String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d])
+
   return (
-    <main>
-      {/* Hero Section */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <GraduationCap className="h-3.5 w-3.5 text-emerald-400" />
-            <span>HEADMASTER’S DESK</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Office of the{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              Headmaster
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Leadership, vision, and commitment shaping the future of education.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Head Teacher" className="text-sm" plainCurrent />
-          </div>
-        </div>
-      </section>
+    <main className="min-h-screen bg-[#F7F8F5]">
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* 1. PUBLIC HERO HEADER (Standard Classic + Modern Token) */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <PublicHero
+        title="অধ্যক্ষ ও মুহতামিম মহোদয়ের বাণী"
+        subtitle="ইলম ও আমলের সমন্বয়ে ভবিষ্যৎ প্রজন্মের আদর্শ দ্বীনি ও সমকালীন শিক্ষা"
+        badgeText="অধ্যক্ষ মহোদয়ের দপ্তর"
+        badgeIcon={GraduationCap}
+        breadcrumbCurrent="অধ্যক্ষের বাণী"
+        breadcrumbParent={{ label: "পরিচিতি", href: "/about" }}
+      />
 
-      {/* Current Headmaster */}
-      <section className="bg-slate-50 px-6 py-16 md:px-10">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-12">
-          {/* Profile */}
-          <div className="lg:col-span-4">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="relative aspect-square w-full bg-slate-100">
-                <Image
-                  src={currentHeadmaster.image}
-                  alt={currentHeadmaster.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="p-6">
-
-                <h2 className="mt-4 text-2xl font-bold text-slate-900">
-                  {currentHeadmaster.name}
-                </h2>
-
-                <p className="mt-1 text-sm font-medium text-emerald-700">
-                  {currentHeadmaster.designation}
-                </p>
-
-                <div className="mt-5 space-y-3 text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    <span>{currentHeadmaster.joiningYear}</span>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <User className="mt-0.5 h-4 w-4 text-slate-400" />
-                    <span>{currentHeadmaster.qualification}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-slate-400" />
-                    <span className="break-all">{currentHeadmaster.email}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-slate-400" />
-                    <span>{currentHeadmaster.phone}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Message */}
-          <div className="lg:col-span-8">
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50">
-                  <Quote className="h-6 w-6 text-emerald-600" />
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* 2. MAIN EDITORIAL PROFILE & MESSAGE SECTION */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-14 md:py-20 border-b border-[#E2E7E4]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+            
+            {/* ─────────────────────────────────────────────────────────── */}
+            {/* LEFT: PRINCIPAL PROFILE CARD (4 cols / Sticky) */}
+            {/* ─────────────────────────────────────────────────────────── */}
+            <aside className="lg:col-span-4 lg:sticky lg:top-24">
+              <div className="rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-sm">
+                
+                {/* Clean 16px Radius Portrait Photo */}
+                <div className="relative mx-auto w-full aspect-[3/4] max-w-[260px] overflow-hidden rounded-2xl border border-[#E2E7E4] bg-[#F0F7F5]">
+                  <Image
+                    src={leaderPhoto}
+                    alt={leaderName}
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 30vw"
+                  />
                 </div>
 
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">
-                    Headmaster’s Message
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    A vision for excellence and progress
+                {/* Name & Title */}
+                <div className="mt-5 text-center space-y-1">
+                  <h2 className="font-heading text-2xl font-bold text-[#17211E] leading-snug">
+                    {leaderName}
+                  </h2>
+                  <p className="text-[15px] font-semibold text-[#075E54]">
+                    {leaderDesignation}
+                  </p>
+                  <p className="text-[14px] text-[#5F6B67]">
+                    {instituteName}
                   </p>
                 </div>
+
+                {/* Key Meta Details */}
+                <div className="mt-6 pt-5 border-t border-[#E2E7E4] space-y-3.5 text-[15px]">
+                  
+                  <div className="flex items-start gap-3 text-[#17211E]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F7F5] text-[#075E54] border border-[#E2E7E4]">
+                      <GraduationCap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="block text-[13px] font-medium text-[#5F6B67]">
+                        যোগ্যতা
+                      </span>
+                      <span className="font-semibold text-[#17211E]">
+                        দাওরায়ে হাদিস, কামিল (হাদিস ও ফিকহ)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[#17211E]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F7F5] text-[#075E54] border border-[#E2E7E4]">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="block text-[13px] font-medium text-[#5F6B67]">
+                        কার্যকাল
+                      </span>
+                      <span className="font-semibold text-[#17211E]">
+                        বর্তমান অধ্যক্ষ
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[#17211E]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F7F5] text-[#075E54] border border-[#E2E7E4]">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="block text-[13px] font-medium text-[#5F6B67]">
+                        সাক্ষাতের সময়
+                      </span>
+                      <span className="font-semibold text-[#17211E]">
+                        রবি — বৃহস্পতি (১০:০০ — ০১:০০)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[#17211E]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F7F5] text-[#075E54] border border-[#E2E7E4]">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="block text-[13px] font-medium text-[#5F6B67]">
+                        ইমেইল
+                      </span>
+                      <a
+                        href={`mailto:${contactEmail}`}
+                        className="font-medium text-[#075E54] hover:underline break-all"
+                      >
+                        {contactEmail}
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 text-[#17211E]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F7F5] text-[#075E54] border border-[#E2E7E4]">
+                      <Phone className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="block text-[13px] font-medium text-[#5F6B67]">
+                        ফোন
+                      </span>
+                      <a
+                        href={`tel:${contactPhone}`}
+                        className="font-medium text-[#075E54] hover:underline"
+                      >
+                        {contactPhone}
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Primary Button (44px height, 8px radius, #075E54) */}
+                <div className="mt-6 pt-2">
+                  <Link
+                    href="/contact"
+                    className="flex h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-[#075E54] px-[18px] text-[15px] font-semibold text-white shadow-xs transition-colors duration-200 hover:bg-[#064A42]"
+                  >
+                    <span>দপ্তরে যোগাযোগ করুন</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+              </div>
+            </aside>
+
+            {/* ─────────────────────────────────────────────────────────── */}
+            {/* RIGHT: MAIN STATEMENT & INSTITUTIONAL PILLARS (8 cols) */}
+            {/* ─────────────────────────────────────────────────────────── */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Main Message Card */}
+              <div className="rounded-2xl border border-[#E2E7E4] bg-white p-6 sm:p-9 shadow-sm space-y-6">
+                
+                {/* Title Header */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#075E54]/20 bg-[#F0F7F5] px-3.5 py-1 text-[13px] font-semibold text-[#075E54]">
+                    <Quote className="h-3.5 w-3.5" />
+                    <span>প্রাতিষ্ঠানিক দিকনির্দেশনা</span>
+                  </div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E] leading-tight">
+                    নৈতিক মূল্যবোধ, দ্বীনি তাহযীব ও আধুনিক শিক্ষার সমন্বিত প্রয়াস
+                  </h2>
+                  <div className="h-1 w-16 bg-[#B68A18] rounded-full" />
+                </div>
+
+                {/* Hadith Callout Box */}
+                <div className="rounded-xl border-l-4 border-[#B68A18] bg-[#F0F7F5] p-4 sm:p-5">
+                  <p className="text-[16px] font-medium text-[#075E54] italic leading-relaxed">
+                    “যে ব্যক্তি জ্ঞানার্জনের উদ্দেশ্যে কোনো পথ অবলম্বন করে, আল্লাহ তার জন্য জান্নাতের পথ সহজ ও সুগম করে দেন।”
+                  </p>
+                  <span className="text-[14px] font-semibold text-[#B68A18] block mt-1.5">
+                    — সহীহ মুসলিম: ২৬৯৯
+                  </span>
+                </div>
+
+                {/* Editorial Body Text (Standard 16px, leading-1.6) */}
+                <div className="space-y-4 text-[16px] leading-relaxed text-[#17211E]">
+                  {isHtmlMessage ? (
+                    <div
+                      className="prose prose-emerald max-w-none prose-p:leading-relaxed prose-p:text-[#17211E] prose-p:mb-4"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHTML(rawMessage) }}
+                    />
+                  ) : (
+                    displayParagraphs.map((para, index) => (
+                      <p key={index} className="text-justify">
+                        {para}
+                      </p>
+                    ))
+                  )}
+                </div>
+
+                {/* 3 Core Institutional Focus Pillars */}
+                <div className="pt-5 border-t border-[#E2E7E4]">
+                  <h3 className="font-heading text-[18px] font-semibold text-[#17211E] mb-4">
+                    আমাদের ৩টি মূল প্রাতিষ্ঠানিক স্তম্ভ
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div className="rounded-xl bg-[#F7F8F5] p-4 border border-[#E2E7E4]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#075E54] border border-[#E2E7E4] mb-2.5">
+                        <BookOpen className="h-5 w-5" />
+                      </div>
+                      <h4 className="text-[15px] font-bold text-[#17211E]">১. বিশুদ্ধ দ্বীনি শিক্ষা</h4>
+                      <p className="text-[14px] text-[#5F6B67] mt-1 leading-normal">
+                        কুরআনুল কারীম হিফজ, তাজভীদ ও সহীহ হাদিস চর্চা।
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-[#F7F8F5] p-4 border border-[#E2E7E4]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#075E54] border border-[#E2E7E4] mb-2.5">
+                        <GraduationCap className="h-5 w-5" />
+                      </div>
+                      <h4 className="text-[15px] font-bold text-[#17211E]">২. আধুনিক পাঠ্যক্রম</h4>
+                      <p className="text-[14px] text-[#5F6B67] mt-1 leading-normal">
+                        বিজ্ঞান, গণিত, আইসিটি ল্যাব ও ইংরেজি দক্ষতা।
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-[#F7F8F5] p-4 border border-[#E2E7E4]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#075E54] border border-[#E2E7E4] mb-2.5">
+                        <ShieldCheck className="h-5 w-5" />
+                      </div>
+                      <h4 className="text-[15px] font-bold text-[#17211E]">৩. তারবিয়াহ ও চরিত্র</h4>
+                      <p className="text-[14px] text-[#5F6B67] mt-1 leading-normal">
+                        সুন্নাহর বাস্তবায়ন, শৃঙ্খলা ও উত্তম শিষ্টাচার গঠন।
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formal Signature Block */}
+                <div className="pt-6 border-t border-[#E2E7E4]">
+                  <div>
+                    <p className="text-[14px] text-[#5F6B67]">আন্তরিক দোয়াপ্রার্থী,</p>
+                    <p className="font-heading text-[18px] font-bold text-[#17211E] mt-0.5">
+                      {leaderName}
+                    </p>
+                    <p className="text-[15px] font-semibold text-[#075E54]">
+                      {leaderDesignation}
+                    </p>
+                    <p className="text-[14px] text-[#5F6B67]">
+                      {instituteName}
+                    </p>
+                  </div>
+                </div>
+
               </div>
 
-              <div className="space-y-5 whitespace-pre-line text-base leading-8 text-slate-700">
-                {currentHeadmaster.message}
-              </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* Former Headmasters */}
-      <section className="bg-white px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold text-slate-900">
-              Former Head Teachers
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* 3. FORMER PRINCIPALS / HEADMASTERS TABLE */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <section className="bg-white py-14 md:py-20 border-b border-[#E2E7E4]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+          
+          {/* Section Header */}
+          <div className="text-center space-y-2 mb-10 md:mb-12">
+            <div className="inline-flex items-center rounded-full border border-[#075E54]/20 bg-[#F0F7F5] px-3.5 py-1 text-[13px] font-semibold text-[#075E54]">
+              <span>ঐতিহ্য ও খেদমত</span>
+            </div>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
+              প্রাক্তন অধ্যক্ষ ও মুহতামিমবৃন্দের তালিকা
             </h2>
-            <p className="mt-3 text-slate-600">
-              A legacy of leadership and educational service.
+            <div className="h-1 w-16 bg-[#B68A18] rounded-full mx-auto" />
+            <p className="text-[15px] text-[#5F6B67] max-w-2xl mx-auto leading-relaxed">
+              মাদ্রাসার প্রতিষ্ঠাকালীন সময় থেকে যাদের মেহনত ও দিকনির্দেশনায় প্রতিষ্ঠানটি আজকের এই মানে পৌঁছেছে
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          {/* Table Container */}
+          <div className="overflow-hidden rounded-xl border border-[#E2E7E4] bg-white shadow-xs">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
+              <table className="min-w-full divide-y divide-[#E2E7E4]">
+                <thead className="bg-[#075E54] text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                      #
+                    <th scope="col" className="px-5 py-3.5 text-left text-[14px] font-semibold">
+                      ক্রমিক
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                      Name
+                    <th scope="col" className="px-5 py-3.5 text-left text-[14px] font-semibold">
+                      নাম ও পদবী
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                      Working Period
+                    <th scope="col" className="px-5 py-3.5 text-left text-[14px] font-semibold">
+                      শিক্ষাগত যোগ্যতা
+                    </th>
+                    <th scope="col" className="px-5 py-3.5 text-left text-[14px] font-semibold">
+                      কার্যকাল
                     </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-100">
-                  {formerHeadmasters.map((headmaster, index) => (
-                    <tr key={headmaster.name} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm">{index + 1}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">
-                        {headmaster.name}
+                <tbody className="divide-y divide-[#E2E7E4] bg-white text-[15px]">
+                  {formerLeaders.map((leader, index) => (
+                    <tr
+                      key={leader.name}
+                      className="hover:bg-[#F0F7F5] transition-colors duration-150"
+                    >
+                      <td className="px-5 py-4 font-semibold text-[#075E54]">
+                        {toBn(index + 1)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {headmaster.period}
+                      <td className="px-5 py-4 font-bold text-[#17211E]">
+                        {leader.name}
+                      </td>
+                      <td className="px-5 py-4 text-[#5F6B67]">
+                        {leader.qualification}
+                      </td>
+                      <td className="px-5 py-4 font-medium text-[#075E54]">
+                        {leader.period}
                       </td>
                     </tr>
                   ))}
@@ -231,16 +446,17 @@ export default function HeadmasterPage() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-12 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-8 py-8 text-center">
-            <h3 className="text-xl font-bold text-slate-900">
-              Legacy of Leadership
-            </h3>
-            <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-slate-600">
-              Our institution’s progress has been shaped by visionary leaders
-              whose dedication and service continue to inspire generations.
+          {/* Tribute Note */}
+          <div className="mt-8 rounded-xl border border-[#E2E7E4] bg-[#F7F8F5] p-6 text-center space-y-1.5">
+            <div className="flex items-center justify-center gap-2 text-[#075E54] font-semibold text-[15px]">
+              <Building className="h-4 w-4 text-[#B68A18]" />
+              <span>স্মৃতিচারণ ও কৃতজ্ঞতা</span>
+            </div>
+            <p className="text-[14px] leading-relaxed text-[#5F6B67] max-w-2xl mx-auto">
+              মাদ্রাসার সার্বিক উন্নয়ন ও শিক্ষা প্রসারে সকল সাবেক দায়িত্বশীলদের অবদান আমরা গভীর শ্রদ্ধার সাথে স্মরণ করি। আল্লাহ সুবহানাহু ওয়া তায়ালা তাঁদের খেদমত কবুল করুন।
             </p>
           </div>
+
         </div>
       </section>
     </main>

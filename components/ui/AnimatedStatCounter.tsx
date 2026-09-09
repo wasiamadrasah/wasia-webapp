@@ -6,15 +6,30 @@ interface AnimatedStatCounterProps {
   value: number
   suffix: string
   delay?: number
+  convertBangla?: boolean
 }
 
-export function AnimatedStatCounter({ value, suffix, delay = 0 }: AnimatedStatCounterProps) {
+function toBanglaDigits(val: number | string): string {
+  const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯']
+  return String(val).replace(/[0-9]/g, (digit) => banglaDigits[Number(digit)] || digit)
+}
+
+export function AnimatedStatCounter({
+  value,
+  suffix,
+  delay = 0,
+  convertBangla = true,
+}: AnimatedStatCounterProps) {
   const [displayValue, setDisplayValue] = useState(0)
   const hasAnimated = useRef(false)
+  const containerRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     // Skip if already animated
     if (hasAnimated.current) return
+
+    const node = containerRef.current
+    if (!node) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -24,7 +39,7 @@ export function AnimatedStatCounter({ value, suffix, delay = 0 }: AnimatedStatCo
           // Use setTimeout to respect the delay
           const delayTimer = setTimeout(() => {
             const startTime = performance.now()
-            const duration = 1500 // Slightly shorter for snappier feel
+            const duration = 1600 // Smooth duration for natural feel
 
             const animate = (currentTime: number) => {
               const elapsed = currentTime - startTime
@@ -46,24 +61,24 @@ export function AnimatedStatCounter({ value, suffix, delay = 0 }: AnimatedStatCo
         }
       },
       {
-        threshold: 0.5, // Trigger when 50% visible
-        rootMargin: '50px', // Start animation 50px before element is visible
+        threshold: 0.3,
+        rootMargin: '50px',
       }
     )
 
-    const element = document.querySelector(`[data-stat="${value}"]`)
-    if (element) {
-      observer.observe(element)
-    }
+    observer.observe(node)
 
     return () => {
-      if (element) observer.unobserve(element)
+      observer.unobserve(node)
     }
   }, [value, delay])
 
+  const formattedValue = convertBangla ? toBanglaDigits(displayValue) : displayValue
+  const formattedSuffix = convertBangla ? toBanglaDigits(suffix) : suffix
+
   return (
-    <span data-stat={value} style={{ willChange: 'contents' }}>
-      {displayValue}{suffix}
+    <span ref={containerRef} style={{ willChange: 'contents' }}>
+      {formattedValue}{formattedSuffix}
     </span>
   )
 }

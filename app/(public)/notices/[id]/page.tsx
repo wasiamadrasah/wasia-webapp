@@ -1,12 +1,81 @@
-import { Outfit } from "next/font/google"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getNoticeById } from "@/lib/db"
 import { createPageMetadata, plainText } from "@/lib/seo"
 import { sanitizeHTML } from "@/lib/utils"
-import { ArrowLeft, CalendarDays, CircleAlert, Paperclip, Tag } from "lucide-react"
+import { PublicHero } from "@/components/layout/public-hero"
+import { ArrowLeft, Bell, CalendarDays, Download, Info, Paperclip, Tag } from "lucide-react"
 
 export const dynamic = "force-dynamic"
+
+const banglaDigits: Record<string, string> = {
+  "0": "০",
+  "1": "১",
+  "2": "২",
+  "3": "৩",
+  "4": "৪",
+  "5": "৫",
+  "6": "৬",
+  "7": "৭",
+  "8": "৮",
+  "9": "৯",
+}
+
+function toBanglaNumber(num: number | string): string {
+  return String(num).replace(/[0-9]/g, (digit) => banglaDigits[digit] || digit)
+}
+
+const banglaMonths = [
+  "জানুয়ারি",
+  "ফেব্রুয়ারি",
+  "মার্চ",
+  "এপ্রিল",
+  "মে",
+  "জুন",
+  "জুলাই",
+  "আগস্ট",
+  "সেপ্টেম্বর",
+  "অক্টোবর",
+  "নভেম্বর",
+  "ডিসেম্বর",
+]
+
+function formatBanglaDate(value: string | null) {
+  if (!value) return "তারিখ অপ্রাপ্ত"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "তারিখ অপ্রাপ্ত"
+
+  const day = toBanglaNumber(date.getDate())
+  const month = banglaMonths[date.getMonth()]
+  const year = toBanglaNumber(date.getFullYear())
+  return `${day} ${month}, ${year}`
+}
+
+const categoryMap: Record<string, string> = {
+  general: "সাধারণ",
+  General: "সাধারণ",
+  academic: "একাডেমিক",
+  Academic: "একাডেমিক",
+  admission: "ভর্তি সংক্রান্ত",
+  Admission: "ভর্তি সংক্রান্ত",
+  exam: "পরীক্ষা সংক্রান্ত",
+  Exam: "পরীক্ষা সংক্রান্ত",
+  examination: "পরীক্ষা সংক্রান্ত",
+  holiday: "ছুটির নোটিশ",
+  Holiday: "ছুটির নোটিশ",
+  emergency: "জরুরি বিজ্ঞপ্তি",
+  Emergency: "জরুরি বিজ্ঞপ্তি",
+  administrative: "প্রশাসনিক",
+  Administrative: "প্রশাসনিক",
+  event: "অনুষ্ঠানমালা",
+  Event: "অনুষ্ঠানমালা",
+}
+
+function toBanglaCategory(cat?: string | null): string {
+  if (!cat) return "সাধারণ"
+  const trimmed = cat.trim()
+  return categoryMap[trimmed] || categoryMap[trimmed.toLowerCase()] || trimmed
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -14,26 +83,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!notice || (notice.published === false && !notice.published_at)) {
     return createPageMetadata({
-      title: "Notice Not Found",
-      description: "The requested school notice could not be found.",
+      title: "নোটিশ পাওয়া যায়নি",
+      description: "অনুরোধকৃত নোটিশটি পাওয়া যায়নি।",
       path: `/notices/${id}`,
       image: "/images/og/og-notice.png",
     })
   }
 
   return createPageMetadata({
-    title: notice.title || "School Notice",
-    description: plainText(notice.content, 160) || "Read this official school notice.",
+    title: notice.title || "নোটিশ বিবরণ",
+    description: plainText(notice.content, 160) || "ওয়াসিয়া কামিল মাদ্রাসার অফিসিয়াল নোটিশ।",
     path: `/notices/${id}`,
     image: "/images/og/og-notice.png",
-    keywords: [notice.notice_type || "notice", "school notice", "PBCCHS notice"],
+    keywords: [notice.notice_type || "নোটিশ", "মাদ্রাসা নোটিশ", "ওয়াসিয়া মাদ্রাসা"],
   })
 }
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
 
 export default async function NoticeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -54,99 +118,123 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   const dateStr = normalizedNotice.published_at || normalizedNotice.created_at
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            {normalizedNotice.title || "Untitled Notice"}
-          </h1>
-        </div>
-      </section>
+    <main className="bg-[#F0F7F5]">
+      {/* Global Public Hero Banner */}
+      <PublicHero
+        title={normalizedNotice.title || "নোটিশ বিবরণ"}
+        badgeText={toBanglaCategory(normalizedNotice.notice_type)}
+        badgeIcon={Bell}
+        breadcrumbCurrent="নোটিশ বিবরণ"
+        breadcrumbParent={{ label: "নোটিশ বোর্ড", href: "/notices" }}
+      />
 
-      <section className="bg-background pt-10 pb-14">
+      <section className="bg-[#F0F7F5] py-8 md:py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
-              <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg dark:shadow-none">
-                <div className="h-1.5 w-full bg-[#006a4e] dark:bg-emerald-500" />
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
+            {/* Left: Notice Content (8 cols) */}
+            <div className="space-y-6 lg:col-span-8">
+              <div className="overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs">
+                <div className="border-b border-[#E2E7E4] bg-[#F7F8F5] px-6 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[15px] text-[#5F6B67]">
+                    <CalendarDays className="h-4 w-4 text-[#075E54]" />
+                    <span>প্রকাশের তারিখ: <strong className="text-[#17211E]">{formatBanglaDate(dateStr)}</strong></span>
+                  </div>
+                  {normalizedNotice.notice_type && (
+                    <span className="rounded-full border border-[#075E54]/20 bg-[#F0F7F5] text-[#075E54] font-semibold text-[13px] px-3 py-1">
+                      {toBanglaCategory(normalizedNotice.notice_type)}
+                    </span>
+                  )}
+                </div>
 
                 <div className="p-6 sm:p-8">
                   {normalizedNotice.content ? (
                     <div
-                      className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-headings:text-foreground prose-p:leading-relaxed prose-p:text-foreground/90 prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline prose-li:text-foreground/90 prose-strong:text-foreground prose-blockquote:border-l-emerald-600 dark:prose-blockquote:border-l-emerald-400 prose-blockquote:text-muted-foreground prose-code:text-emerald-600 dark:prose-code:text-emerald-400 prose-code:bg-emerald-50 dark:prose-code:bg-emerald-950/60 prose-code:rounded prose-code:px-1 prose-table:text-sm prose-th:text-foreground prose-td:text-muted-foreground prose-img:rounded-lg"
+                      className="prose max-w-none text-[16px] leading-relaxed text-[#17211E] prose-headings:font-heading prose-headings:font-bold prose-headings:text-[#17211E] prose-p:leading-relaxed prose-p:text-[#17211E] prose-a:text-[#075E54] prose-a:font-semibold hover:prose-a:underline prose-li:text-[#17211E] prose-strong:text-[#17211E] prose-blockquote:border-l-[#075E54] prose-blockquote:text-[#5F6B67] prose-img:rounded-xl prose-img:shadow-xs"
                       dangerouslySetInnerHTML={{ __html: sanitizeHTML(normalizedNotice.content) }}
                     />
                   ) : (
-                    <p className="leading-relaxed text-muted-foreground">No content available.</p>
+                    <p className="leading-relaxed text-[#5F6B67] text-[15px]">
+                      এই নোটিশের কোনো অতিরিক্ত বিবরণ প্রদান করা হয়নি।
+                    </p>
                   )}
                 </div>
+
+                {normalizedNotice.attachment_url && (
+                  <div className="border-t border-[#E2E7E4] bg-[#F7F8F5] p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#075E54] text-white">
+                        <Paperclip className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[#17211E] text-[15px]">সংযুক্তি ফাইল সংরক্ষিত আছে</p>
+                        <p className="text-[13px] text-[#5F6B67]">অফিসিয়াল কপি দেখার জন্য ফাইল ডাউনলোড করুন</p>
+                      </div>
+                    </div>
+                    <a
+                      href={normalizedNotice.attachment_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#075E54] px-5 py-2.5 text-[15px] font-bold text-white transition hover:bg-[#064A42] shadow-xs"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>ডাউনলোড করুন</span>
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div>
                 <Link
                   href="/notices"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#006a4e] dark:bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 dark:hover:bg-emerald-500"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#075E54] px-5 py-2.5 text-[15px] font-bold text-white shadow-xs transition hover:bg-[#064A42]"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Notices</span>
+                  <span>সকল নোটিশে ফিরে যান</span>
                 </Link>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg dark:shadow-none">
-                <div className="bg-[#006a4e] dark:bg-emerald-950/90 border-b border-emerald-800/40 px-5 py-4">
-                  <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-                    <CircleAlert className="h-4 w-4" />
-                    Notice Info
+            {/* Right: Notice Information Box (4 cols) */}
+            <div className="space-y-6 lg:col-span-4">
+              <div className="overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs">
+                <div className="bg-[#064A42] border-b border-[#043731] px-5 py-4 text-white">
+                  <h3 className="flex items-center gap-2 text-[16px] font-heading font-bold text-white">
+                    <Info className="h-4 w-4 text-[#B68A18]" />
+                    বিজ্ঞপ্তি সংক্রান্ত তথ্য
                   </h3>
                 </div>
-                <ul className="divide-y divide-border">
+                <ul className="divide-y divide-[#E2E7E4]">
                   <li className="flex items-center justify-between px-5 py-3.5">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/80 bg-emerald-50 dark:border-emerald-800/60 dark:bg-emerald-950/70 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                    <span className="text-[14px] font-semibold text-[#5F6B67]">ক্যাটাগরি</span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#075E54]/20 bg-[#F0F7F5] px-3 py-0.5 text-[13px] font-semibold text-[#075E54]">
                       <Tag className="h-3.5 w-3.5" />
-                      {normalizedNotice.notice_type?.trim() || "General"}
+                      {toBanglaCategory(normalizedNotice.notice_type)}
                     </span>
                   </li>
 
                   <li className="flex items-center justify-between px-5 py-3.5">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Published</span>
-                    <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
-                      <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      {dateStr
-                        ? new Date(dateStr).toLocaleDateString("en-BD", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                        : "Unknown"}
+                    <span className="text-[14px] font-semibold text-[#5F6B67]">প্রকাশের তারিখ</span>
+                    <span className="inline-flex items-center gap-1.5 text-[15px] text-[#17211E] font-medium">
+                      <CalendarDays className="h-4 w-4 text-[#075E54]" />
+                      {formatBanglaDate(dateStr)}
                     </span>
                   </li>
 
                   <li className="flex items-center justify-between px-5 py-3.5">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attachment</span>
+                    <span className="text-[14px] font-semibold text-[#5F6B67]">সংযুক্তি ফাইল</span>
                     {normalizedNotice.attachment_url ? (
                       <a
                         href={normalizedNotice.attachment_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-full border border-emerald-300/80 bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 transition hover:bg-[#006a4e] hover:text-white dark:hover:bg-emerald-700"
+                        className="inline-flex items-center gap-1 rounded-md border border-[#075E54]/20 bg-[#F0F7F5] px-2.5 py-1 text-[13px] font-semibold text-[#075E54] transition hover:bg-[#075E54] hover:text-white"
                       >
                         <Paperclip className="h-3.5 w-3.5" />
-                        Open File
+                        ডাউনলোড
                       </a>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
-                        <Paperclip className="h-3.5 w-3.5" />
-                        None
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[#F7F8F5] border border-[#E2E7E4] px-2.5 py-0.5 text-[13px] font-semibold text-[#5F6B67]">
+                        ফাইল নেই
                       </span>
                     )}
                   </li>
@@ -159,6 +247,3 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
     </main>
   )
 }
-
-
-

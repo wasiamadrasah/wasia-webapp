@@ -13,6 +13,7 @@ import { uploadImage } from "@/lib/r2";
 import { logTeacherMutation, logStaffMutation, logNoticeMutation, logEventMutation } from "@/app/server-actions/audit";
 import { sendOTPEmail, sendTeacherPasswordResetEmail, sendTeacherWelcomeEmail } from "@/lib/email";
 import { getInstituteSettings } from "@/lib/institute-settings-store";
+import { generateNextEmployeeID } from "@/lib/id-generation-store";
 
 function isMissingTableError(error: { code?: string; message?: string } | null) {
   if (!error) {
@@ -643,11 +644,15 @@ export async function createTeacherAction(formData: FormData) {
       throw new Error("Password is required.");
     }
 
+    const manualEmployeeId = (formData.get("employee_id") as string | null)?.trim() || null;
+    const autoEmployeeId = manualEmployeeId || (await generateNextEmployeeID());
+
     const payload = {
       full_name_en: normalizeHumanName((formData.get("full_name_en") as string) ?? ""),
       email: formData.get("email") as string,
       contact_number: (formData.get("contact_number") as string) || null,
       type: "teacher",
+      ...(autoEmployeeId ? { employee_id: autoEmployeeId } : {}),
     };
 
     const payloadWithStatus = {
@@ -1263,11 +1268,15 @@ export async function createStaffAction(formData: FormData) {
       throw new Error("Password is required.");
     }
 
+    const manualEmployeeId = (formData.get("employee_id") as string | null)?.trim() || null;
+    const autoEmployeeId = manualEmployeeId || (await generateNextEmployeeID());
+
     const payload = {
       full_name_en: normalizeHumanName((formData.get("full_name_en") as string) ?? ""),
       email: formData.get("email") as string,
       contact_number: (formData.get("contact_number") as string) || null,
       type: "staff",
+      ...(autoEmployeeId ? { employee_id: autoEmployeeId } : {}),
     };
 
     const payloadWithStatus = {

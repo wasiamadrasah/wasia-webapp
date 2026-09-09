@@ -1,4 +1,4 @@
-import { Inter, Noto_Sans_Bengali } from "next/font/google"
+import localFont from "next/font/local"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import NavigationProgress from "@/components/layout/NavigationProgress"
@@ -6,16 +6,16 @@ import { getSeoSettings } from "@/lib/seo"
 import { getFooterLinkSections } from "@/lib/homepage"
 import "./public-site.css"
 
-const inter = Inter({
-  subsets: ["latin"],
+const kalpurush = localFont({
+  src: "../../public/fonts/kalpurush.woff2",
+  variable: "--font-kalpurush",
   display: "swap",
 })
 
-const notoBengali = Noto_Sans_Bengali({
-  subsets: ["bengali"],
-  weight: ["400", "500", "600", "700", "800"],
+const bensen = localFont({
+  src: "../../public/fonts/BenSenHandwriting.ttf",
+  variable: "--font-bensen",
   display: "swap",
-  variable: "--font-bangla",
 })
 
 export const revalidate = 3600
@@ -66,15 +66,17 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div
-      className="public-site"
-      style={{
-        "--font-sans": `${inter.style.fontFamily}, ${notoBengali.style.fontFamily}, sans-serif`,
-      } as React.CSSProperties}
+      className={`public-site ${kalpurush.variable} ${bensen.variable}`}
     >
       <NavigationProgress />
       <Navbar
         initialLogo={seo.logoUrl}
-        initialInstituteName={seo.siteName}
+        initialInstituteName={
+          seo.settings?.primary?.instituteNameBn?.trim() ||
+          seo.settings?.primary?.instituteName?.trim() ||
+          "ওয়াসিয়া কামিল মাদ্রাসা"
+        }
+        initialSettings={seo.settings}
       />
       <script
         type="application/ld+json"

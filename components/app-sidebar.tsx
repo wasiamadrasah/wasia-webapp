@@ -313,6 +313,10 @@ const data = {
           url: "/admin/iconfig",
         },
         {
+          title: "ID Generation",
+          url: "/admin/settings/id-generation",
+        },
+        {
           title: "Online Admission Setting",
           url: "/admin/settings/online-admission",
         },

@@ -29,11 +29,19 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: {
+    optimizePackageImports: [
+      "@tabler/icons-react",
+      "lucide-react",
+      "@mui/material",
+      "@mui/icons-material",
+      "recharts",
+      "date-fns",
+      "framer-motion",
+    ],
     serverActions: {
       bodySizeLimit: "10mb",
     },
   },
-  turbopack: {},
   images: {
     remotePatterns,
     // Optimize images for better performance
