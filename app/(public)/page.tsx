@@ -1365,11 +1365,8 @@ export default function HomePage() {
                       </div>
                     ) : (
                       <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-gradient-to-br from-[#075E54] via-[#064A42] to-[#03342E] flex flex-col items-center justify-center p-6 text-center">
-                        <div className="relative z-10 flex flex-col items-center gap-2">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-[#B68A18] shadow-inner backdrop-blur-xs transition-transform duration-300 group-hover:scale-110">
-                            <Newspaper className="h-7 w-7" />
-                          </div>
-                          <span className="text-[11.5px] font-semibold text-white/80 tracking-wide uppercase">ওয়াসিয়া মাদ্রাসা সংবাদ</span>
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-[#B68A18] shadow-inner backdrop-blur-xs transition-transform duration-300 group-hover:scale-110">
+                          <Newspaper className="h-7 w-7" />
                         </div>
                       </div>
                     )}
