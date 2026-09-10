@@ -1302,21 +1302,21 @@ export default function HomePage() {
                 id: "fallback-news-1",
                 title: "মাদ্রাসার বার্ষিক কুরআন তিলাওয়াত ও হিফজ প্রতিযোগিতা ২০২৬ অনুষ্ঠিত",
                 content: "অত্যন্ত ভাবগাম্ভীর্য ও উৎসবমুখর পরিবেশে মাদ্রাসার বার্ষিক কিরাত ও হিফজ প্রতিযোগিতা সম্পন্ন হয়েছে। দেশবরেণ্য ওলামায়ে কেরাম ও বিচারকমণ্ডলীর উপস্থিতিতে কৃতি শিক্ষার্থীদের পুরস্কৃত করা হয়।",
-                image_url: "https://images.unsplash.com/photo-1588072432836-e10032774350?w=1400&q=80",
+                image_url: null,
                 published_at: new Date().toISOString(),
               },
               {
                 id: "fallback-news-2",
                 title: "শিক্ষার্থীদের আধুনিক তথ্যপ্রযুক্তি ও কম্পিউটার ল্যাব প্রশিক্ষণ কর্মশালা",
                 content: "দ্বীনি শিক্ষার পাশাপাশি আধুনিক জ্ঞান ও তথ্যপ্রযুক্তিতে দক্ষ করে গড়ে তুলতে শিক্ষার্থীদের জন্য বিশেষ কম্পিউটার প্রশিক্ষণ কর্মশালা উদ্বোধন করা হয়েছে।",
-                image_url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1400&q=80",
+                image_url: null,
                 published_at: new Date(Date.now() - 86400000 * 5).toISOString(),
               },
               {
                 id: "fallback-news-3",
                 title: "পরিবেশ সুরক্ষায় মাদ্রাসার উদ্যোগে বৃক্ষরোপণ কর্মসূচি ও আলোচনা সভা",
                 content: "সবুজ ক্যাম্পাস বিনির্মাণ ও পরিবেশ সংরক্ষণে সচেতনতা বৃদ্ধির লক্ষ্যে শিক্ষক ও শিক্ষার্থীদের অংশগ্রহণে দিনব্যাপী ফলদ ও বনজ বৃক্ষরোপণ কর্মসূচি পালিত হয়েছে।",
-                image_url: "https://images.unsplash.com/photo-1526676037777-05a232554f77?w=1400&q=80",
+                image_url: null,
                 published_at: new Date(Date.now() - 86400000 * 10).toISOString(),
               },
             ]).map((item) => {
@@ -1341,6 +1341,7 @@ export default function HomePage() {
               const monthBn = bnMonths[parsedDate.getMonth()]
               const yearBn = toBn(parsedDate.getFullYear())
               const snippet = stripHtml(item.content)
+              const featuredImg = item.image_url || item.featured_image || null
 
               return (
                 <Link
@@ -1349,16 +1350,29 @@ export default function HomePage() {
                   className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs transition-all duration-200 hover:border-[#075E54]/40 hover:shadow-md"
                 >
                   <div>
-                    {/* Thumbnail Image */}
-                    <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-[#064A42]">
-                      <Image
-                        src={item.image_url || "https://images.unsplash.com/photo-1588072432836-e10032774350?w=1400&q=80"}
-                        alt={item.title || "মাদ্রাসা সংবাদ"}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                    </div>
+                    {/* Thumbnail Image or Static Icon Banner */}
+                    {featuredImg ? (
+                      <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-[#064A42]">
+                        <Image
+                          src={featuredImg}
+                          alt={item.title || "মাদ্রাসা সংবাদ"}
+                          fill
+                          unoptimized={featuredImg.startsWith("http://") || featuredImg.startsWith("https://")}
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                      </div>
+                    ) : (
+                      <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-gradient-to-br from-[#075E54] via-[#064A42] to-[#03342E] flex flex-col items-center justify-center p-6 text-center">
+                        <div className="relative z-10 flex flex-col items-center gap-2">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-[#B68A18] shadow-inner backdrop-blur-xs transition-transform duration-300 group-hover:scale-110">
+                            <Newspaper className="h-7 w-7" />
+                          </div>
+                          <span className="text-[11.5px] font-semibold text-white/80 tracking-wide uppercase">ওয়াসিয়া মাদ্রাসা সংবাদ</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Content Block */}
                     <div className="p-5 sm:p-6 space-y-2.5">

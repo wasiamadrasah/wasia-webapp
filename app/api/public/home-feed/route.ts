@@ -110,7 +110,9 @@ export async function GET() {
           id: item.id,
           title: item.title,
           content: item.content,
-          published_at: item.published_at,
+          image_url: item.featured_image_url ?? (item as any).image_url ?? null,
+          featured_image: item.featured_image_url ?? (item as any).image_url ?? null,
+          published_at: item.published_at ?? (item as any).publish_date ?? item.created_at,
           created_at: item.created_at,
         })),
       events: events
