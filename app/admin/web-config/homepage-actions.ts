@@ -318,6 +318,7 @@ export async function updateHomepageLeadershipCardAction(formData: FormData) {
     const leaderMessage = normalizeText(formData.get("leader_message")) || null
     const leaderPhotoFile = getHeroImageFile(formData.get("leader_photo_file"))
     const leaderPhotoUrl = normalizeText(formData.get("leader_photo_url")) || null
+    const leaderPhotoUrlFallback = normalizeText(formData.get("leader_photo_url_fallback")) || null
     const subtitle = normalizeText(formData.get("subtitle")) || null
     const displayOrderRaw = normalizeText(formData.get("display_order"))
     const displayOrder = Number.isFinite(Number(displayOrderRaw)) ? Number(displayOrderRaw) : 0
@@ -326,7 +327,7 @@ export async function updateHomepageLeadershipCardAction(formData: FormData) {
     if (!roleTitle) throw new Error("Leadership role title is required.")
 
     const uploadedPhotoUrl = leaderPhotoFile ? await uploadLeadershipImage(leaderPhotoFile) : null
-    const resolvedLeaderPhotoUrl = uploadedPhotoUrl ?? leaderPhotoUrl ?? null
+    const resolvedLeaderPhotoUrl = uploadedPhotoUrl ?? leaderPhotoUrl ?? leaderPhotoUrlFallback ?? null
 
     const supabase = await getAdminSupabaseClient()
     const { error } = await supabase

@@ -64,16 +64,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Field, FieldLabel } from "@/components/ui/field"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TiptapEditor } from "@/components/forms/tiptap-editor"
+import { ProfilePhotoUpload } from "./profile-photo-upload"
 
 type HomepageTab = "overview" | "hero" | "gallery"
 
@@ -256,8 +249,8 @@ function QuickInfoIconField({
   const [value, setValue] = useState(defaultValue || "sparkles")
 
   return (
-    <Field>
-      <FieldLabel htmlFor={id}>Icon</FieldLabel>
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-semibold text-foreground">Icon</Label>
       <input type="hidden" name={name} value={value} />
       <Select value={value} onValueChange={setValue}>
         <SelectTrigger id={id} className="!h-11 !w-full rounded-xl border border-input bg-background text-foreground px-4">
@@ -273,7 +266,7 @@ function QuickInfoIconField({
           </SelectGroup>
         </SelectContent>
       </Select>
-    </Field>
+    </div>
   )
 }
 
@@ -1311,22 +1304,24 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         </div>
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="leadership-name" className="text-sm font-semibold text-foreground">Leader Name</Label>
-                          <Input id="leadership-name" name="leader_name" placeholder="Dr. Jane Doe" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="leadership-photo-file" className="text-sm font-semibold text-foreground">Leader Photo File</Label>
-                          <Input id="leadership-photo-file" name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="cursor-pointer file:cursor-pointer" />
-                        </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="leadership-name" className="text-sm font-semibold text-foreground">Leader Name</Label>
+                        <Input id="leadership-name" name="leader_name" placeholder="Dr. Jane Doe" />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label htmlFor="leadership-photo-url" className="text-sm font-semibold text-foreground">
-                          Photo URL <span className="text-xs text-muted-foreground font-normal">(Optional fallback)</span>
-                        </Label>
-                        <Input id="leadership-photo-url" name="leader_photo_url" placeholder="https://..." />
+                      <div className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
+                        <ProfilePhotoUpload
+                          label="Leader Photo"
+                          name="leader_photo_url"
+                          uploadFolder="homepage/leadership"
+                          aspectRatio="portrait"
+                        />
+                        <div className="space-y-1">
+                          <Label htmlFor="leadership-photo-url" className="text-xs text-muted-foreground font-normal">
+                            Photo URL <span className="text-xs text-muted-foreground font-normal">(Optional fallback)</span>
+                          </Label>
+                          <Input id="leadership-photo-url" name="leader_photo_url_fallback" placeholder="https://..." className="h-9 text-xs" />
+                        </div>
                       </div>
 
                       <div className="space-y-1.5">
@@ -1396,48 +1391,25 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-sm font-semibold text-foreground">Current Photo</Label>
-                          {editingLeadership.leader_photo_url ? (
-                            <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
-                              <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden border border-border bg-muted">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={editingLeadership.leader_photo_url}
-                                  alt={editingLeadership.leader_name || editingLeadership.role_title}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-xs font-semibold text-foreground">Photo Preview</span>
-                                <a
-                                  href={editingLeadership.leader_photo_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-medium text-[#4F46E5] hover:underline"
-                                >
-                                  <ExternalLink className="size-3" />
-                                  <span>View full photo</span>
-                                </a>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="text-xs text-muted-foreground">No photo currently set.</p>
-                          )}
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="edit-leader-photo-file" className="text-sm font-semibold text-foreground">
-                              Replace Photo <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
-                            </Label>
-                            <Input id="edit-leader-photo-file" name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="cursor-pointer file:cursor-pointer" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="edit-leader-photo-url" className="text-sm font-semibold text-foreground">
+                        <div className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4">
+                          <ProfilePhotoUpload
+                            currentPhotoUrl={editingLeadership.leader_photo_url}
+                            label="Leader Photo"
+                            name="leader_photo_url"
+                            uploadFolder="homepage/leadership"
+                            aspectRatio="portrait"
+                          />
+                          <div className="space-y-1">
+                            <Label htmlFor="edit-leader-photo-url" className="text-xs text-muted-foreground font-normal">
                               Photo URL Fallback <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
                             </Label>
-                            <Input id="edit-leader-photo-url" name="leader_photo_url" defaultValue={editingLeadership.leader_photo_url ?? ""} placeholder="https://..." />
+                            <Input
+                              id="edit-leader-photo-url"
+                              name="leader_photo_url_fallback"
+                              defaultValue={editingLeadership.leader_photo_url ?? ""}
+                              placeholder="https://..."
+                              className="h-9 text-xs"
+                            />
                           </div>
                         </div>
 
