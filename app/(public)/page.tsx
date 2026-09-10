@@ -457,6 +457,20 @@ export default function HomePage() {
 
   const activeFeedTitle =
     activeFeed === "notices" ? "Latest Notices" : activeFeed === "news" ? "Latest News" : "Upcoming Events"
+  const presidentCard = leadershipCardItems.find((c) => c.role_slug === "president")
+  const presidentPhoto = presidentCard?.leader_photo_url || presidentCard?.staff?.profile_photo || leadership.president?.profile_photo || null
+  const presidentName = presidentCard?.leader_name || presidentCard?.staff?.full_name_en || leadership.president?.full_name_en || "সভাপতি, পরিচালনা পর্ষদ"
+  const presidentRoleTitle = presidentCard?.role_title || leadership.president?.designation || "সভাপতি, পরিচালনা পর্ষদ"
+  const presidentSubtitle = presidentCard?.subtitle || "নৈতিক মূল্যবোধ ও আলোকিত জাতি গঠনের অঙ্গীকার"
+  const presidentMessage = presidentCard?.leader_message
+
+  const principalCard = leadershipCardItems.find((c) => c.role_slug === "headmaster" || c.role_slug === "principal")
+  const principalPhoto = principalCard?.leader_photo_url || principalCard?.staff?.profile_photo || leadership.headmaster?.profile_photo || null
+  const principalName = principalCard?.leader_name || principalCard?.staff?.full_name_en || leadership.headmaster?.full_name_en || "সৈয়দ মুহাম্মদ আবু ছালেহ"
+  const principalRoleTitle = principalCard?.role_title || leadership.headmaster?.designation || "অধ্যক্ষ ও সম্পাদক"
+  const principalSubtitle = principalCard?.subtitle || "সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ার প্রত্যয়"
+  const principalMessage = principalCard?.leader_message
+
   const displayQuickInfoItems = quickInfoItems.length > 0 ? quickInfoItems : [...fallbackQuickInfoItems]
   const displayLeadershipCards = leadershipCardItems.length > 0
     ? leadershipCardItems
@@ -465,8 +479,8 @@ export default function HomePage() {
           id: "leadership-president",
           role_slug: "president",
           role_title: "President",
-          leader_name: leadership.president?.full_name_en ?? "President",
-          leader_photo_url: leadership.president?.profile_photo ?? null,
+          leader_name: presidentName,
+          leader_photo_url: presidentPhoto,
           leader_message: "Building character, excellence, and a future-ready school culture.",
           subtitle: "Building character, excellence, and a future-ready school culture.",
           display_order: 1,
@@ -487,8 +501,8 @@ export default function HomePage() {
           id: "leadership-headmaster",
           role_slug: "headmaster",
           role_title: "Headmaster",
-          leader_name: leadership.headmaster?.full_name_en ?? "Headmaster",
-          leader_photo_url: leadership.headmaster?.profile_photo ?? null,
+          leader_name: principalName,
+          leader_photo_url: principalPhoto,
           leader_message: "Nurturing discipline, curiosity, and all-round growth in daily school life.",
           subtitle: "Nurturing discipline, curiosity, and all-round growth in daily school life.",
           display_order: 3,
@@ -972,12 +986,14 @@ export default function HomePage() {
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-4">
               <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl border border-[#E2E7E4] bg-white p-1.5 shadow-sm overflow-hidden">
                 <div className="relative w-full h-full rounded-xl overflow-hidden bg-[#F0F7F5]">
-                  {leadership.president?.profile_photo ? (
+                  {presidentPhoto ? (
                     <Image
-                      src={leadership.president.profile_photo}
-                      alt="সভাপতি মহোদয়"
+                      src={presidentPhoto}
+                      alt={presidentName}
                       fill
+                      unoptimized={presidentPhoto.startsWith("http://") || presidentPhoto.startsWith("https://")}
                       className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 30vw"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[#075E54]">
@@ -989,7 +1005,7 @@ export default function HomePage() {
 
               <div className="space-y-1.5">
                 <h3 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
-                  {leadership.president?.full_name_en || "সভাপতি, পরিচালনা পর্ষদ"}
+                  {presidentName}
                 </h3>
                 <p className="text-[15px] text-[#075E54] font-bold">
                   সভাপতি, পরিচালনা পর্ষদ
@@ -1017,8 +1033,10 @@ export default function HomePage() {
               </div>
 
               <div className="relative rounded-2xl bg-white p-5 sm:p-7 border border-[#E2E7E4] shadow-xs">
-                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal">
-                  “সকল প্রশংসা মহান আল্লাহ রাব্বুল আলামিনের জন্য এবং অসংখ্য দরুদ ও সালাম পেশ করছি সর্বশেষ ও সর্বশ্রেষ্ঠ নবি, হজরত মুহাম্মদ (সা.)-এর প্রতি। অত্র প্রতিষ্ঠানের সভাপতির দায়িত্ব গ্রহণ করে এর সার্বিক শৃঙ্খলা ও শিক্ষার পরিবেশ আরও উন্নত করার লক্ষ্যে আমি দৃঢ়প্রতিজ্ঞ। ছাত্র, শিক্ষক, অভিভাবক এবং ম্যানেজিং কমিটির সদস্যবৃন্দসহ আমরা সবাই এক অভিন্ন লক্ষ্যে ঐক্যবদ্ধ— এই প্রতিষ্ঠানকে শ্রেষ্ঠত্বের মর্যাদায় অভিষিক্ত করতে আমাদের নিরলস প্রচেষ্টা অব্যাহত রয়েছে।”
+                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal line-clamp-6 sm:line-clamp-none">
+                  {presidentMessage
+                    ? stripHtml(presidentMessage)
+                    : "“সকল প্রশংসা মহান আল্লাহ রাব্বুল আলামিনের জন্য এবং অসংখ্য দরুদ ও সালাম পেশ করছি সর্বশেষ ও সর্বশ্রেষ্ঠ নবি, হজরত মুহাম্মদ (সা.)-এর প্রতি। অত্র প্রতিষ্ঠানের সভাপতির দায়িত্ব গ্রহণ করে এর সার্বিক শৃঙ্খলা ও শিক্ষার পরিবেশ আরও উন্নত করার লক্ষ্যে আমি দৃঢ়প্রতিজ্ঞ। ছাত্র, শিক্ষক, অভিভাবক এবং ম্যানেজিং কমিটির সদস্যবৃন্দসহ আমরা সবাই এক অভিন্ন লক্ষ্যে ঐক্যবদ্ধ— এই প্রতিষ্ঠানকে শ্রেষ্ঠত্বের মর্যাদায় অভিষিক্ত করতে আমাদের নিরলস প্রচেষ্টা অব্যাহত রয়েছে।”"}
                 </p>
               </div>
 
@@ -1047,12 +1065,14 @@ export default function HomePage() {
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-4">
               <div className="relative w-44 sm:w-52 aspect-[3/4] rounded-2xl border border-[#E2E7E4] bg-white p-1.5 shadow-sm overflow-hidden">
                 <div className="relative w-full h-full rounded-xl overflow-hidden bg-[#F0F7F5]">
-                  {leadership.headmaster?.profile_photo ? (
+                  {principalPhoto ? (
                     <Image
-                      src={leadership.headmaster.profile_photo}
-                      alt="অধ্যক্ষ মহোদয়"
+                      src={principalPhoto}
+                      alt={principalName}
                       fill
+                      unoptimized={principalPhoto.startsWith("http://") || principalPhoto.startsWith("https://")}
                       className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 30vw"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[#075E54]">
@@ -1064,10 +1084,10 @@ export default function HomePage() {
 
               <div className="space-y-1.5">
                 <h3 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
-                  {leadership.headmaster?.full_name_en || "সৈয়দ মুহাম্মদ আবু ছালেহ"}
+                  {principalName}
                 </h3>
                 <p className="text-[15px] text-[#075E54] font-bold">
-                  {leadership.headmaster?.designation || "অধ্যক্ষ ও সম্পাদক"}
+                  অধ্যক্ষ ও সম্পাদক
                 </p>
                 <p className="text-[13.5px] text-[#5F6B67] font-medium">
                   {instituteName}
@@ -1092,15 +1112,17 @@ export default function HomePage() {
               </div>
 
               <div className="relative rounded-2xl bg-white p-5 sm:p-7 border border-[#E2E7E4]">
-                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal">
-                  “বিসমিল্লাহির রাহমানির রাহীম। আসসালামু আলাইকুম ওয়ারাহমাতুল্লাহ। সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ে তুলতে মাদ্রাসা শিক্ষা একটি অনন্য মাধ্যম। জাগতিক ও পারলৌকিক উভয় জীবনে সফলতার দ্বারপ্রান্তে উপনীত হতে এই শিক্ষা অগ্রণী ভূমিকা রাখতে সক্ষম। একজন মাদ্রাসা শিক্ষার্থী একাধারে ইলমে দ্বীন অর্জনের সুযোগ লাভ করে, তেমনি আধুনিক সব বিষয়েও জ্ঞান অর্জনের সুযোগ পায়। এই প্রতিষ্ঠানকে একটি মডেল শিক্ষাপ্রতিষ্ঠানে পরিণত করাই আমাদের প্রধান স্বপ্ন ও অঙ্গীকার।”
+                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal line-clamp-6 sm:line-clamp-none">
+                  {principalMessage
+                    ? stripHtml(principalMessage)
+                    : "“বিসমিল্লাহির রাহমানির রাহীম। আসসালামু আলাইকুম ওয়ারাহমাতুল্লাহ। সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ে তুলতে মাদ্রাসা শিক্ষা একটি অনন্য মাধ্যম। জাগতিক ও পারলৌকিক উভয় জীবনে সফলতার দ্বারপ্রান্তে উপনীত হতে এই শিক্ষা অগ্রণী ভূমিকা রাখতে সক্ষম। একজন মাদ্রাসা শিক্ষার্থী একাধারে ইলমে দ্বীন অর্জনের সুযোগ লাভ করে, তেমনি আধুনিক সব বিষয়েও জ্ঞান অর্জনের সুযোগ পায়। এই প্রতিষ্ঠানকে একটি মডেল শিক্ষাপ্রতিষ্ঠানে পরিণত করাই আমাদের প্রধান স্বপ্ন ও অঙ্গীকার।”"}
                 </p>
               </div>
 
               {/* Actions */}
               <div className="pt-2 flex flex-wrap items-center gap-3.5">
                 <Link
-                  href="/principal"
+                  href={principalCard?.role_slug ? `/leadership/${principalCard.role_slug}` : "/leadership/headmaster"}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-6 py-2.5 text-[14px] font-bold text-white transition-all hover:bg-[#064A42] shadow-xs"
                 >
                   <span>সম্পূর্ণ বক্তব্য পড়ুন</span>

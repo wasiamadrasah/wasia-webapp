@@ -189,9 +189,36 @@ export async function GET() {
         })),
       })),
       leadership: {
-        president: leadershipByRole.get("president")?.staff ?? null,
-        chief_education_officer: leadershipByRole.get("chief-education-officer")?.staff ?? null,
-        headmaster: leadershipByRole.get("headmaster")?.staff ?? null,
+        president: (() => {
+          const card = leadershipByRole.get("president")
+          if (!card) return null
+          return {
+            id: card.staff?.id || card.id,
+            full_name_en: card.leader_name || card.staff?.full_name_en || null,
+            designation: card.role_title || card.staff?.designation || null,
+            profile_photo: card.leader_photo_url || card.staff?.profile_photo || null,
+          }
+        })(),
+        chief_education_officer: (() => {
+          const card = leadershipByRole.get("chief-education-officer")
+          if (!card) return null
+          return {
+            id: card.staff?.id || card.id,
+            full_name_en: card.leader_name || card.staff?.full_name_en || null,
+            designation: card.role_title || card.staff?.designation || null,
+            profile_photo: card.leader_photo_url || card.staff?.profile_photo || null,
+          }
+        })(),
+        headmaster: (() => {
+          const card = leadershipByRole.get("headmaster") || leadershipByRole.get("principal")
+          if (!card) return null
+          return {
+            id: card.staff?.id || card.id,
+            full_name_en: card.leader_name || card.staff?.full_name_en || null,
+            designation: card.role_title || card.staff?.designation || null,
+            profile_photo: card.leader_photo_url || card.staff?.profile_photo || null,
+          }
+        })(),
       },
       institute_settings: instituteSettings,
       extracurriculars: extracurriculars.map((item) => ({
