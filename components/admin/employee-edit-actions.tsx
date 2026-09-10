@@ -17,12 +17,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 
-type TeacherEditActionsProps = {
-  teacherId: string
+type EmployeeEditActionsProps = {
+  employeeId: string
   formId: string
 }
 
-export function TeacherEditActions({ teacherId, formId }: TeacherEditActionsProps) {
+export function EmployeeEditActions({ employeeId, formId }: EmployeeEditActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-border">
       <AlertDialog>
@@ -37,9 +37,9 @@ export function TeacherEditActions({ teacherId, formId }: TeacherEditActionsProp
             <AlertDialogMedia className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
               <AlertTriangle className="h-5 w-5" />
             </AlertDialogMedia>
-            <AlertDialogTitle>Save teacher profile changes?</AlertDialogTitle>
+            <AlertDialogTitle>Save employee profile changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will update teacher information in the database. Would you like to proceed?
+              This will update the employee profile and institutional records in the database. Would you like to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -57,7 +57,7 @@ export function TeacherEditActions({ teacherId, formId }: TeacherEditActionsProp
       </AlertDialog>
 
       <Button asChild variant="outline" className="h-10 px-4 rounded-lg border-border bg-card text-foreground hover:bg-muted/40 text-sm font-medium">
-        <Link href={`/admin/teachers/${teacherId}`}>Cancel</Link>
+        <Link href={`/admin/employees/${employeeId}`}>Cancel</Link>
       </Button>
     </div>
   )

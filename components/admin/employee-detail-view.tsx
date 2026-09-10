@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { StudentBarcode } from "@/components/admin/student-barcode"
 import { StudentQRCode } from "@/components/admin/student-qr-code"
-import { resetTeacherPasswordAction } from "@/app/admin/actions"
+import { resetEmployeePasswordAction } from "@/app/admin/actions"
 import {
   TeacherProfileRecord,
   AcademicRecord,
@@ -49,8 +49,8 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
-type TeacherDetailViewProps = {
-  teacher: TeacherProfileRecord
+type EmployeeDetailViewProps = {
+  employee: TeacherProfileRecord
   academics: AcademicRecord[]
   experience: ExperienceRecord[]
   training: TrainingRecord[]
@@ -124,15 +124,15 @@ function DetailRow({
   )
 }
 
-export function TeacherDetailView({
-  teacher,
+export function EmployeeDetailView({
+  employee,
   academics,
   experience,
   training,
   family,
   addresses,
   governmentInfo,
-}: TeacherDetailViewProps) {
+}: EmployeeDetailViewProps) {
   const [resetPasswordOpen, setResetPasswordOpen] = React.useState(false)
   const resetFormRef = React.useRef<HTMLFormElement>(null)
 
@@ -155,14 +155,14 @@ export function TeacherDetailView({
     return parts.length > 0 ? parts.join(", ") : "-"
   }
 
-  const designation = (teacher.designation || "").toLowerCase().trim()
-  const isHeadmaster = designation === "headmaster" || designation === "head master"
+  const designation = (employee.designation || "").toLowerCase().trim()
+  const isHeadmaster = designation === "headmaster" || designation === "head master" || designation.includes("principal") || designation.includes("অধ্যক্ষ")
 
   return (
     <div className="w-full pb-12">
       {/* Hidden reset password form */}
-      <form ref={resetFormRef} action={resetTeacherPasswordAction}>
-        <input type="hidden" name="teacher_id" value={teacher.id} />
+      <form ref={resetFormRef} action={resetEmployeePasswordAction}>
+        <input type="hidden" name="employee_id" value={employee.id} />
       </form>
 
       {/* Reset Password Confirmation Dialog */}
@@ -172,10 +172,10 @@ export function TeacherDetailView({
             <AlertDialogMedia className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
               <ShieldCheck />
             </AlertDialogMedia>
-            <AlertDialogTitle>Reset teacher password?</AlertDialogTitle>
+            <AlertDialogTitle>Reset employee password?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will generate a new 6-character password (a-z, 0-9), reset the current password, and email it to the teacher.
-              The teacher will be advised to change it immediately.
+              This will generate a new password, reset the current password, and email it to the employee.
+              The employee will be advised to change it immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -191,20 +191,20 @@ export function TeacherDetailView({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Two Column Layout matching Student profile view */}
+      {/* Two Column Layout matching original profile view */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: Teacher Profile & Quick Details                              */}
+        {/* LEFT COLUMN: Employee Profile & Quick Details                             */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 xl:col-span-4 space-y-6">
           <div className="rounded-xl border border-border bg-card text-card-foreground shadow-xs overflow-hidden">
             {/* Header Photo + Name */}
             <div className="p-6 pb-5 flex flex-col items-center text-center space-y-3">
               <div className="relative size-28 rounded-xl overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center">
-                {teacher.profile_photo ? (
+                {employee.profile_photo ? (
                   <Image
-                    src={teacher.profile_photo}
-                    alt={teacher.full_name_en || "Teacher photo"}
+                    src={employee.profile_photo}
+                    alt={employee.full_name_en || "Employee photo"}
                     fill
                     className="object-cover"
                     sizes="112px"
@@ -212,21 +212,21 @@ export function TeacherDetailView({
                   />
                 ) : (
                   <span className="text-3xl font-extrabold uppercase text-indigo-700 dark:text-indigo-300">
-                    {teacher.full_name_en ? teacher.full_name_en.charAt(0) : "T"}
+                    {employee.full_name_en ? employee.full_name_en.charAt(0) : "E"}
                   </span>
                 )}
               </div>
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center justify-center gap-1.5">
-                  {valueOrDash(teacher.full_name_en)}
+                  {valueOrDash(employee.full_name_en)}
                   {isHeadmaster && <Crown className="h-5 w-5 text-amber-500 fill-amber-500 shrink-0" />}
                 </h2>
-                {teacher.full_name_bn && (
-                  <p className="text-sm text-muted-foreground mt-0.5">{teacher.full_name_bn}</p>
+                {employee.full_name_bn && (
+                  <p className="text-sm text-muted-foreground mt-0.5">{employee.full_name_bn}</p>
                 )}
               </div>
 
-              {/* Action Buttons Row (Print, Edit, Password, Back to Teachers) */}
+              {/* Action Buttons Row (Print, Edit, Password, Back to Employees) */}
               <div className="flex items-center justify-center gap-1.5 pt-1 w-full flex-wrap">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -253,7 +253,7 @@ export function TeacherDetailView({
                       className="size-8.5 rounded-lg border border-border bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/40 dark:hover:border-indigo-500/40 transition-all cursor-pointer"
                       asChild
                     >
-                      <Link href={`/admin/teachers/${teacher.id}/edit`}>
+                      <Link href={`/admin/employees/${employee.id}/edit`}>
                         <Pencil className="size-4" />
                         <span className="sr-only">Edit</span>
                       </Link>
@@ -289,14 +289,14 @@ export function TeacherDetailView({
                       className="size-8.5 rounded-lg border border-border bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/40 dark:hover:border-indigo-500/40 transition-all cursor-pointer"
                       asChild
                     >
-                      <Link href="/admin/teachers">
+                      <Link href="/admin/employees">
                         <ArrowLeft className="size-4" />
-                        <span className="sr-only">Back to Teachers</span>
+                        <span className="sr-only">Back to Employees</span>
                       </Link>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    <p>Back to Teachers</p>
+                    <p>Back to Employees</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -308,48 +308,42 @@ export function TeacherDetailView({
             <div className="py-2">
               <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                 <span className="text-muted-foreground font-medium text-xs sm:text-sm">Employee ID</span>
-                <span className="font-semibold text-foreground text-xs sm:text-sm font-mono">{valueOrDash(teacher.employee_id)}</span>
+                <span className="font-semibold text-foreground text-xs sm:text-sm font-mono">{valueOrDash(employee.employee_id)}</span>
               </div>
 
-              {teacher.designation && (
+              {employee.designation && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Designation</span>
-                  <span className="font-semibold text-primary dark:text-indigo-400 text-xs sm:text-sm">{teacher.designation}</span>
+                  <span className="font-semibold text-primary dark:text-indigo-400 text-xs sm:text-sm">{employee.designation}</span>
                 </div>
               )}
 
-              {teacher.type && (
-                <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
-                  <span className="text-muted-foreground font-medium text-xs sm:text-sm">Faculty Type</span>
-                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatEnumText(teacher.type)}</span>
-                </div>
-              )}
 
-              {teacher.subject && (
+              {employee.subject && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Subject / Dept.</span>
-                  <span className="font-semibold text-foreground text-xs sm:text-sm">{teacher.subject}</span>
+                  <span className="font-semibold text-foreground text-xs sm:text-sm">{employee.subject}</span>
                 </div>
               )}
 
-              {teacher.employment_type && (
+              {employee.employment_type && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Employment Type</span>
-                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatEnumText(teacher.employment_type)}</span>
+                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatEnumText(employee.employment_type)}</span>
                 </div>
               )}
 
-              {teacher.joining_date && (
+              {employee.joining_date && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Joining Date</span>
-                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatDate(teacher.joining_date)}</span>
+                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatDate(employee.joining_date)}</span>
                 </div>
               )}
 
-              {teacher.blood_group && (
+              {employee.blood_group && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Blood Group</span>
-                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatEnumText(teacher.blood_group)}</span>
+                  <span className="font-semibold text-foreground text-xs sm:text-sm">{formatEnumText(employee.blood_group)}</span>
                 </div>
               )}
 
@@ -357,11 +351,11 @@ export function TeacherDetailView({
               <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                 <span className="text-muted-foreground font-medium text-xs sm:text-sm">Signature</span>
                 <div className="flex items-center justify-end">
-                  {teacher.signature ? (
+                  {employee.signature ? (
                     <div className="relative h-10 w-28 overflow-hidden rounded-md border border-border bg-white dark:bg-slate-100 p-1 shadow-2xs">
                       <Image
-                        src={teacher.signature}
-                        alt={`${teacher.full_name_en || "Teacher"} signature`}
+                        src={employee.signature}
+                        alt={`${employee.full_name_en || "Employee"} signature`}
                         fill
                         unoptimized
                         className="object-contain p-0.5"
@@ -374,21 +368,21 @@ export function TeacherDetailView({
               </div>
 
               {/* Barcode Row */}
-              {(teacher.employee_id || teacher.id) && (
+              {(employee.employee_id || employee.id) && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">Barcode</span>
                   <div className="flex items-center justify-end">
-                    <StudentBarcode value={teacher.employee_id || teacher.id} height={26} width={1.1} fontSize={10} />
+                    <StudentBarcode value={employee.employee_id || employee.id} height={26} width={1.1} fontSize={10} />
                   </div>
                 </div>
               )}
 
               {/* QR Code Row */}
-              {(teacher.employee_id || teacher.id) && (
+              {(employee.employee_id || employee.id) && (
                 <div className="flex items-center justify-between px-6 py-2 text-sm hover:bg-muted/15 transition-colors">
                   <span className="text-muted-foreground font-medium text-xs sm:text-sm">QR Code</span>
                   <div className="flex items-center justify-end">
-                    <StudentQRCode value={teacher.employee_id || teacher.id} size={60} altText="Teacher QR Code" />
+                    <StudentQRCode value={employee.employee_id || employee.id} size={60} altText="Employee QR Code" />
                   </div>
                 </div>
               )}
@@ -404,17 +398,17 @@ export function TeacherDetailView({
             {/* Basic Information */}
             <SectionBanner title="Basic Information" icon={User} />
             <div className="py-2">
-              <DetailRow label="Full Name (English)" value={teacher.full_name_en} />
-              <DetailRow label="Name (বাংলা)" value={teacher.full_name_bn} />
-              <DetailRow label="Gender" value={formatEnumText(teacher.gender)} />
-              <DetailRow label="Date of Birth" value={formatDate(teacher.date_of_birth)} />
-              <DetailRow label="Marital Status" value={formatEnumText(teacher.marital_status)} />
-              <DetailRow label="Religion" value={formatEnumText(teacher.religion)} />
-              <DetailRow label="Nationality" value={formatEnumText(teacher.nationality)} />
-              <DetailRow label="Blood Group" value={formatEnumText(teacher.blood_group)} />
-              <DetailRow label="National ID (NID)" value={teacher.nid_number} />
-              <DetailRow label="Birth Certificate No" value={teacher.birth_certificate} />
-              <DetailRow label="Passport Number" value={teacher.passport_number} />
+              <DetailRow label="Full Name (English)" value={employee.full_name_en} />
+              <DetailRow label="Name (বাংলা)" value={employee.full_name_bn} />
+              <DetailRow label="Gender" value={formatEnumText(employee.gender)} />
+              <DetailRow label="Date of Birth" value={formatDate(employee.date_of_birth)} />
+              <DetailRow label="Marital Status" value={formatEnumText(employee.marital_status)} />
+              <DetailRow label="Religion" value={formatEnumText(employee.religion)} />
+              <DetailRow label="Nationality" value={formatEnumText(employee.nationality)} />
+              <DetailRow label="Blood Group" value={formatEnumText(employee.blood_group)} />
+              <DetailRow label="National ID (NID)" value={employee.nid_number} />
+              <DetailRow label="Birth Certificate No" value={employee.birth_certificate} />
+              <DetailRow label="Passport Number" value={employee.passport_number} />
             </div>
 
             {/* Government / MPO Information (if present) */}
@@ -435,10 +429,10 @@ export function TeacherDetailView({
             {/* Contact Information */}
             <SectionBanner title="Contact Information" icon={Phone} />
             <div className="py-2">
-              <DetailRow label="Contact Number" value={teacher.contact_number} />
-              <DetailRow label="Alternative Contact" value={teacher.alt_contact_number} />
-              <DetailRow label="Email Address" value={teacher.email} />
-              <DetailRow label="Emergency Contact" value={teacher.emergency_contact} />
+              <DetailRow label="Contact Number" value={employee.contact_number} />
+              <DetailRow label="Alternative Contact" value={employee.alt_contact_number} />
+              <DetailRow label="Email Address" value={employee.email} />
+              <DetailRow label="Emergency Contact" value={employee.emergency_contact} />
             </div>
 
             {/* Address Information */}

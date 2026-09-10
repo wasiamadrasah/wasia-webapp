@@ -1,30 +1,19 @@
-import { Outfit } from "next/font/google"
+import { Users, Briefcase } from "lucide-react"
 import { createSupabaseAdminClient } from "@/lib/db"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
-import { StaffGrid } from "@/components/layout/staff-grid"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
+import { StaffGrid, type StaffCard } from "@/components/layout/staff-grid"
 import { createPageMetadata } from "@/lib/seo"
-import { Mail } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 60
 
 export const metadata = createPageMetadata({
-  title: "Staff",
-  description: "Meet the administrative and support staff serving the school community.",
+  title: "কর্মকর্তা ও কর্মচারীবৃন্দ",
+  description: "ওয়াসিয়া কামিল মাদ্রাসার প্রশাসনিক ও সহায়ক কর্মকর্তা-কর্মচারীদের তালিকা।",
   path: "/staffs",
-  keywords: ["school staff", "administration", "support staff"],
+  keywords: ["কর্মকর্তা ও কর্মচারী", "school staff", "administration", "ওয়াসিয়া মাদ্রাসা স্টাফ"],
 })
-
-type StaffCard = {
-  id: string
-  profile_photo: string | null
-  full_name_en: string | null
-  designation: string | null
-  email: string | null
-  type: string | null
-  contact_number: string | null
-  joining_date: string | null
-}
 
 type StaffsPageProps = {
   searchParams?: Promise<{
@@ -32,26 +21,31 @@ type StaffsPageProps = {
   }>
 }
 
+type StaffAccountStatus = {
+  staff_id: string | null
+  status: string | null
+}
+
 const filterContent = {
   default: {
-    badge: "Personnel",
-    title: "Non-Teaching Staff",
-    description: "The dedicated team behind the school's daily operations.",
+    badge: "কর্মকর্তা ও কর্মচারী",
+    title: "কর্মকর্তা ও কর্মচারীবৃন্দ",
+    subtitle: "মাদ্রাসার সার্বিক প্রাতিষ্ঠানিক ও প্রশাসনিক কার্যক্রমে নিয়োজিত কর্মকর্তা ও কর্মচারীবৃন্দ।",
   },
   president: {
-    badge: "Administration",
-    title: "President",
-    description: "Institutional leadership and strategic oversight of the school community.",
+    badge: "পরিচালনা পর্ষদ",
+    title: "সভাপতি ও পরিচালনা পর্ষদ",
+    subtitle: "মাদ্রাসার সার্বিক তত্ত্বাবধান ও নীতি নির্ধারণে সম্মানিত পরিচালনা পর্ষদ।",
   },
   headmaster: {
-    badge: "Administration",
-    title: "Headmaster",
-    description: "Academic and operational leadership of the school.",
+    badge: "প্রশাসন",
+    title: "অধ্যক্ষ ও প্রশাসন",
+    subtitle: "মাদ্রাসার প্রশাসনিক ও একাডেমিক কার্যক্রম পরিচালনায় দায়িত্বপ্রাপ্ত নেতৃত্ব।",
   },
   adhoc: {
-    badge: "Administration",
-    title: "Adhoc Committee",
-    description: "Committee members supporting school governance and administration.",
+    badge: "কমিটি",
+    title: "এডহক কমিটি",
+    subtitle: "মাদ্রাসার সাংগঠনিক ও প্রশাসনিক কার্যক্রম পরিচালনায় এডহক কমিটি।",
   },
 } as const
 
@@ -68,82 +62,140 @@ function normalizeTypeParam(value?: string | string[]) {
   return normalized
 }
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+async function withoutInactiveAccounts(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  staffs: StaffCard[]
+) {
+  if (!staffs.length) {
+    return staffs
+  }
+
+  const { data, error } = await supabase
+    .from("staff_accounts")
+    .select("staff_id, status")
+    .in("staff_id", staffs.map((staff) => staff.id))
+
+  if (error) {
+    return staffs
+  }
+
+  const inactiveIds = new Set(
+    ((data ?? []) as StaffAccountStatus[])
+      .filter((account) => account.status?.toLowerCase() === "inactive")
+      .map((account) => account.staff_id)
+      .filter((staffId): staffId is string => Boolean(staffId))
+  )
+
+  return staffs.filter((staff) => !inactiveIds.has(staff.id))
+}
 
 export default async function StaffsPage({ searchParams }: StaffsPageProps) {
   const supabase = createSupabaseAdminClient()
-  const params = (await searchParams) ?? {}
+  const [params, instituteSettings] = await Promise.all([
+    (await searchParams) ?? {},
+    getInstituteSettings(),
+  ])
+
   const filterType = normalizeTypeParam(params.type)
 
   let query = supabase
     .from("staffs")
-    .select("id, profile_photo, full_name_en, designation, email, type, contact_number, joining_date")
+    .select("id, profile_photo, full_name_en, full_name_bn, designation, email, type, contact_number, joining_date, status")
     .neq("type", "teacher")
+    .eq("status", "active")
     .order("joining_date", { ascending: true })
 
   if (filterType && filterType in filterContent) {
     query = query.eq("type", filterType)
   }
 
-  const staffs = (await query).data as StaffCard[] ?? []
-  
+  const primaryResult = await query
+
+  const fallbackResult =
+    primaryResult.error &&
+    primaryResult.error.message.toLowerCase().includes("column")
+      ? await supabase
+          .from("staffs")
+          .select("id, profile_photo, full_name_en, designation, email, type, contact_number, joining_date")
+          .neq("type", "teacher")
+          .order("joining_date", { ascending: true })
+      : null
+
+  const rawStaffs = ((fallbackResult?.data ?? primaryResult.data) ?? []) as StaffCard[]
+  const staffs = await withoutInactiveAccounts(supabase, rawStaffs)
+
   // Sort: headmaster/principal first, then by joining date
   staffs.sort((a, b) => {
-    const aDesignation = a.designation?.toLowerCase() || ""
-    const bDesignation = b.designation?.toLowerCase() || ""
-    
-    const isAHeadmaster = aDesignation.includes("headmaster") || aDesignation.includes("principal")
-    const isBHeadmaster = bDesignation.includes("headmaster") || bDesignation.includes("principal")
-    
+    const aDesignation = (a.designation || "").toLowerCase()
+    const bDesignation = (b.designation || "").toLowerCase()
+
+    const isAHeadmaster =
+      aDesignation.includes("headmaster") ||
+      aDesignation.includes("principal") ||
+      aDesignation.includes("অধ্যক্ষ") ||
+      aDesignation.includes("উপাধ্যক্ষ")
+    const isBHeadmaster =
+      bDesignation.includes("headmaster") ||
+      bDesignation.includes("principal") ||
+      bDesignation.includes("অধ্যক্ষ") ||
+      bDesignation.includes("উপাধ্যক্ষ")
+
     if (isAHeadmaster && !isBHeadmaster) return -1
     if (!isAHeadmaster && isBHeadmaster) return 1
-    
-    // If both are headmasters or both are regular staff, sort by joining date
+
     const aDate = a.joining_date ? new Date(a.joining_date).getTime() : Infinity
     const bDate = b.joining_date ? new Date(b.joining_date).getTime() : Infinity
-    
+
     return aDate - bDate
   })
 
-  const content = filterType && filterType in filterContent ? filterContent[filterType as keyof typeof filterContent] : filterContent.default
+  const content =
+    filterType && filterType in filterContent
+      ? filterContent[filterType as keyof typeof filterContent]
+      : filterContent.default
+
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    ""
+
+  const heroSubtitle = instituteName
+    ? `${instituteName}-এর প্রাতিষ্ঠানিক ও প্রশাসনিক কার্যক্রমে নিয়োজিত সুযোগ্য কর্মকর্তা ও কর্মচারীবৃন্দ।`
+    : content.subtitle
 
   return (
-    <main>
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <Mail className="h-3.5 w-3.5 text-emerald-400" />
-            <span>{content.badge}</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            {content.title}
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            {content.description}
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Staffs" className="text-sm" plainCurrent />
-          </div>
-        </div>
-      </section>
+    <main className="min-h-screen bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title={content.title}
+        subtitle={heroSubtitle}
+        badgeText={content.badge}
+        badgeIcon={Briefcase}
+        breadcrumbCurrent={content.title}
+      />
 
-      <section className="px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          {staffs.length === 0 ? (
-            <p className="text-center text-slate-500">No records found for this section.</p>
-          ) : (
-            <StaffGrid staffs={staffs} contentTitle={content.title} />
-          )}
+      {/* 2. Main Section with Staff Grid & Watermark Pattern */}
+      <section className="relative py-12 md:py-16 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="staffs-islamic-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#staffs-islamic-pattern)" />
+          </svg>
+        </div>
+
+        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <StaffGrid staffs={staffs} contentTitle={content.title} />
         </div>
       </section>
     </main>

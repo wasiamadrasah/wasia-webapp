@@ -410,27 +410,94 @@ export async function generateCaptcha() {
   return { code, token };
 }
 
+function formatAuthorDisplayName(rawNameOrEmail: string | null | undefined): string {
+  if (!rawNameOrEmail) return "Admin";
+  const trimmed = rawNameOrEmail.trim();
+  if (!trimmed) return "Admin";
+
+  if (trimmed.includes("@")) {
+    const username = trimmed.split("@")[0];
+    if (username.toLowerCase() === "admin" || username.toLowerCase() === "superadmin") {
+      return "Admin";
+    }
+    const formatted = username
+      .replace(/[._-]/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+    return formatted || "Admin";
+  }
+
+  return trimmed;
+}
+
 async function getAdminAuthorInfo(adminId: string) {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
+    
+    let fullName: string | null = null;
+    let email: string | null = null;
+
+    const { data: adminData, error: adminErr } = await supabase
       .from("admins")
-      .select("full_name, email")
+      .select("id, full_name, email")
       .eq("id", adminId)
       .limit(1)
-      .maybeSingle<{ full_name: string | null; email: string | null }>();
+      .maybeSingle<{ id: string; full_name: string | null; email: string | null }>();
 
-    if (!error && data) {
-      const fullName = data.full_name?.trim();
-      const email = data.email?.trim();
+    if (!adminErr && adminData) {
+      fullName = adminData.full_name?.trim() || null;
+      email = adminData.email?.trim() || null;
+    } else {
+      const { data: altAdmin } = await supabase
+        .from("admins")
+        .select("id, name, email")
+        .eq("id", adminId)
+        .limit(1)
+        .maybeSingle<{ id: string; name: string | null; email: string | null }>();
 
+      if (altAdmin) {
+        fullName = altAdmin.name?.trim() || null;
+        email = altAdmin.email?.trim() || null;
+      }
+    }
+
+    // If full_name or name exists on admin, use it directly
+    if (fullName) {
       return {
         email: email || null,
-        name: fullName || email || "Admin",
+        name: fullName,
       };
     }
 
-    if (isMissingColumnError(error)) {
+    // If full_name is not set on admin, check if staff account exists with matching email
+    if (email) {
+      try {
+        const { data: staff } = await supabase
+          .from("staffs")
+          .select("full_name_en")
+          .ilike("email", email)
+          .limit(1)
+          .maybeSingle<{ full_name_en: string | null }>();
+
+        if (staff?.full_name_en?.trim()) {
+          return {
+            email,
+            name: staff.full_name_en.trim(),
+          };
+        }
+      } catch {
+        // Ignore
+      }
+
+      return {
+        email,
+        name: formatAuthorDisplayName(email),
+      };
+    }
+
+    if (isMissingColumnError(adminErr)) {
       const fallback = await supabase
         .from("admins")
         .select("email")
@@ -438,10 +505,10 @@ async function getAdminAuthorInfo(adminId: string) {
         .limit(1)
         .maybeSingle<{ email: string | null }>();
 
-      const email = fallback.data?.email?.trim() || null;
+      const fallbackEmail = fallback.data?.email?.trim() || null;
       return {
-        email,
-        name: email || "Admin",
+        email: fallbackEmail,
+        name: fallbackEmail ? formatAuthorDisplayName(fallbackEmail) : "Admin",
       };
     }
   } catch {
@@ -1764,6 +1831,542 @@ export async function resetStaffPasswordAction(formData: FormData) {
     const message =
       error instanceof Error ? error.message : "Failed to reset password";
     redirect(`/admin/staffs?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+// ============================================================================
+// UNIFIED EMPLOYEE MANAGEMENT ACTIONS
+// ============================================================================
+
+export async function createEmployeeAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const supabase = createSupabaseAdminClient();
+    const password = (formData.get("password") as string | null)?.trim() ?? "";
+    const email = (formData.get("email") as string | null)?.trim() || null;
+    const type = ((formData.get("type") as string | null)?.trim().toLowerCase() === "staff" ? "staff" : "teacher");
+
+    const manualEmployeeId = (formData.get("employee_id") as string | null)?.trim() || null;
+    const autoEmployeeId = manualEmployeeId || (await generateNextEmployeeID());
+
+    const payload = {
+      full_name_en: normalizeHumanName((formData.get("full_name_en") as string) ?? ""),
+      full_name_bn: (formData.get("full_name_bn") as string | null)?.trim() || null,
+      email: email,
+      contact_number: (formData.get("contact_number") as string) || null,
+      designation: (formData.get("designation") as string) || null,
+      type: type,
+      status: "active",
+      ...(autoEmployeeId ? { employee_id: autoEmployeeId } : {}),
+    };
+
+    const firstInsert = await supabase
+      .from("staffs")
+      .insert([payload])
+      .select()
+      .single();
+
+    if (firstInsert.error) throw firstInsert.error;
+    const data = firstInsert.data;
+
+    if (email && password) {
+      const passwordHash = await hash(password, 12);
+      const accountPayload: StaffAccountPayload = {
+        staff_id: data.id,
+        email: email,
+        password_hash: passwordHash,
+        role: type === "staff" ? "staff" : "teacher",
+        status: "active",
+      };
+
+      try {
+        await upsertStaffAccountWithFallback(supabase, accountPayload);
+      } catch (accountError) {
+        await supabase.from("staffs").delete().eq("id", data.id);
+        throw accountError;
+      }
+
+      const instituteSettings = await getInstituteSettings().catch(() => null);
+      const instituteName = instituteSettings?.primary?.instituteName?.trim() || "School System";
+
+      await sendTeacherWelcomeEmail({
+        email: email,
+        teacherName: payload.full_name_en || "Employee",
+        username: email,
+        temporaryPassword: password,
+        instituteName,
+      }).catch(() => null);
+    }
+
+    if (type === "teacher") {
+      await logTeacherMutation("create", data.id, undefined, payload);
+    } else {
+      await logStaffMutation("create", data.id, undefined, payload);
+    }
+
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+    revalidatePath("/teachers");
+    revalidatePath("/staffs");
+
+    redirect("/admin/employees?status=success&message=Employee created successfully");
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = resolveErrorMessage(error, "Failed to create employee");
+    redirect(`/admin/employees?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function updateEmployeeAction(
+  employeeId: string,
+  formData: FormData
+) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const supabase = createSupabaseAdminClient();
+    const genderRaw = (formData.get("gender") as string | null)?.trim()?.toLowerCase() || null;
+
+    const payload = {
+      employee_id: (formData.get("employee_id") as string) || null,
+      full_name_en: normalizeHumanName((formData.get("full_name_en") as string) ?? ""),
+      full_name_bn: (formData.get("full_name_bn") as string) || null,
+      profile_photo: (formData.get("profile_photo") as string) || null,
+      signature: (formData.get("signature") as string) || null,
+      email: (formData.get("email") as string) || null,
+      contact_number: (formData.get("contact_number") as string) || null,
+      alt_contact_number: (formData.get("alt_contact_number") as string) || null,
+      emergency_contact: (formData.get("emergency_contact") as string) || null,
+      date_of_birth: (formData.get("date_of_birth") as string) || null,
+      joining_date: (formData.get("joining_date") as string) || null,
+      gender: genderRaw,
+      marital_status: (formData.get("marital_status") as string) || null,
+      religion: (formData.get("religion") as string) || null,
+      nationality: (formData.get("nationality") as string) || null,
+      blood_group: (formData.get("blood_group") as string) || null,
+      designation: (formData.get("designation") as string) || null,
+      type: (formData.get("type") as string) || "teacher",
+      subject: (formData.get("subject") as string) || null,
+      employment_type: (formData.get("employment_type") as string) || null,
+      nid_number: (formData.get("nid_number") as string) || null,
+      birth_certificate: (formData.get("birth_certificate") as string) || null,
+      passport_number: (formData.get("passport_number") as string) || null,
+    };
+
+    const { error } = await supabase
+      .from("staffs")
+      .update(payload)
+      .eq("id", employeeId);
+
+    if (error) throw error;
+
+    const presentAddressPayload = {
+      staff_id: employeeId,
+      address_type: "present",
+      house: (formData.get("present_house") as string) || null,
+      road: (formData.get("present_road") as string) || null,
+      area: (formData.get("present_area") as string) || null,
+      post_office: (formData.get("present_post_office") as string) || null,
+      post_code: (formData.get("present_post_code") as string) || null,
+      thana: (formData.get("present_thana") as string) || null,
+      district: (formData.get("present_district") as string) || null,
+    };
+
+    const permanentAddressPayload = {
+      staff_id: employeeId,
+      address_type: "permanent",
+      house: (formData.get("permanent_house") as string) || null,
+      road: (formData.get("permanent_road") as string) || null,
+      area: (formData.get("permanent_area") as string) || null,
+      post_office: (formData.get("permanent_post_office") as string) || null,
+      post_code: (formData.get("permanent_post_code") as string) || null,
+      thana: (formData.get("permanent_thana") as string) || null,
+      district: (formData.get("permanent_district") as string) || null,
+    };
+
+    await upsertStaffAddressWithFallback(supabase, presentAddressPayload);
+    await upsertStaffAddressWithFallback(supabase, permanentAddressPayload);
+
+    const governmentInfoPayload = {
+      staff_id: employeeId,
+      ntrca_registration: (formData.get("ntrca_registration") as string) || null,
+      mpo_date: (formData.get("mpo_date") as string) || null,
+      pds_id: (formData.get("pds_id") as string) || null,
+      index_number: (formData.get("index_number") as string) || null,
+      first_joining_date: (formData.get("first_joining_date") as string) || null,
+      appointment_letter_no: (formData.get("appointment_letter_no") as string) || null,
+    };
+
+    await upsertStaffGovernmentInfoWithFallback(supabase, governmentInfoPayload);
+
+    const academicRows = toMultiRows({
+      degree: getFormDataStringArray(formData, "academic_degree[]"),
+      institution: getFormDataStringArray(formData, "academic_institution[]"),
+      subject: getFormDataStringArray(formData, "academic_subject[]"),
+      passing_year: getFormDataStringArray(formData, "academic_passing_year[]"),
+      duration: getFormDataStringArray(formData, "academic_duration[]"),
+      result: getFormDataStringArray(formData, "academic_result[]"),
+    }).map((row) => ({
+      degree: toNullableString(row.degree),
+      institution: toNullableString(row.institution),
+      subject: toNullableString(row.subject),
+      passing_year: toNullableNumber(row.passing_year),
+      duration: toNullableString(row.duration),
+      result: toNullableString(row.result),
+    }));
+
+    await replaceRowsByStaffIdWithFallback(
+      supabase,
+      "staff_academics",
+      employeeId,
+      academicRows
+    );
+
+    const experienceRows = toMultiRows({
+      institute_name: getFormDataStringArray(formData, "experience_institute_name[]"),
+      location: getFormDataStringArray(formData, "experience_location[]"),
+      designation: getFormDataStringArray(formData, "experience_designation[]"),
+      subject: getFormDataStringArray(formData, "experience_subject[]"),
+      employment_type: getFormDataStringArray(formData, "experience_employment_type[]"),
+      start_date: getFormDataStringArray(formData, "experience_start_date[]"),
+      end_date: getFormDataStringArray(formData, "experience_end_date[]"),
+      currently_working: getFormDataStringArray(formData, "experience_currently_working[]"),
+    }).map((row) => ({
+      institute_name: toNullableString(row.institute_name),
+      location: toNullableString(row.location),
+      designation: toNullableString(row.designation),
+      subject: toNullableString(row.subject),
+      employment_type: toNullableString(row.employment_type),
+      start_date: toNullableString(row.start_date),
+      end_date: toNullableString(row.end_date),
+      currently_working: toNullableBoolean(row.currently_working),
+    }));
+
+    await replaceRowsByStaffIdWithFallback(
+      supabase,
+      "staff_experience",
+      employeeId,
+      experienceRows
+    );
+
+    const trainingRows = toMultiRows({
+      training_name: getFormDataStringArray(formData, "training_name[]"),
+      training_institute: getFormDataStringArray(formData, "training_institute[]"),
+      year: getFormDataStringArray(formData, "training_year[]"),
+      duration: getFormDataStringArray(formData, "training_duration[]"),
+      subject: getFormDataStringArray(formData, "training_subject[]"),
+    }).map((row) => ({
+      training_name: toNullableString(row.training_name),
+      training_institute: toNullableString(row.training_institute),
+      year: toNullableNumber(row.year),
+      duration: toNullableString(row.duration),
+      subject: toNullableString(row.subject),
+    }));
+
+    await replaceRowsByStaffIdWithFallback(
+      supabase,
+      "staff_training",
+      employeeId,
+      trainingRows
+    );
+
+    const familyRows = toMultiRows({
+      name: getFormDataStringArray(formData, "family_name[]"),
+      relationship: getFormDataStringArray(formData, "family_relationship[]"),
+      date_of_birth: getFormDataStringArray(formData, "family_date_of_birth[]"),
+      age: getFormDataStringArray(formData, "family_age[]"),
+      blood_group: getFormDataStringArray(formData, "family_blood_group[]"),
+      remark: getFormDataStringArray(formData, "family_remark[]"),
+    }).map((row) => ({
+      name: toNullableString(row.name),
+      relationship: toNullableString(row.relationship),
+      date_of_birth: toNullableString(row.date_of_birth),
+      age: toNullableNumber(row.age),
+      blood_group: toNullableString(row.blood_group),
+      remark: toNullableString(row.remark),
+    }));
+
+    await replaceRowsByStaffIdWithFallback(
+      supabase,
+      "staff_family",
+      employeeId,
+      familyRows
+    );
+
+    revalidatePath("/admin/employees");
+    revalidatePath(`/admin/employees/${employeeId}`);
+    revalidatePath(`/admin/employees/${employeeId}/edit`);
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+    revalidatePath("/teachers");
+    revalidatePath("/staffs");
+
+    redirect("/admin/employees?status=success&message=Employee updated successfully");
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "Failed to update employee";
+    redirect(`/admin/employees/${employeeId}/edit?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function deleteEmployeeAction(employeeId: string) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const supabase = createSupabaseAdminClient();
+
+    const { data: oldData } = await supabase
+      .from("staffs")
+      .select("*")
+      .eq("id", employeeId)
+      .single();
+
+    const { error } = await supabase
+      .from("staffs")
+      .delete()
+      .eq("id", employeeId);
+
+    if (error) throw error;
+
+    if (oldData?.type === "teacher") {
+      await logTeacherMutation("delete", employeeId, oldData, undefined);
+    } else {
+      await logStaffMutation("delete", employeeId, oldData, undefined);
+    }
+
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+    revalidatePath("/teachers");
+    revalidatePath("/staffs");
+
+    redirect("/admin/employees?status=success&message=Employee deleted successfully");
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "Failed to delete employee";
+    redirect(`/admin/employees?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function deleteEmployeeByFormAction(formData: FormData) {
+  const employeeId = (formData.get("employee_id") || formData.get("teacher_id") || formData.get("staff_id")) as string | null;
+
+  if (!employeeId?.trim()) {
+    redirect("/admin/employees?status=error&message=Missing%20employee%20id");
+  }
+
+  await deleteEmployeeAction(employeeId.trim());
+}
+
+export async function setEmployeeStatusAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const employeeId = ((formData.get("employee_id") || formData.get("teacher_id") || formData.get("staff_id")) as string | null)?.trim();
+    const status = (formData.get("status") as string | null)?.trim().toLowerCase();
+
+    if (!employeeId) {
+      throw new Error("Missing employee id.");
+    }
+
+    if (status !== "active" && status !== "inactive") {
+      throw new Error("Invalid employee status.");
+    }
+
+    const supabase = createSupabaseAdminClient();
+    const { data: oldData } = await supabase
+      .from("staffs")
+      .select("*")
+      .eq("id", employeeId)
+      .single();
+
+    const { error: staffError } = await supabase
+      .from("staffs")
+      .update({ status })
+      .eq("id", employeeId);
+
+    if (staffError && !isMissingColumnError(staffError)) {
+      throw staffError;
+    }
+
+    const accountPayload = status === "inactive" ? { status, can_login: false } : { status };
+    await supabase
+      .from("staff_accounts")
+      .update(accountPayload)
+      .eq("staff_id", employeeId);
+
+    if (oldData?.type === "teacher") {
+      await logTeacherMutation(
+        "update",
+        employeeId,
+        oldData,
+        status === "inactive" ? { status, login_access: false } : { status }
+      );
+    } else {
+      await logStaffMutation(
+        "update",
+        employeeId,
+        oldData,
+        status === "inactive" ? { status, login_access: false } : { status }
+      );
+    }
+
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+    revalidatePath("/teachers");
+    revalidatePath("/staffs");
+
+    redirect(`/admin/employees?status=success&message=${encodeURIComponent("Employee status updated successfully")}`);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "Failed to update employee status";
+    redirect(`/admin/employees?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function setEmployeeLoginAccessAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const employeeId = ((formData.get("employee_id") || formData.get("teacher_id") || formData.get("staff_id")) as string | null)?.trim();
+    const canLoginRaw = (formData.get("can_login") as string | null)?.trim().toLowerCase();
+
+    if (!employeeId) {
+      throw new Error("Missing employee id.");
+    }
+
+    if (canLoginRaw !== "true" && canLoginRaw !== "false") {
+      throw new Error("Invalid login access value.");
+    }
+
+    const supabase = createSupabaseAdminClient();
+    const canLogin = canLoginRaw === "true";
+    const { data: staff, error: staffError } = await supabase
+      .from("staffs")
+      .select("status, type")
+      .eq("id", employeeId)
+      .single();
+
+    if (staffError && !isMissingColumnError(staffError)) {
+      throw staffError;
+    }
+
+    const isInactive = !staffError && staff?.status?.toLowerCase() === "inactive";
+    if (isInactive && canLogin) {
+      throw new Error("Activate the employee before enabling login access.");
+    }
+
+    const nextCanLogin = isInactive ? false : canLogin;
+
+    const { error } = await supabase
+      .from("staff_accounts")
+      .update({ can_login: nextCanLogin })
+      .eq("staff_id", employeeId);
+
+    if (error && !isMissingTableError(error) && !isMissingColumnError(error)) {
+      throw error;
+    }
+
+    if (staff?.type === "teacher") {
+      await logTeacherMutation("update", employeeId, undefined, { login_access: nextCanLogin });
+    } else {
+      await logStaffMutation("update", employeeId, undefined, { login_access: nextCanLogin });
+    }
+
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+
+    redirect(`/admin/employees?status=success&message=${encodeURIComponent("Employee login access updated successfully")}`);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "Failed to update employee login access";
+    redirect(`/admin/employees?status=error&message=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function resetEmployeePasswordAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  try {
+    const employeeId = ((formData.get("employee_id") || formData.get("teacher_id") || formData.get("staff_id")) as string | null)?.trim();
+
+    if (!employeeId) {
+      throw new Error("Missing employee id.");
+    }
+
+    const supabase = createSupabaseAdminClient();
+    const { data: staff, error: staffError } = await supabase
+      .from("staffs")
+      .select("id, email, full_name_en, type")
+      .eq("id", employeeId)
+      .single();
+
+    if (staffError) throw staffError;
+
+    if (!staff.email) {
+      throw new Error("Employee email is missing.");
+    }
+
+    const temporaryPassword = generateTemporaryPassword(6);
+    const passwordHash = await hash(temporaryPassword, 12);
+
+    const accountPayload: StaffAccountPayload = {
+      staff_id: employeeId,
+      email: staff.email,
+      password_hash: passwordHash,
+      role: staff.type === "staff" ? "staff" : "teacher",
+      status: "active",
+    };
+
+    await upsertStaffAccountWithFallback(supabase, accountPayload);
+
+    const instituteSettings = await getInstituteSettings().catch(() => null);
+    const instituteName = instituteSettings?.primary?.instituteName?.trim() || "School System";
+
+    await sendTeacherPasswordResetEmail({
+      email: staff.email,
+      teacherName: staff.full_name_en || "Employee",
+      temporaryPassword,
+      instituteName,
+    });
+
+    if (staff.type === "teacher") {
+      await logTeacherMutation("update", employeeId, undefined, { password_reset: true });
+    } else {
+      await logStaffMutation("update", employeeId, undefined, { password_reset: true });
+    }
+
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/teachers");
+    revalidatePath("/admin/staffs");
+
+    redirect(`/admin/employees?status=success&message=${encodeURIComponent("Password reset successful. New password sent to employee email.")}`);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "Failed to reset password";
+    redirect(`/admin/employees?status=error&message=${encodeURIComponent(message)}`);
   }
 }
 

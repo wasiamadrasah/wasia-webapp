@@ -2,8 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useMemo, useState } from "react"
-import { ArrowRight, CalendarDays, Newspaper, Search, Sparkles } from "lucide-react"
+import { ArrowRight, CalendarDays, Newspaper } from "lucide-react"
 import { getSafeImageSrc } from "@/lib/media"
 
 type NewsListItem = {
@@ -89,117 +88,27 @@ function stripHtml(value: string | null) {
 }
 
 export default function NewsList({ news }: { news: NewsListItem[] }) {
-  const [query, setQuery] = useState("")
-  const [category, setCategory] = useState("")
-
-  const rawCategories = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          news
-            .map((item) => item.category?.trim())
-            .filter((value): value is string => Boolean(value))
-        )
-      ),
-    [news]
-  )
-
-  const normalizedQuery = query.trim().toLowerCase()
-
-  const filteredNews = useMemo(
-    () =>
-      news.filter((item) => {
-        const haystack = [item.title, stripHtml(item.content)].join(" ").toLowerCase()
-        const matchesQuery = normalizedQuery ? haystack.includes(normalizedQuery) : true
-        const matchesCategory = category ? (item.category ?? "") === category : true
-
-        return matchesQuery && matchesCategory
-      }),
-    [category, news, normalizedQuery]
-  )
-
-  const countLabel =
-    !query && !category
-      ? `মোট ${toBanglaNumber(filteredNews.length)}টি সংবাদ প্রকাশিত`
-      : `${toBanglaNumber(filteredNews.length)}টি সংবাদ পাওয়া গেছে`
-
   return (
-    <section className="bg-[#F0F7F5] pt-6 sm:pt-8 pb-12 sm:pb-16">
+    <section className="bg-[#F0F7F5] py-10 sm:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Top Filter & Search Card */}
-        <div className="mb-8 rounded-2xl bg-white p-4 sm:p-5 shadow-xs">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Header info */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F0F7F5] border border-[#075E54]/20 text-[#075E54]">
-                <Newspaper className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
-                  সকল প্রকাশিত সংবাদ
-                </h2>
-                <p className="text-[14px] text-[#5F6B67]">{countLabel}</p>
-              </div>
-            </div>
-
-            {/* Filter controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* Search */}
-              <div className="relative flex-1 sm:w-64 md:w-72">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5F6B67]" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="সংবাদ অনুসন্ধান করুন..."
-                  className="w-full rounded-lg border border-[#E2E7E4] bg-[#F7F8F5] py-2.5 pl-10 pr-3.5 text-[15px] text-[#17211E] placeholder:text-[#5F6B67]/70 outline-none transition focus:border-[#075E54] focus:bg-white focus:ring-2 focus:ring-[#075E54]/15"
-                />
-              </div>
-
-              {/* Category dropdown */}
-              <select
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className="w-full sm:w-48 rounded-lg border border-[#E2E7E4] bg-[#F7F8F5] px-3.5 py-2.5 text-[15px] font-medium text-[#17211E] outline-none transition focus:border-[#075E54] focus:bg-white focus:ring-2 focus:ring-[#075E54]/15 cursor-pointer"
-              >
-                <option value="">সকল ক্যাটাগরি</option>
-                {rawCategories.map((item) => (
-                  <option key={item} value={item}>
-                    {toBanglaCategory(item)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Standalone Card Grid */}
-        {filteredNews.length === 0 ? (
+        {news.length === 0 ? (
           <div className="rounded-2xl border border-[#E2E7E4] bg-white px-6 py-16 text-center shadow-xs">
             <div className="flex flex-col items-center gap-3">
               <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-[#F0F7F5] border border-[#075E54]/20 text-[#075E54]">
-                <Search className="h-6 w-6" />
+                <Newspaper className="h-6 w-6" />
               </div>
               <p className="font-heading font-bold text-xl text-[#17211E]">
                 কোনো সংবাদ পাওয়া যায়নি
               </p>
-              {(query || category) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setQuery("")
-                    setCategory("")
-                  }}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#075E54] px-4 py-2 text-[15px] font-semibold text-white transition hover:bg-[#064A42]"
-                >
-                  সকল ফিল্টার মুছুন
-                </button>
-              )}
+              <p className="text-[14px] text-[#5F6B67]">
+                নতুন সংবাদ প্রকাশিত হলে এখানে প্রদর্শিত হবে।
+              </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredNews.map((item) => {
+            {news.map((item) => {
               const imageSrc = getSafeImageSrc(item.featured_image_url)
               const dateStr = item.published_at || item.created_at
               const excerpt = stripHtml(item.content)

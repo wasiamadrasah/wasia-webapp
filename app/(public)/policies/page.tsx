@@ -1,279 +1,298 @@
-import { Outfit } from "next/font/google"
+import Link from "next/link"
 import {
-  FileText,
-  Download,
-  ExternalLink,
   ShieldCheck,
   BookOpen,
   Landmark,
+  Users,
+  FileText,
+  CheckCircle2,
+  ArrowRight,
+  GraduationCap,
+  Laptop,
+  Moon,
+  HeartHandshake,
+  Scale,
+  Sparkles,
+  HelpCircle,
 } from "lucide-react"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
 
-import { createPageMetadata } from "@/lib/seo"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
-
-export const metadata = createPageMetadata({
-  title: "Policies & Documents",
-  description:
-    "Official policies, academic guidelines, institutional procedures, and governance documents of Purba Bakalia City Corporation High School.",
-  path: "/policies",
-  keywords: [
-    "school policies",
-    "PBCCHS policies",
-    "academic policy",
-    "school rules",
-    "student guidelines",
-  ],
-})
+export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 type PolicyDoc = {
   title: string
   description: string
   category: string
-  updated: string
-  fileUrl?: string
+  icon: typeof FileText
+  badgeTone: "green" | "gold" | "evergreen"
 }
 
 const policies: PolicyDoc[] = [
   {
-    title: "Student Code of Conduct",
+    title: "শিক্ষার্থীদের সাধারণ আচরণবিধি ও পোষাকনীতি",
     description:
-      "Guidelines regarding student behaviour, discipline, uniform policy, academic integrity, and respectful conduct within the institution.",
-    category: "Student",
-    updated: "January 2026",
+      "মাদ্রাসা ক্যাম্পাসে নির্ধারিত মার্জিত ইসলামী পোষাক পরিধান, সুন্নতি তাহযীব বজায় রাখা, শিক্ষকদের প্রতি সর্বোচ্চ সম্মান প্রদর্শন এবং সহপাঠীদের সাথে সৌহার্দ্যপূর্ণ আচরণ নিশ্চিত করার সুনির্দিষ্ট নির্দেশনা।",
+    category: "শিক্ষার্থী আচরণবিধি",
+    icon: GraduationCap,
+    badgeTone: "green",
   },
   {
-    title: "Attendance & Leave Policy",
+    title: "উপস্থিতি ও ছুটি সংক্রান্ত নীতিমালা",
     description:
-      "Rules regarding minimum attendance requirements, leave applications, guardian communication, and irregular attendance procedures.",
-    category: "Academic",
-    updated: "December 2025",
+      "নিয়মিত পাঠদানে ন্যূনতম ৮০% উপস্থিতি বাধ্যতামূলক। যৌক্তিক কারণে ছুটির প্রয়োজনে অভিভাবকের স্বাক্ষরসহ অগ্রিম লিখিত দরখাস্ত প্রদান এবং ধারাবাহিক অনুপস্থিতির ক্ষেত্রে কঠোর প্রশাসনিক ব্যবস্থার বিধান।",
+    category: "একাডেমিক শৃঙ্খলা",
+    icon: BookOpen,
+    badgeTone: "evergreen",
   },
   {
-    title: "Examination & Assessment Policy",
+    title: "পরীক্ষা, ধারাবাহিক মূল্যায়ন ও প্রমোশন বিধান",
     description:
-      "Procedures related to examinations, grading systems, assessment methods, promotion criteria, and result publication.",
-    category: "Academic",
-    updated: "January 2026",
+      "অর্ধবার্ষিক, বার্ষিক, প্রাক-নির্বাচনী ও মডেল টেস্ট পরীক্ষা গ্রহণ, বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ডের গ্রেডিং পদ্ধতিতে ফলাফল প্রণয়ন এবং পরবর্তী শ্রেণিতে উত্তীর্ণ হওয়ার সুনির্দিষ্ট মানদণ্ড।",
+    category: "পরীক্ষা ও মূল্যায়ন",
+    icon: Scale,
+    badgeTone: "gold",
   },
   {
-    title: "Digital Device Usage Policy",
+    title: "হিফজুল কুরআন ও সান্ধ্যকালীন পাঠদান গাইডলাইন",
     description:
-      "Guidelines regarding student mobile phone usage, digital classroom devices, internet safety, and responsible technology use.",
-    category: "Student",
-    updated: "October 2025",
+      "আন্তর্জাতিক মানসম্পন্ন তাজবীদ সহকারে হিফজ শাখার শিক্ষার্থীদের দৈনিক সবক, আমপারা ও দাওর তদারকি এবং দক্ষ শিক্ষকদের তত্ত্বাবধানে সান্ধ্যকালীন বিশেষ পাঠদান কার্যক্রমের নিয়মাবলি।",
+    category: "হিফজ ও বিশেষ ক্লাস",
+    icon: Moon,
+    badgeTone: "green",
   },
   {
-    title: "Anti-Bullying & Safety Policy",
+    title: "ডিজিটাল ল্যাব ও আধুনিক কম্পিউটার ব্যবহার নির্দেশিকা",
     description:
-      "Institutional policy ensuring a safe, respectful, and harassment-free learning environment for all students.",
-    category: "Safety",
-    updated: "January 2026",
+      "তথ্যপ্রযুক্তি ল্যাবে কম্পিউটার, প্রজেক্টর ও মাল্টিমিডিয়া প্রযুক্তির দায়িত্বশীল, সুশৃঙ্খল ও কেবলমাত্র শিক্ষণীয় ব্যবহার সংক্রান্ত নিরাপত্তা ও আচরণ নীতিমালা।",
+    category: "আইসিটি ও ল্যাব",
+    icon: Laptop,
+    badgeTone: "evergreen",
   },
   {
-    title: "Teacher Recruitment Policy",
+    title: "ক্যাম্পাস শৃঙ্খলা রক্ষা ও র‍্যাগিং-বুলিং প্রতিরোধ",
     description:
-      "Recruitment standards, qualification requirements, interview procedures, and staff appointment regulations.",
-    category: "HR",
-    updated: "September 2025",
+      "ক্যাম্পাসে যেকোনো প্রকার অশোভন আচরণ, র‍্যাগিং, গালিগালাজ বা বৈষম্য সম্পূর্ণরূপে নিষিদ্ধ। সকল শিক্ষার্থীর জন্য নিরাপদ, সৌহার্দ্যপূর্ণ ও নৈতিক পরিবেশ বজায় রাখতে সার্বক্ষণিক মনিটরিং ব্যবস্থা।",
+    category: "শৃঙ্খলা ও নিরাপত্তা",
+    icon: ShieldCheck,
+    badgeTone: "gold",
   },
   {
-    title: "Fee Collection & Refund Policy",
+    title: "মাসিক বেতন, ফি ও বিশেষ শিক্ষাবৃত্তি নীতিমালা",
     description:
-      "Rules regarding tuition payment schedules, late fees, refunds, and financial assistance procedures.",
-    category: "Financial",
-    updated: "August 2025",
+      "সময়মতো মাসিক টিউশন ফি পরিশোধের নিয়মাবলি এবং এতিম, গরীব ও অসচ্ছল মেধাবী শিক্ষার্থীদের জন্য বিশেষ আর্থিক ছাড় ও প্রাতিষ্ঠানিক শিক্ষাবৃত্তি প্রদানের নীতিমালা।",
+    category: "আর্থিক ও বৃত্তি",
+    icon: HeartHandshake,
+    badgeTone: "green",
   },
   {
-    title: "Data Privacy & Information Protection",
+    title: "অভিভাবক-শিক্ষক মতবিনিময় ও প্রশাসনিক সমন্বয়",
     description:
-      "Policy regarding collection, storage, and protection of student, parent, and staff information.",
-    category: "Compliance",
-    updated: "November 2025",
-  },
-  {
-    title: "Emergency & Disaster Preparedness",
-    description:
-      "Safety procedures for fire emergencies, natural disasters, evacuation protocols, and first aid response.",
-    category: "Safety",
-    updated: "January 2026",
+      "শিক্ষার্থীর সার্বিক বিকাশ ও মেধা মূল্যায়নের লক্ষ্যে নিয়মিত অভিভাবক সমাবেশ আয়োজন এবং প্রাতিষ্ঠানিক মানোন্নয়নে সম্মানিত অভিভাবকদের গঠনমূলক পরামর্শ গ্রহণের সুশৃঙ্খল প্রক্রিয়া।",
+    category: "প্রশাসন ও অভিভাবক",
+    icon: Users,
+    badgeTone: "evergreen",
   },
 ]
 
-const categoryStyles: Record<string, string> = {
-  Student: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  Academic: "bg-blue-50 text-blue-700 border-blue-100",
-  Financial: "bg-amber-50 text-amber-700 border-amber-100",
-  HR: "bg-violet-50 text-violet-700 border-violet-100",
-  Compliance: "bg-slate-100 text-slate-700 border-slate-200",
-  Safety: "bg-rose-50 text-rose-700 border-rose-100",
-}
+export default async function PoliciesPage() {
+  const instituteSettings = await getInstituteSettings()
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    "ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা"
 
-export default function PoliciesPage() {
+  const heroSubtitle = `${instituteName}-এর একাডেমিক নীতিমালা, শিক্ষার্থী আচরণবিধি, শৃঙ্খলা ও প্রশাসনিক নির্দেশিকাসমূহ।`
+
   return (
-    <main>
-      {/* HERO */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-            <span>GOVERNANCE</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Policies{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              &amp; Documents
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Official school policies, procedures, and governance documents.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Policies" className="text-sm" plainCurrent />
-          </div>
+    <main className="bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title="প্রাতিষ্ঠানিক নীতিমালা ও আচরণবিধি"
+        subtitle={heroSubtitle}
+        badgeText="নীতিমালা ও শৃঙ্খলা"
+        badgeIcon={ShieldCheck}
+        breadcrumbCurrent="নীতিমালা"
+      />
+
+      {/* 2. Main Section */}
+      <section className="relative py-10 md:py-12 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="policies-islamic-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#policies-islamic-pattern)" />
+          </svg>
         </div>
-      </section>
 
-      {/* INTRO */}
-      <section className="border-b border-slate-100 bg-white px-6 py-12 md:px-10">
-        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6">
-            <BookOpen className="h-8 w-8 text-emerald-600" />
+        <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10 md:space-y-12">
+          
+          {/* Section A: 3 Top Core Governance Pillars */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-7 shadow-xs space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <BookOpen className="h-6 w-6" />
+                </div>
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
+                  একাডেমিক শৃঙ্খলা ও পাঠদান
+                </h3>
+                <p className="text-[14px] leading-relaxed text-[#5F6B67]">
+                  পাঠ্যসূচি অনুসরণ, নিয়মিত ক্লাস উপস্থিতি, পরীক্ষা ও মূল্যায়নের স্বচ্ছ প্রাতিষ্ঠানিক নীতিমালা।
+                </p>
+              </div>
+            </div>
 
-            <h3 className="mt-4 text-lg font-black text-slate-900">
-              Academic Policies
-            </h3>
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-7 shadow-xs space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
+                  নৈতিক আচরণ ও নিরাপত্তা
+                </h3>
+                <p className="text-[14px] leading-relaxed text-[#5F6B67]">
+                  সুন্নতি তাহযীব, চারিত্রিক শুদ্ধতা, পারস্পরিক সম্মানবোধ ও নিরাপদ ক্যাম্পাস পরিবেশের নিশ্চয়তা।
+                </p>
+              </div>
+            </div>
 
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              Rules and procedures regarding academics, examinations,
-              attendance, and student assessment systems.
-            </p>
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-7 shadow-xs space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <Landmark className="h-6 w-6" />
+                </div>
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
+                  সুশাসন ও প্রাতিষ্ঠানিক পরিচালনা
+                </h3>
+                <p className="text-[14px] leading-relaxed text-[#5F6B67]">
+                  বাংলাদেশ মাদ্রাসা শিক্ষা বোর্ডের বিধিমালা ও গভর্নিং বডির সুনির্দিষ্ট নির্দেশনার যথাযথ বাস্তবায়ন।
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6">
-            <ShieldCheck className="h-8 w-8 text-emerald-600" />
+          {/* Section B: Policies List Grid */}
+          <div className="space-y-6">
+            <div className="text-center max-w-2xl mx-auto space-y-1.5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#F0F7F5] border border-[#075E54]/20 px-3.5 py-1 text-[13px] font-semibold text-[#075E54]">
+                <Sparkles className="h-3.5 w-3.5 text-[#075E54]" />
+                <span>সুনির্দিষ্ট নিয়মাবলি</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
+                নীতিমালা ও প্রাতিষ্ঠানিক নির্দেশিকাসমূহ
+              </h2>
+              <p className="text-[15px] text-[#5F6B67]">
+                মাদ্রাসার শৃঙ্খলা, পাঠদান ও সার্বিক পরিবেশ অক্ষুণ্ণ রাখতে নির্ধারিত বিধানাবলি
+              </p>
+            </div>
 
-            <h3 className="mt-4 text-lg font-black text-slate-900">
-              Student Safety
-            </h3>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {policies.map((policy, idx) => {
+                const Icon = policy.icon
+                return (
+                  <div
+                    key={idx}
+                    className="card-appear rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#075E54]/40 hover:shadow-md transition-all"
+                    style={{ animationDelay: `${idx * 40}ms` }}
+                  >
+                    <div className="space-y-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15 shadow-2xs">
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#075E54]/20 bg-[#F0F7F5] px-3 py-0.5 text-[12px] font-semibold text-[#075E54]">
+                          {policy.category}
+                        </span>
+                      </div>
 
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              Institutional commitments to discipline, safety, anti-bullying,
-              and responsible student conduct.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6">
-            <Landmark className="h-8 w-8 text-emerald-600" />
-
-            <h3 className="mt-4 text-lg font-black text-slate-900">
-              Governance
-            </h3>
-
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              Administrative procedures, compliance standards, institutional
-              management, and operational policies.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* POLICY LIST */}
-      <section className="bg-slate-50 px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-14 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
-              Official Documents
-            </p>
-
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-              Policies & Institutional Guidelines
-            </h2>
-          </div>
-
-          <div className="grid gap-6">
-            {policies.map((policy, i) => (
-              <article
-                key={`${policy.title}-${i}`}
-                className="group rounded-3xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-emerald-200 hover:shadow-xl"
-              >
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                  {/* ICON */}
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-100">
-                    <FileText className="h-6 w-6 text-slate-600" />
-                  </div>
-
-                  {/* CONTENT */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-xl font-black text-slate-900">
+                      <h3 className="font-heading text-[17.5px] font-bold text-[#17211E] leading-snug">
                         {policy.title}
                       </h3>
 
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-bold ${categoryStyles[policy.category]}`}
-                      >
-                        {policy.category}
-                      </span>
+                      <p className="text-[14.5px] leading-relaxed text-[#5F6B67]">
+                        {policy.description}
+                      </p>
                     </div>
 
-                    <p className="mt-4 text-sm leading-8 text-slate-600">
-                      {policy.description}
-                    </p>
-
-                    <div className="mt-5 flex flex-wrap items-center gap-4">
-                      <span className="text-xs font-medium text-slate-400">
-                        Last Updated: {policy.updated}
+                    <div className="pt-3 border-t border-[#E2E7E4]/60 flex items-center justify-between text-[13px]">
+                      <span className="text-[#075E54] font-medium flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>প্রযোজ্য ও কার্যকর</span>
                       </span>
                     </div>
                   </div>
+                )
+              })}
+            </div>
+          </div>
 
-                  {/* ACTION */}
-                  <div className="shrink-0">
-                    {policy.fileUrl ? (
-                      <a
-                        href={policy.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all duration-300 hover:bg-emerald-100"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download
-                      </a>
-                    ) : (
-                      <button
-                        disabled
-                        className="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-400"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Coming Soon
-                      </button>
-                    )}
-                  </div>
+          {/* Section C: Footnote Callout Box */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#FFFDF5] p-6 sm:p-8 border-l-8 border-l-[#B68A18] shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#B68A18]/15 text-[#B68A18]">
+                  <HelpCircle className="h-6 w-6" />
                 </div>
-              </article>
-            ))}
+                <div className="space-y-1">
+                  <span className="inline-block rounded-full bg-[#B68A18] px-3 py-0.5 text-[12px] font-bold text-white">
+                    বিশেষ জ্ঞাতব্য
+                  </span>
+                  <h3 className="font-heading text-lg font-bold text-[#17211E]">
+                    প্রিন্ট কপি বা সত্যায়িত নীতিমালার জন্য যোগাযোগ
+                  </h3>
+                  <p className="text-[14px] leading-relaxed text-[#5F6B67]">
+                    নীতিমালার মুদ্রিত কপি কিংবা প্রাতিষ্ঠানিক নির্দেশিকা সংক্রান্ত যেকোনো তথ্যের জন্য মাদ্রাসা কার্যালয়ে সরাসরি যোগাযোগ করার জন্য অনুরোধ করা যাচ্ছে।
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* FOOTNOTE */}
-          <div className="mt-14 rounded-3xl border border-emerald-100 bg-emerald-50 p-6 text-center">
-            <p className="text-sm leading-7 text-emerald-800">
-              For printed copies, certified policy documents, or additional
-              institutional guidelines, please contact the school office during
-              official working hours.
-            </p>
+          {/* Section D: Closing CTA Banner (Solid Evergreen) */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#064A42] p-8 sm:p-10 text-white text-center space-y-5 shadow-xs">
+            <div className="max-w-2xl mx-auto space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B68A18]/40 bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-[#B68A18]">
+                <GraduationCap className="h-4 w-4 text-[#B68A18]" />
+                <span>সুশৃঙ্খল দ্বীনি ক্যাম্পাস</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white">
+                দ্বীনি তাহযীব ও আধুনিক শিক্ষায় আপনার সন্তানের আদর্শ শিক্ষা
+              </h2>
+              <p className="text-[15px] leading-relaxed text-[#DCEEE9]">
+                ভর্তি তথ্য, সিলেবাস কিংবা সার্বিক প্রাতিষ্ঠানিক নির্দেশিকা সম্পর্কে জানতে আমাদের সাথে যোগাযোগ করুন।
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Link
+                href="/admission"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-5 py-2.5 text-[14.5px] font-bold text-white border border-[#B68A18]/30 shadow-xs hover:bg-[#064A42] transition-colors"
+              >
+                <span>ভর্তি সংক্রান্ত তথ্য</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[14.5px] font-semibold text-white hover:bg-white/20 transition-colors"
+              >
+                <span>যোগাযোগ করুন</span>
+              </Link>
+            </div>
           </div>
+
         </div>
       </section>
     </main>

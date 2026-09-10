@@ -72,7 +72,7 @@ function SectionHeader({ title, icon: Icon, action }: { title: string; icon: Rea
   )
 }
 
-export function TeacherMultiEntrySections({ academics, experience, training, family }: Props) {
+export function EmployeeMultiEntrySections({ academics, experience, training, family }: Props) {
   const [academicRows, setAcademicRows] = React.useState<AcademicItem[]>(
     academics.length > 0 ? academics : [{ degree: null, institution: null, subject: null, passing_year: null, duration: null, result: null }]
   )

@@ -385,74 +385,182 @@ type ContentLookupOptions = {
 
 type ContentTableName = "notices" | "news_posts" | "blog_posts"
 
-function normalizeDisplayName(value: string | null | undefined) {
-  const normalized = value?.trim()
-  return normalized ? normalized : null
+function isPubliclyVisible(
+  record: { published?: boolean | null; publish_date?: string | null; published_at?: string | null } | null | undefined
+): boolean {
+  if (!record || !record.published) return false
+  const dateStr = record.publish_date || record.published_at
+  if (!dateStr) return true
+  const pubTime = new Date(dateStr).getTime()
+  if (isNaN(pubTime)) return true
+  return pubTime <= Date.now()
 }
 
-function isPubliclyVisible(record: { published: boolean | null; published_at: string | null }) {
-  return record.published === true || Boolean(record.published_at)
+function normalizeDisplayName(value: string | null | undefined): string | null {
+  if (!value) return null
+  const trimmed = value.trim()
+  return trimmed || null
+}
+
+function formatAuthorDisplayName(rawNameOrEmail: string | null | undefined): string {
+  if (!rawNameOrEmail) return "Admin"
+  const trimmed = rawNameOrEmail.trim()
+  if (!trimmed) return "Admin"
+
+  if (trimmed.includes("@")) {
+    const username = trimmed.split("@")[0]
+    if (username.toLowerCase() === "admin" || username.toLowerCase() === "superadmin") {
+      return "Admin"
+    }
+    const formatted = username
+      .replace(/[._-]/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ")
+    return formatted || "Admin"
+  }
+
+  return trimmed
 }
 
 async function hydrateAuthorNames<T extends AuthoredContentRow>(rows: T[]) {
+  if (!rows.length) return rows
+
   const normalizedRows = rows.map((row) => ({
     ...row,
     author_name: normalizeDisplayName(row.author_name),
     views: row.views ?? 0,
   }))
 
-  const missingAuthorIds = Array.from(
-    new Set(
-      normalizedRows
-        .filter((row) => !row.author_name)
-        .map((row) => row.author_id)
-        .filter((id): id is string => Boolean(id))
-    )
+  const rowsNeedingResolution = normalizedRows.filter(
+    (row) => !row.author_name || row.author_name.includes("@") || Boolean(row.author_id)
   )
 
-  if (missingAuthorIds.length === 0) {
-    return normalizedRows
+  if (rowsNeedingResolution.length === 0) {
+    return normalizedRows.map((r) => ({
+      ...r,
+      author_name: formatAuthorDisplayName(r.author_name),
+    }))
   }
 
   const supabase = createSupabaseAdminClient()
-  const { data: accounts, error: accountsError } = await supabase
-    .from("staff_accounts")
-    .select("id, staff_id, email")
-    .in("id", missingAuthorIds)
 
-  if (accountsError || !accounts?.length) {
-    return normalizedRows
+  // 1. Check admins table by ID and Email (try full_name and fallback to name)
+  const adminNameMap = new Map<string, string>()
+  const adminEmailToNameMap = new Map<string, string>()
+  try {
+    const { data: admins, error: adminErr } = await supabase
+      .from("admins")
+      .select("id, email, full_name")
+
+    if (!adminErr && admins) {
+      for (const admin of admins as { id: string; email: string | null; full_name: string | null }[]) {
+        const name = admin.full_name?.trim()
+        if (name) {
+          adminNameMap.set(admin.id, name)
+          if (admin.email) {
+            adminEmailToNameMap.set(admin.email.trim().toLowerCase(), name)
+          }
+        }
+      }
+    } else {
+      // Fallback: check if column is named 'name'
+      const { data: altAdmins } = await supabase
+        .from("admins")
+        .select("id, email, name")
+
+      if (altAdmins) {
+        for (const admin of altAdmins as { id: string; email: string | null; name: string | null }[]) {
+          const name = admin.name?.trim()
+          if (name) {
+            adminNameMap.set(admin.id, name)
+            if (admin.email) {
+              adminEmailToNameMap.set(admin.email.trim().toLowerCase(), name)
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Table or column might be absent in some schemas
   }
 
-  const accountRows = accounts as { id: string; staff_id: string | null; email: string | null }[]
-  const accountMap = new Map(accountRows.map((account) => [account.id, account]))
-  const staffIds = Array.from(
-    new Set(accountRows.map((account) => account.staff_id).filter((id): id is string => Boolean(id)))
-  )
-
-  const staffNameMap = new Map<string, string | null>()
-  if (staffIds.length > 0) {
+  // 2. Check staffs table and staff_accounts by ID and Email
+  const staffAccountNameMap = new Map<string, string>()
+  const staffEmailToNameMap = new Map<string, string>()
+  try {
     const { data: staffs } = await supabase
       .from("staffs")
-      .select("id, full_name_en")
-      .in("id", staffIds)
+      .select("id, full_name_en, email")
 
-    for (const staff of (staffs ?? []) as { id: string; full_name_en: string | null }[]) {
-      staffNameMap.set(staff.id, normalizeDisplayName(staff.full_name_en))
+    const staffMap = new Map(
+      (staffs ?? []).map((s: { id: string; full_name_en: string | null }) => [s.id, s.full_name_en?.trim()])
+    )
+
+    for (const s of (staffs ?? []) as { id: string; full_name_en: string | null; email: string | null }[]) {
+      if (s.full_name_en?.trim()) {
+        const sName = s.full_name_en.trim()
+        staffAccountNameMap.set(s.id, sName)
+        if (s.email) {
+          staffEmailToNameMap.set(s.email.trim().toLowerCase(), sName)
+        }
+      }
     }
+
+    const { data: accounts } = await supabase
+      .from("staff_accounts")
+      .select("id, staff_id, email")
+
+    const accountRows = (accounts ?? []) as { id: string; staff_id: string | null; email: string | null }[]
+    for (const acc of accountRows) {
+      if (acc.staff_id && staffMap.has(acc.staff_id)) {
+        const sName = staffMap.get(acc.staff_id)
+        if (sName) {
+          staffAccountNameMap.set(acc.id, sName)
+          if (acc.email) {
+            staffEmailToNameMap.set(acc.email.trim().toLowerCase(), sName)
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore error
   }
 
   return normalizedRows.map((row) => {
-    if (row.author_name || !row.author_id) {
-      return row
+    let resolvedName: string | null = null
+
+    // Check if author_id matches staff_accounts or admins
+    if (row.author_id) {
+      resolvedName =
+        staffAccountNameMap.get(row.author_id) ||
+        adminNameMap.get(row.author_id) ||
+        null
     }
 
-    const account = accountMap.get(row.author_id)
-    const staffName = account?.staff_id ? staffNameMap.get(account.staff_id) : null
+    // Check if author_name is an email that matches admin/staff email
+    if (!resolvedName && row.author_name) {
+      const lowerAuthor = row.author_name.trim().toLowerCase()
+      resolvedName =
+        adminEmailToNameMap.get(lowerAuthor) ||
+        staffEmailToNameMap.get(lowerAuthor) ||
+        null
+    }
+
+    // If still not resolved, check if author_name is already a clean name (not email)
+    if (!resolvedName && row.author_name && !row.author_name.includes("@")) {
+      resolvedName = row.author_name.trim()
+    }
+
+    // Format fallback if it was an email
+    if (!resolvedName && row.author_name) {
+      resolvedName = formatAuthorDisplayName(row.author_name)
+    }
 
     return {
       ...row,
-      author_name: staffName || normalizeDisplayName(account?.email) || null,
+      author_name: resolvedName || "Admin",
     }
   })
 }
@@ -531,6 +639,78 @@ function sortTeachersList(list: StaffListRecord[]): StaffListRecord[] {
 
     return dateA - dateB
   })
+}
+
+export type EmployeeListRecord = StaffListRecord & {
+  full_name_bn?: string | null
+  category?: "teacher" | "staff" | string | null
+}
+
+export async function getAdminEmployees(options?: {
+  search?: string
+  category?: "all" | "teacher" | "staff"
+}) {
+  const supabase = createSupabaseAdminClient()
+  const query = escapeLike(options?.search?.trim() ?? "")
+  const category = options?.category ?? "all"
+
+  let request = supabase
+    .from("staffs")
+    .select(
+      "id, employee_id, full_name_en, full_name_bn, designation, subject, email, contact_number, status, type, joining_date, profile_photo"
+    )
+
+  if (category === "teacher") {
+    request = request.eq("type", "teacher")
+  } else if (category === "staff") {
+    request = request.neq("type", "teacher")
+  }
+
+  if (query) {
+    request = request.or(
+      `full_name_en.ilike.%${query}%,full_name_bn.ilike.%${query}%,employee_id.ilike.%${query}%,subject.ilike.%${query}%,designation.ilike.%${query}%`
+    )
+  }
+
+  request = request.order("joining_date", { ascending: true })
+
+  const { data, error } = await request
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  const employees = ((data ?? []) as EmployeeListRecord[]).map((row) => ({
+    ...row,
+    category: row.type === "teacher" ? "teacher" : "staff",
+    can_login: null,
+  }))
+
+  const employeeIds = employees.map((item) => item.id)
+  if (!employeeIds.length) {
+    return employees
+  }
+
+  const accountResult = await supabase
+    .from("staff_accounts")
+    .select("staff_id, can_login")
+    .in("staff_id", employeeIds)
+
+  if (!accountResult.error) {
+    const accountMap = new Map<string, boolean | null>(
+      (accountResult.data ?? []).map((account) => [
+        account.staff_id as string,
+        typeof account.can_login === "boolean" ? account.can_login : null,
+      ])
+    )
+
+    return employees.map((row) => ({
+      ...row,
+      can_login: accountMap.has(row.id) ? accountMap.get(row.id) ?? null : row.can_login,
+    }))
+  }
+
+  return employees
 }
 
 export async function getAdminTeachers(search?: string) {
@@ -722,20 +902,13 @@ export async function getNotices(limit = 10) {
     throw new Error(error.message)
   }
 
-  // Hydrate any missing author names (fallback for posts created before author_name was stored)
+  // Hydrate any missing author names (fallback for posts created before author_name was stored or with email)
   const rows = (data ?? []).map((item) => ({
     ...item,
     author_name: item.author_name || null,
   })) as (NoticeRecord & { views: number | null })[]
 
-  const rowsNeedingHydration = rows.filter((r) => !r.author_name && r.author_id)
-  if (rowsNeedingHydration.length > 0) {
-    const hydratedRows = await hydrateAuthorNames(rowsNeedingHydration)
-    const hydratedMap = new Map(hydratedRows.map((r) => [r.id, r]))
-    return rows.map((r) => hydratedMap.get(r.id) || r) as NoticeRecord[]
-  }
-
-  return rows as NoticeRecord[]
+  return (await hydrateAuthorNames(rows)) as NoticeRecord[]
 }
 
 /**
@@ -954,20 +1127,13 @@ export async function getNews(limit = 20) {
     throw new Error(error.message)
   }
 
-  // Hydrate any missing author names (fallback for posts created before author_name was stored)
+  // Hydrate any missing author names (fallback for posts created before author_name was stored or with email)
   const rows = (data ?? []).map((item) => ({
     ...item,
     author_name: item.author_name || null,
   })) as (NewsRecord & { views: number | null })[]
 
-  const rowsNeedingHydration = rows.filter((r) => !r.author_name && r.author_id)
-  if (rowsNeedingHydration.length > 0) {
-    const hydratedRows = await hydrateAuthorNames(rowsNeedingHydration)
-    const hydratedMap = new Map(hydratedRows.map((r) => [r.id, r]))
-    return rows.map((r) => hydratedMap.get(r.id) || r) as NewsRecord[]
-  }
-
-  return rows as NewsRecord[]
+  return (await hydrateAuthorNames(rows)) as NewsRecord[]
 }
 
 export async function getNewsById(id: string, options: ContentLookupOptions = {}) {
@@ -1095,20 +1261,13 @@ export async function getBlogs(limit = 20) {
     throw new Error(error.message)
   }
 
-  // Hydrate any missing author names (fallback for posts created before author_name was stored)
+  // Hydrate any missing author names (fallback for posts created before author_name was stored or with email)
   const rows = (data ?? []).map((item) => ({
     ...item,
     author_name: item.author_name || null,
   })) as (BlogRecord & { views: number | null })[]
 
-  const rowsNeedingHydration = rows.filter((r) => !r.author_name && r.author_id)
-  if (rowsNeedingHydration.length > 0) {
-    const hydratedRows = await hydrateAuthorNames(rowsNeedingHydration)
-    const hydratedMap = new Map(hydratedRows.map((r) => [r.id, r]))
-    return rows.map((r) => hydratedMap.get(r.id) || r) as BlogRecord[]
-  }
-
-  return rows as BlogRecord[]
+  return (await hydrateAuthorNames(rows)) as BlogRecord[]
 }
 
 export async function getBlogById(id: string, options: ContentLookupOptions = {}) {
@@ -1491,6 +1650,10 @@ export async function getStaffProfile(staffId: string) {
   return getTeacherProfile(staffId)
 }
 
+export async function getEmployeeProfile(employeeId: string) {
+  return getTeacherProfile(employeeId)
+}
+
 export async function getTeacherAcademics(staffId: string) {
   const supabase = createSupabaseAdminClient()
   const { data, error } = await supabase
@@ -1828,8 +1991,13 @@ export async function getNotifications(limit = 10) {
     throw new Error(error.message)
   }
 
-  const rows = (data ?? []) as NotificationRecord[]
-  return rows
+  const rows = (data ?? []).map((item) => ({
+    ...item,
+    author_name: item.author_name || null,
+    views: 0,
+  })) as (NotificationRecord & { views: number | null })[]
+
+  return (await hydrateAuthorNames(rows)) as NotificationRecord[]
 }
 
 export async function getNotificationById(id: string) {

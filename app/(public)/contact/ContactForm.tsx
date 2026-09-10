@@ -82,7 +82,7 @@ export default function ContactForm() {
             আপনার বার্তা সফলভাবে গৃহীত হয়েছে!
           </h3>
           <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-[#5F6B67]">
-            ওয়াসিয়া কামিল মাদ্রাসার সাথে যোগাযোগের জন্য ধন্যবাদ। আমাদের সংশ্লিষ্ট কর্মকর্তা দ্রুত আপনার সাথে যোগাযোগ করবেন।
+            ওয়াছিয়া আহমদিয়া সুন্নিয়া মাদ্রাসার যোগাযোগের জন্য ধন্যবাদ। আমাদের সংশ্লিষ্ট কর্মকর্তা দ্রুত আপনার সাথে যোগাযোগ করবেন।
           </p>
           <button
             type="button"
@@ -280,7 +280,7 @@ export default function ContactForm() {
 
         <p className="flex items-center justify-center gap-1.5 text-center text-[14px] text-[#5F6B67]">
           <ShieldCheck className="h-4 w-4 text-[#075E54]" />
-          <span>আপনার তথ্যের গোপনীয়তা সম্পূর্ণ সুরক্ষিত থাকবে।</span>
+          <span>আপনার তথ্যের গোপনীয়তা সম্পূর্ণ সুরক্ষিত</span>
         </p>
       </form>
     </div>

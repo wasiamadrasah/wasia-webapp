@@ -1,8 +1,8 @@
-import { Outfit } from "next/font/google"
 import Link from "next/link"
 import { getEvents, getEventCategories } from "@/lib/db"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
-import { Calendar, MapPin, ChevronRight } from "lucide-react"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
+import { CalendarDays, MapPin, Calendar, ArrowRight, Tag, ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 
 export const dynamic = "force-dynamic"
@@ -29,21 +29,43 @@ export async function generateStaticParams() {
   }))
 }
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+function formatBengaliDate(dateStr: string | null) {
+  if (!dateStr) return { day: "--", monthYear: "তারিখ নির্ধারিত নয়", fullDate: "" }
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return { day: "--", monthYear: "তারিখ নির্ধারিত নয়", fullDate: "" }
+
+  const day = d.toLocaleDateString("bn-BD", { day: "numeric" })
+  const month = d.toLocaleDateString("bn-BD", { month: "short" })
+  const year = d.toLocaleDateString("bn-BD", { year: "numeric" })
+  const weekday = d.toLocaleDateString("bn-BD", { weekday: "long" })
+
+  return {
+    day,
+    monthYear: `${month}, ${year}`,
+    fullDate: `${weekday}, ${day} ${month} ${year}`,
+  }
+}
 
 export default async function EventCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const allCategories = await getEventCategories()
+  const [allCategories, instituteSettings, rawEvents] = await Promise.all([
+    getEventCategories(),
+    getInstituteSettings(),
+    getEvents(100),
+  ])
+
   const categoryName = allCategories.find((cat) => slugify(cat) === slug)
 
   if (!categoryName) {
     notFound()
   }
 
-  const allEvents = (await getEvents(100))
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    "ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা"
+
+  const allEvents = rawEvents
     .filter((item) => item.published !== false)
     .map((item) => ({
       id: item.id,
@@ -57,111 +79,170 @@ export default async function EventCategoryPage({ params }: { params: Promise<{ 
 
   const events = allEvents.filter((event) => slugify(event.category || "general") === slug)
 
+  const heroSubtitle = `${instituteName}-এর "${categoryName}" ক্যাটাগরির সকল অনুষ্ঠান ও কর্মসূচি তালিকা।`
+
   return (
-    <main className="bg-background">
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <Calendar className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Event Category</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            {categoryName}
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            {events.length} event{events.length === 1 ? "" : "s"} in this category
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current={categoryName} className="text-sm" plainCurrent />
-          </div>
+    <main className="bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero */}
+      <PublicHero
+        title={categoryName}
+        subtitle={heroSubtitle}
+        badgeText="ক্যাটাগরি ভিত্তিক অনুষ্ঠান"
+        badgeIcon={CalendarDays}
+        breadcrumbCurrent={categoryName}
+      />
+
+      {/* 2. Main Content */}
+      <section className="relative py-10 md:py-12 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="cat-events-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cat-events-pattern)" />
+          </svg>
         </div>
-      </section>
 
-      <section className="px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-8 flex flex-wrap gap-2">
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground hover:border-emerald-500 hover:text-foreground hover:bg-muted/40 transition"
-            >
-              All Events
-            </Link>
-            {allCategories.map((cat) => (
+        <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
+          
+          {/* Category Navigation Bar */}
+          <div className="rounded-3xl border border-[#E2E7E4] bg-white p-5 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
-                key={cat}
-                href={`/events/category/${slugify(cat)}`}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  slugify(cat) === slug
-                    ? "border border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-                    : "border border-border bg-card text-muted-foreground hover:border-emerald-500 hover:text-foreground hover:bg-muted/40"
-                }`}
+                href="/events"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E7E4] bg-[#F7F8F5] px-4 py-1.5 text-[13.5px] font-semibold text-[#5F6B67] hover:bg-[#F0F7F5] hover:text-[#075E54] transition"
               >
-                {cat}
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>সকল অনুষ্ঠান</span>
               </Link>
-            ))}
-          </div>
+              {allCategories.map((cat) => {
+                const catSlug = slugify(cat)
+                const isCurrent = catSlug === slug
 
-          {events.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
-              No events in this category yet.
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {events.map((ev) => {
-                const dateStr = ev.event_date || ev.created_at
                 return (
-                  <li key={ev.id}>
-                    <Link
-                      href={`/events/${ev.id}`}
-                      className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-emerald-500/50 hover:shadow-md dark:hover:bg-muted/30"
-                    >
-                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-emerald-200/60 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/60">
-                        <Calendar className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="font-semibold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
-                          {ev.title || "Untitled event"}
-                        </h2>
-                        <div className="mt-1 flex flex-wrap items-center gap-3">
-                          {dateStr && (
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(dateStr).toLocaleDateString("en-BD", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
-                            </span>
-                          )}
-                          {ev.location && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              {ev.location}
-                            </span>
-                          )}
-                          {ev.category && ev.category !== "general" && (
-                            <span className="rounded-full border border-emerald-300/60 bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950 dark:text-emerald-300">
-                              {ev.category}
-                            </span>
-                          )}
-                        </div>
-                        {ev.description && (
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{ev.description}</p>
-                        )}
-                      </div>
-                      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground/40 group-hover:text-emerald-500 transition" />
-                    </Link>
-                  </li>
+                  <Link
+                    key={cat}
+                    href={`/events/category/${catSlug}`}
+                    className={`rounded-full px-4 py-1.5 text-[13.5px] font-semibold transition ${
+                      isCurrent
+                        ? "bg-[#075E54] text-white shadow-xs"
+                        : "border border-[#E2E7E4] bg-[#F7F8F5] text-[#5F6B67] hover:bg-[#F0F7F5] hover:text-[#075E54]"
+                    }`}
+                  >
+                    {cat}
+                  </Link>
                 )
               })}
-            </ul>
+            </div>
+
+            <div className="text-[13.5px] font-medium text-[#5F6B67] flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-[#075E54]" />
+              <span>
+                এই বিভাগে মোট <strong className="text-[#075E54] font-bold">{events.length}</strong> টি অনুষ্ঠান রয়েছে
+              </span>
+            </div>
+          </div>
+
+          {/* Events Grid */}
+          {events.length === 0 ? (
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-12 text-center space-y-3 shadow-xs">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                <CalendarDays className="h-7 w-7" />
+              </div>
+              <h3 className="font-heading text-xl font-bold text-[#17211E]">
+                এই ক্যাটাগরিতে কোনো অনুষ্ঠান নেই
+              </h3>
+              <p className="text-[14.5px] text-[#5F6B67] max-w-md mx-auto">
+                বর্তমানে &ldquo;{categoryName}&rdquo; বিভাগে কোনো নির্ধারিত অনুষ্ঠান পাওয়া যায়নি।
+              </p>
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-4 py-2 text-[13.5px] font-semibold text-white shadow-xs hover:bg-[#064A42] transition"
+              >
+                <span>সকল অনুষ্ঠান দেখুন</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {events.map((ev, idx) => {
+                const dateInfo = formatBengaliDate(ev.event_date || ev.created_at)
+
+                return (
+                  <div
+                    key={ev.id}
+                    className="card-appear rounded-3xl border border-[#E2E7E4] bg-white p-6 shadow-xs flex flex-col justify-between hover:border-[#075E54]/40 hover:shadow-md transition-all group"
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#F0F7F5] border border-[#075E54]/20 text-center">
+                          <span className="font-heading text-lg font-extrabold text-[#075E54] leading-none">
+                            {dateInfo.day}
+                          </span>
+                          <span className="text-[11px] font-semibold text-[#B68A18] leading-tight mt-0.5">
+                            {dateInfo.monthYear.split(",")[0]}
+                          </span>
+                        </div>
+
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#075E54]/20 bg-[#F0F7F5] px-3 py-0.5 text-[12px] font-semibold text-[#075E54]">
+                          <Tag className="h-3 w-3" />
+                          <span>{categoryName}</span>
+                        </span>
+                      </div>
+
+                      <h3 className="font-heading text-lg font-bold text-[#17211E] group-hover:text-[#075E54] transition-colors leading-snug line-clamp-2">
+                        <Link href={`/events/${ev.id}`}>
+                          {ev.title || "নামবিহীন অনুষ্ঠান"}
+                        </Link>
+                      </h3>
+
+                      <div className="space-y-1.5 text-[13px] text-[#5F6B67]">
+                        {dateInfo.fullDate && (
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 text-[#075E54] shrink-0" />
+                            <span>{dateInfo.fullDate}</span>
+                          </div>
+                        )}
+
+                        {ev.location && (
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 text-[#B68A18] shrink-0" />
+                            <span className="line-clamp-1">{ev.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {ev.description && (
+                        <p className="text-[14px] leading-relaxed text-[#5F6B67] line-clamp-2 pt-1 border-t border-[#E2E7E4]/60">
+                          {ev.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-4 mt-4 border-t border-[#E2E7E4]/60">
+                      <Link
+                        href={`/events/${ev.id}`}
+                        className="inline-flex items-center gap-2 text-[13.5px] font-bold text-[#075E54] group-hover:text-[#064A42] transition-colors"
+                      >
+                        <span>বিস্তারিত দেখুন</span>
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           )}
+
         </div>
       </section>
     </main>

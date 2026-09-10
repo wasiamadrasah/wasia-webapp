@@ -25,8 +25,7 @@ export const SYSTEM_PERMISSION_MODULES: SystemPermissionModule[] = [
   {
     category: "Human Resources",
     features: [
-      { id: "teachers", name: "Teachers Directory", actions: ["view", "add", "edit", "delete"] },
-      { id: "staffs", name: "Staff Directory", actions: ["view", "add", "edit", "delete"] },
+      { id: "employees", name: "Employee Directory", actions: ["view", "add", "edit", "delete"] },
       { id: "employee_attendance", name: "Employee Attendance", actions: ["view", "add", "edit", "delete"] },
       { id: "employee_leave", name: "Employee Leave", actions: ["view", "add", "edit", "delete"] },
     ],

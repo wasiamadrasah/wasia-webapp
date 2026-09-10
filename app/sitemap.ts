@@ -10,7 +10,7 @@ const staticRoutes: Array<Pick<SitemapEntry, "changeFrequency" | "priority"> & {
   { path: "/", changeFrequency: "daily", priority: 1 },
   { path: "/about", changeFrequency: "monthly", priority: 0.8 },
   { path: "/history", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/headmaster", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/principal", changeFrequency: "monthly", priority: 0.7 },
   { path: "/leadership/president", changeFrequency: "monthly", priority: 0.6 },
   { path: "/leadership/chief-education-officer", changeFrequency: "monthly", priority: 0.6 },
   { path: "/leadership/headmaster", changeFrequency: "monthly", priority: 0.6 },

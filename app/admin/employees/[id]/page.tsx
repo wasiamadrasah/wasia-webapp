@@ -5,19 +5,19 @@ import {
   getTeacherExperience,
   getTeacherFamily,
   getTeacherGovernmentInfo,
-  getStaffProfile,
+  getTeacherProfile,
   getTeacherTraining,
 } from "@/lib/db"
-import { StaffDetailView } from "@/components/admin/staff-detail-view"
+import { EmployeeDetailView } from "@/components/admin/employee-detail-view"
 
-type StaffProfilePageProps = {
+type EmployeeProfilePageProps = {
   params: Promise<{ id: string }>
 }
 
-export default async function StaffProfilePage({ params }: StaffProfilePageProps) {
+export default async function EmployeeProfilePage({ params }: EmployeeProfilePageProps) {
   const { id } = await params
-  const [staff, academics, experience, training, family, addresses, governmentInfo] = await Promise.all([
-    getStaffProfile(id),
+  const [employee, academics, experience, training, family, addresses, governmentInfo] = await Promise.all([
+    getTeacherProfile(id),
     getTeacherAcademics(id),
     getTeacherExperience(id),
     getTeacherTraining(id),
@@ -26,13 +26,13 @@ export default async function StaffProfilePage({ params }: StaffProfilePageProps
     getTeacherGovernmentInfo(id),
   ])
 
-  if (!staff) {
+  if (!employee) {
     notFound()
   }
 
   return (
-    <StaffDetailView
-      staff={staff}
+    <EmployeeDetailView
+      employee={employee}
       academics={academics}
       experience={experience}
       training={training}

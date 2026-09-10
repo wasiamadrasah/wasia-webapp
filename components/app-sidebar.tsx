@@ -166,16 +166,12 @@ const data = {
     },
     {
       title: "Human Resources",
-      url: "/admin/teachers",
+      url: "/admin/employees",
       icon: IconUserStar,
       items: [
         {
-          title: "Teachers",
-          url: "/admin/teachers",
-        },
-        {
-          title: "Staff",
-          url: "/admin/staffs",
+          title: "Employees",
+          url: "/admin/employees",
         },
         {
           title: "Employee Attendance",

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Archive, BookOpen, Eye, GalleryHorizontal, Image as ImageIcon, LayoutDashboard, MoreHorizontal, Pencil, Plus, Send, Sparkles, Trash2Icon, Users, BarChart3, Link as LinkIcon } from "lucide-react"
+import { Archive, BookOpen, Eye, GalleryHorizontal, Image as ImageIcon, LayoutDashboard, MoreHorizontal, Pencil, Plus, Send, Sparkles, Trash2Icon, Users, BarChart3, Link as LinkIcon, ExternalLink, SquarePen } from "lucide-react"
 
 import {
   createHomepageQuickInfoItemAction,
@@ -51,6 +51,18 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
@@ -265,6 +277,72 @@ function QuickInfoIconField({
   )
 }
 
+function StatIconField({
+  id,
+  defaultValue = "users",
+  name = "icon_key",
+}: {
+  id: string
+  defaultValue?: string
+  name?: string
+}) {
+  const [value, setValue] = useState(defaultValue || "users")
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-semibold text-foreground">Icon</Label>
+      <input type="hidden" name={name} value={value} />
+      <Select value={value} onValueChange={setValue}>
+        <SelectTrigger id={id} className="!h-11 !w-full rounded-xl border border-input bg-background text-foreground px-4">
+          <SelectValue placeholder="Select icon" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {iconOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function StatColorField({
+  id,
+  defaultValue = "emerald",
+  name = "color_scheme",
+}: {
+  id: string
+  defaultValue?: string
+  name?: string
+}) {
+  const [value, setValue] = useState(defaultValue || "emerald")
+
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-semibold text-foreground">Color</Label>
+      <input type="hidden" name={name} value={value} />
+      <Select value={value} onValueChange={setValue}>
+        <SelectTrigger id={id} className="!h-11 !w-full rounded-xl border border-input bg-background text-foreground px-4">
+          <SelectValue placeholder="Select color" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {colorSchemeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
 function stripHtmlTags(html: string): string {
   if (!html) return ""
   let text = html.replace(/<[^>]*>/g, "")
@@ -284,6 +362,25 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
       ? initialTab
       : "overview"
   const [activeTab, setActiveTab] = useState<HomepageTabExtended>(validInitialTab)
+  const [isAddHeroOpen, setIsAddHeroOpen] = useState(false)
+  const [editingHeroSlide, setEditingHeroSlide] = useState<HeroSlideRecord | null>(null)
+  const [deletingHeroSlide, setDeletingHeroSlide] = useState<HeroSlideRecord | null>(null)
+  const [isAddQuickInfoOpen, setIsAddQuickInfoOpen] = useState(false)
+  const [editingQuickInfo, setEditingQuickInfo] = useState<QuickInfoRecord | null>(null)
+  const [deletingQuickInfo, setDeletingQuickInfo] = useState<QuickInfoRecord | null>(null)
+  const [isAddLeadershipOpen, setIsAddLeadershipOpen] = useState(false)
+  const [editingLeadership, setEditingLeadership] = useState<LeadershipCardRecord | null>(null)
+  const [viewingLeadershipMessage, setViewingLeadershipMessage] = useState<LeadershipCardRecord | null>(null)
+  const [deletingLeadership, setDeletingLeadership] = useState<LeadershipCardRecord | null>(null)
+  const [isAddStatOpen, setIsAddStatOpen] = useState(false)
+  const [editingStat, setEditingStat] = useState<HomepageStatRecord | null>(null)
+  const [deletingStat, setDeletingStat] = useState<HomepageStatRecord | null>(null)
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false)
+  const [editingSection, setEditingSection] = useState<FooterLinkSectionRecord | null>(null)
+  const [deletingSection, setDeletingSection] = useState<FooterLinkSectionRecord | null>(null)
+  const [addingLinkToSection, setAddingLinkToSection] = useState<FooterLinkSectionRecord | null>(null)
+  const [editingLink, setEditingLink] = useState<{ sectionId: string; link: FooterLinkRecord } | null>(null)
+  const [deletingLink, setDeletingLink] = useState<FooterLinkRecord | null>(null)
 
   const tabItems = useMemo(
     () => [
@@ -535,114 +632,51 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   <p className="text-sm text-muted-foreground">Manage top slider content and order.</p>
                 </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add New Hero Photo
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <Sparkles className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Hero Slide</AlertDialogTitle>
-                      <AlertDialogDescription>
-                          Add a new hero slide image and title. Use a wide banner image for the best fit on the homepage.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                      <form action={createHomepageHeroSlideAction} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="hero-title" className="text-sm font-medium text-foreground">Title</label>
-                        <input id="hero-title" name="title" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Main Campus" />
-                      </div>
-
-                      <div className="space-y-2">
-                          <label htmlFor="hero-image-file" className="text-sm font-medium text-foreground">Hero Image</label>
-                          <input id="hero-image-file" name="image_file" type="file" accept="image/jpeg,image/png,image/webp" required className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                          <p className="text-xs text-muted-foreground">Recommended size: 1920 x 1080 px or wider, for a clean full-width hero on desktop and mobile.</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="hero-display-order" className="text-sm font-medium text-foreground">Display Order</label>
-                        <input id="hero-display-order" type="number" name="display_order" defaultValue={heroSlides.length} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                      </div>
-
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Hero Slide</Button>
-                      </AlertDialogFooter>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setIsAddHeroOpen(true)}
+                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                >
+                  <Plus className="size-4" />
+                  <span>Add New Hero Photo</span>
+                </Button>
               </div>
 
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[860px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+              <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                <table className="w-full min-w-[650px] text-sm">
+                  <thead className="bg-muted/40 text-left border-b border-border">
                     <tr>
-                      <th className="px-3 py-2 font-medium">ID</th>
-                      <th className="px-3 py-2 font-medium">Title</th>
-                      <th className="px-3 py-2 font-medium">Image URL</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Title</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Image</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Order</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Status</th>
+                      <th className="px-4 py-3 font-semibold text-foreground text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {heroSlides.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-mono text-xs">{item.id}</td>
-                        <td className="px-3 py-2">{item.title}</td>
-                        <td className="px-3 py-2 max-w-[260px] truncate">
-                          <a href={item.image_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 dark:text-blue-300">
-                            {item.image_url}
-                          </a>
+                      <tr key={item.id} className="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground">{item.title}</td>
+                        <td className="px-4 py-3">
+                          {item.image_url ? (
+                            <a
+                              href={item.image_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open image in new tab"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] bg-[#EEF2FF] hover:bg-[#E0E7FF] dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 border border-[#C7D2FE] dark:border-indigo-800/60 rounded-md px-2.5 py-1 transition-colors"
+                            >
+                              <ExternalLink className="size-3.5" />
+                              <span>View</span>
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
-                        <td className="px-3 py-2">{item.display_order}</td>
-                        <td className="px-3 py-2">
+                        <td className="px-4 py-3 text-muted-foreground">{item.display_order}</td>
+                        <td className="px-4 py-3">
                           <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`hero-edit-trigger-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia>
-                                  <Pencil className="size-5" />
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>Edit Hero Slide</AlertDialogTitle>
-                                <AlertDialogDescription>Update title, image URL and order.</AlertDialogDescription>
-                              </AlertDialogHeader>
-
-                              <form action={updateHomepageHeroSlideAction} className="space-y-4">
-                                <input type="hidden" name="id" value={item.id} />
-                                <input type="hidden" name="image_url" value={item.image_url} />
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-hero-title-${item.id}`} className="text-sm font-medium text-foreground">Title</label>
-                                  <input id={`edit-hero-title-${item.id}`} name="title" defaultValue={item.title} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-hero-image-${item.id}`} className="text-sm font-medium text-foreground">Replace Hero Image</label>
-                                  <input id={`edit-hero-image-${item.id}`} name="image_file" type="file" accept="image/jpeg,image/png,image/webp" className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                                  <p className="text-xs text-muted-foreground">Leave empty to keep the existing image. Recommended size: 1920 x 1080 px or wider.</p>
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-hero-order-${item.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                  <input id={`edit-hero-order-${item.id}`} type="number" name="display_order" defaultValue={item.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
+                        <td className="px-4 py-3 text-right">
                           <form id={`hero-archive-form-${item.id}`} action={setHomepageHeroSlideStatusAction} className="hidden">
                             <input type="hidden" name="id" value={item.id} />
                             <input type="hidden" name="status" value="archived" />
@@ -653,49 +687,20 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                             <input type="hidden" name="status" value="published" />
                           </form>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`hero-delete-trigger-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                                  <Trash2Icon />
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>Delete Hero Slide?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete this hero slide.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-
-                              <form action={deleteHomepageHeroSlideAction}>
-                                <input type="hidden" name="id" value={item.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
-                                <span className="sr-only">Open actions</span>
+                            <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+                              <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
+                            <DropdownMenuContent align="end" className="w-44">
                               <DropdownMenuItem
-                                onClick={() => {
-                                  const trigger = document.getElementById(`hero-edit-trigger-${item.id}`)
-                                  trigger?.click()
-                                }}
+                                onClick={() => setEditingHeroSlide(item)}
+                                className="cursor-pointer gap-2 text-sm"
                               >
-                                <Pencil className="mr-2 size-4" />
-                                Edit
+                                <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                <span>Edit Slide</span>
                               </DropdownMenuItem>
                               {item.is_active ? (
                                 <DropdownMenuItem
@@ -703,9 +708,10 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                     const form = document.getElementById(`hero-archive-form-${item.id}`) as HTMLFormElement | null
                                     form?.requestSubmit()
                                   }}
+                                  className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
+                                  <Archive className="h-4 w-4 text-amber-600" />
+                                  <span>Archive</span>
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem
@@ -713,20 +719,20 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                     const form = document.getElementById(`hero-publish-form-${item.id}`) as HTMLFormElement | null
                                     form?.requestSubmit()
                                   }}
+                                  className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <Send className="mr-2 size-4" />
-                                  Publish
+                                  <Send className="h-4 w-4 text-emerald-600" />
+                                  <span>Publish</span>
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className="text-red-600 focus:text-red-700"
-                                onClick={() => {
-                                  const trigger = document.getElementById(`hero-delete-trigger-${item.id}`)
-                                  trigger?.click()
-                                }}
+                                variant="destructive"
+                                onClick={() => setDeletingHeroSlide(item)}
+                                className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
                               >
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
+                                <Trash2Icon className="h-4 w-4 text-rose-600" />
+                                <span>Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -735,7 +741,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                     ))}
                     {heroSlides.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No hero slides found. Add your first hero photo.
                         </td>
                       </tr>
@@ -743,6 +749,155 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   </tbody>
                 </table>
               </div>
+
+              {/* Global Add Hero Slide Dialog */}
+              <Dialog open={isAddHeroOpen} onOpenChange={setIsAddHeroOpen}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Hero Slide</DialogTitle>
+                    <DialogDescription>
+                      Add a new hero slide image and title. Use a wide banner image for the best fit on the homepage.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form action={createHomepageHeroSlideAction} onSubmit={() => setIsAddHeroOpen(false)}>
+                    <div className="space-y-4 p-6">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="hero-title" className="text-sm font-semibold text-foreground">Slide Title</Label>
+                        <Input id="hero-title" name="title" required placeholder="e.g. Main Campus & Administrative Building" />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="hero-image-file" className="text-sm font-semibold text-foreground">Hero Image File</Label>
+                        <Input id="hero-image-file" name="image_file" type="file" accept="image/jpeg,image/png,image/webp" required className="cursor-pointer file:cursor-pointer" />
+                        <p className="text-xs text-muted-foreground">Recommended size: 1920 x 1080 px or wider, for a clean full-width hero on desktop and mobile.</p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="hero-display-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                        <Input id="hero-display-order" type="number" name="display_order" defaultValue={heroSlides.length} min={0} />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button" className="h-10 rounded-lg px-4 text-sm font-medium border-border">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        Save Hero Slide
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Hero Slide Dialog */}
+              <Dialog open={Boolean(editingHeroSlide)} onOpenChange={(open) => { if (!open) setEditingHeroSlide(null) }}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Hero Slide</DialogTitle>
+                    <DialogDescription>Update title, display order, or replace the banner image.</DialogDescription>
+                  </DialogHeader>
+
+                  {editingHeroSlide ? (
+                    <form
+                      key={editingHeroSlide.id}
+                      action={updateHomepageHeroSlideAction}
+                      onSubmit={() => setEditingHeroSlide(null)}
+                    >
+                      <div className="space-y-4 p-6">
+                        <input type="hidden" name="id" value={editingHeroSlide.id} />
+                        <input type="hidden" name="image_url" value={editingHeroSlide.image_url} />
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-hero-title" className="text-sm font-semibold text-foreground">Slide Title</Label>
+                          <Input id="edit-hero-title" name="title" defaultValue={editingHeroSlide.title} required placeholder="e.g. Main Campus" />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-foreground">Current Image</Label>
+                          {editingHeroSlide.image_url ? (
+                            <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                              <div className="relative h-20 w-36 shrink-0 rounded-md overflow-hidden border border-border bg-muted">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={editingHeroSlide.image_url}
+                                  alt={editingHeroSlide.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs font-semibold text-foreground">Banner Preview</span>
+                                <a
+                                  href={editingHeroSlide.image_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-[#4F46E5] hover:underline"
+                                >
+                                  <ExternalLink className="size-3" />
+                                  <span>View full image</span>
+                                </a>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-hero-image" className="text-sm font-semibold text-foreground">
+                            Replace Hero Image <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                          </Label>
+                          <Input id="edit-hero-image" name="image_file" type="file" accept="image/jpeg,image/png,image/webp" className="cursor-pointer file:cursor-pointer" />
+                          <p className="text-xs text-muted-foreground">Leave empty to keep the existing image. Recommended size: 1920 x 1080 px or wider.</p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-hero-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="edit-hero-order" type="number" name="display_order" defaultValue={editingHeroSlide.display_order} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingHeroSlide(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Hero Slide AlertDialog */}
+              <AlertDialog open={Boolean(deletingHeroSlide)} onOpenChange={(open) => { if (!open) setDeletingHeroSlide(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Hero Slide?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this hero slide.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteHomepageHeroSlideAction} onSubmit={() => setDeletingHeroSlide(null)}>
+                    <input type="hidden" name="id" value={deletingHeroSlide?.id || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingHeroSlide(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
             </section>
           ) : null}
 
@@ -754,132 +909,51 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   <p className="text-sm text-muted-foreground">Manage the cards shown right after the hero section.</p>
                 </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add Quick Info
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <Sparkles className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Quick Info Item</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Add or replace a card in the colored quick info bar under the hero.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <form action={createHomepageQuickInfoItemAction} className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <label htmlFor="quick-info-title" className="text-sm font-medium text-foreground">Title</label>
-                          <input id="quick-info-title" name="title" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Admission Open" />
-                        </div>
-                        <QuickInfoIconField id="quick-info-icon" defaultValue="sparkles" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="quick-info-subtitle" className="text-sm font-medium text-foreground">Subtitle</label>
-                        <input id="quick-info-subtitle" name="subtitle" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Session 2026-2027" />
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <label htmlFor="quick-info-link" className="text-sm font-medium text-foreground">Link URL</label>
-                          <input id="quick-info-link" name="link_url" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="/admission" />
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="quick-info-order" className="text-sm font-medium text-foreground">Display Order</label>
-                          <input id="quick-info-order" type="number" name="display_order" defaultValue={quickInfoItems.length} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                        </div>
-                      </div>
-
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Quick Info</Button>
-                      </AlertDialogFooter>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setIsAddQuickInfoOpen(true)}
+                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                >
+                  <Plus className="size-4" />
+                  <span>Add Quick Info</span>
+                </Button>
               </div>
 
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[980px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+              <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                <table className="w-full min-w-[700px] text-sm">
+                  <thead className="bg-muted/40 text-left border-b border-border">
                     <tr>
-                      <th className="px-3 py-2 font-medium">ID</th>
-                      <th className="px-3 py-2 font-medium">Title</th>
-                      <th className="px-3 py-2 font-medium">Subtitle</th>
-                      <th className="px-3 py-2 font-medium">Icon</th>
-                      <th className="px-3 py-2 font-medium">Link</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Title</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Link</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Order</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Status</th>
+                      <th className="px-4 py-3 font-semibold text-foreground text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {quickInfoItems.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-mono text-xs">{item.id}</td>
-                        <td className="px-3 py-2">{item.title}</td>
-                        <td className="px-3 py-2">{item.subtitle}</td>
-                        <td className="px-3 py-2">{item.icon_key}</td>
-                        <td className="px-3 py-2 max-w-[180px] truncate">{item.link_url || "-"}</td>
-                        <td className="px-3 py-2">{item.display_order}</td>
-                        <td className="px-3 py-2">
+                      <tr key={item.id} className="border-b border-border/60 hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground">{item.title}</td>
+                        <td className="px-4 py-3">
+                          {item.link_url ? (
+                            <a
+                              href={item.link_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open link in new tab"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] bg-[#EEF2FF] hover:bg-[#E0E7FF] dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 border border-[#C7D2FE] dark:border-indigo-800/60 rounded-md px-2.5 py-1 transition-colors"
+                            >
+                              <ExternalLink className="size-3.5" />
+                              <span>{item.link_url}</span>
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.display_order}</td>
+                        <td className="px-4 py-3">
                           <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`quick-info-edit-trigger-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia>
-                                  <Pencil className="size-5" />
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>Edit Quick Info Item</AlertDialogTitle>
-                                <AlertDialogDescription>Update the bar card content and ordering.</AlertDialogDescription>
-                              </AlertDialogHeader>
-
-                              <form action={updateHomepageQuickInfoItemAction} className="space-y-4">
-                                <input type="hidden" name="id" value={item.id} />
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`quick-info-title-${item.id}`} className="text-sm font-medium text-foreground">Title</label>
-                                    <input id={`quick-info-title-${item.id}`} name="title" defaultValue={item.title} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                  <QuickInfoIconField id={`quick-info-icon-${item.id}`} defaultValue={item.icon_key} />
-                                </div>
-
-                                <div className="space-y-2">
-                                  <label htmlFor={`quick-info-subtitle-${item.id}`} className="text-sm font-medium text-foreground">Subtitle</label>
-                                  <input id={`quick-info-subtitle-${item.id}`} name="subtitle" defaultValue={item.subtitle} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`quick-info-link-${item.id}`} className="text-sm font-medium text-foreground">Link URL</label>
-                                    <input id={`quick-info-link-${item.id}`} name="link_url" defaultValue={item.link_url ?? ""} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label htmlFor={`quick-info-order-${item.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                    <input id={`quick-info-order-${item.id}`} type="number" name="display_order" defaultValue={item.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                </div>
-
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
+                        <td className="px-4 py-3 text-right">
                           <form id={`quick-info-archive-form-${item.id}`} action={setHomepageQuickInfoItemStatusAction} className="hidden">
                             <input type="hidden" name="id" value={item.id} />
                             <input type="hidden" name="status" value="archived" />
@@ -890,49 +964,20 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                             <input type="hidden" name="status" value="published" />
                           </form>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`quick-info-delete-trigger-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                                  <Trash2Icon />
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>Delete Quick Info Item?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete this quick info card.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-
-                              <form action={deleteHomepageQuickInfoItemAction}>
-                                <input type="hidden" name="id" value={item.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
-                                <span className="sr-only">Open quick info actions</span>
+                            <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+                              <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
+                            <DropdownMenuContent align="end" className="w-44">
                               <DropdownMenuItem
-                                onClick={() => {
-                                  const trigger = document.getElementById(`quick-info-edit-trigger-${item.id}`)
-                                  trigger?.click()
-                                }}
+                                onClick={() => setEditingQuickInfo(item)}
+                                className="cursor-pointer gap-2 text-sm"
                               >
-                                <Pencil className="mr-2 size-4" />
-                                Edit
+                                <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                <span>Edit Item</span>
                               </DropdownMenuItem>
                               {item.is_active ? (
                                 <DropdownMenuItem
@@ -940,9 +985,10 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                     const form = document.getElementById(`quick-info-archive-form-${item.id}`) as HTMLFormElement | null
                                     form?.requestSubmit()
                                   }}
+                                  className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
+                                  <Archive className="h-4 w-4 text-amber-600" />
+                                  <span>Archive</span>
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem
@@ -950,20 +996,20 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                     const form = document.getElementById(`quick-info-publish-form-${item.id}`) as HTMLFormElement | null
                                     form?.requestSubmit()
                                   }}
+                                  className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <Send className="mr-2 size-4" />
-                                  Publish
+                                  <Send className="h-4 w-4 text-emerald-600" />
+                                  <span>Publish</span>
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className="text-red-600 focus:text-red-700"
-                                onClick={() => {
-                                  const trigger = document.getElementById(`quick-info-delete-trigger-${item.id}`)
-                                  trigger?.click()
-                                }}
+                                variant="destructive"
+                                onClick={() => setDeletingQuickInfo(item)}
+                                className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
                               >
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
+                                <Trash2Icon className="h-4 w-4 text-rose-600" />
+                                <span>Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -972,7 +1018,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                     ))}
                     {quickInfoItems.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No quick info items found. Add the first card for the info bar.
                         </td>
                       </tr>
@@ -980,6 +1026,140 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   </tbody>
                 </table>
               </div>
+
+              {/* Global Add Quick Info Dialog */}
+              <Dialog open={isAddQuickInfoOpen} onOpenChange={setIsAddQuickInfoOpen}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Quick Info Item</DialogTitle>
+                    <DialogDescription>
+                      Add a card in the colored quick info bar under the hero section.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form action={createHomepageQuickInfoItemAction} onSubmit={() => setIsAddQuickInfoOpen(false)}>
+                    <div className="space-y-4 p-6">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="quick-info-title" className="text-sm font-semibold text-foreground">Title</Label>
+                          <Input id="quick-info-title" name="title" required placeholder="Admission Open" />
+                        </div>
+                        <QuickInfoIconField id="quick-info-icon" defaultValue="sparkles" />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="quick-info-subtitle" className="text-sm font-semibold text-foreground">Subtitle</Label>
+                        <Input id="quick-info-subtitle" name="subtitle" required placeholder="Session 2026-2027" />
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="quick-info-link" className="text-sm font-semibold text-foreground">Link URL</Label>
+                          <Input id="quick-info-link" name="link_url" placeholder="/admission" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="quick-info-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="quick-info-order" type="number" name="display_order" defaultValue={quickInfoItems.length} min={0} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button" className="h-10 rounded-lg px-4 text-sm font-medium border-border">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        Save Quick Info
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Quick Info Dialog */}
+              <Dialog open={Boolean(editingQuickInfo)} onOpenChange={(open) => { if (!open) setEditingQuickInfo(null) }}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Quick Info Item</DialogTitle>
+                    <DialogDescription>Update the bar card content and ordering.</DialogDescription>
+                  </DialogHeader>
+
+                  {editingQuickInfo ? (
+                    <form
+                      key={editingQuickInfo.id}
+                      action={updateHomepageQuickInfoItemAction}
+                      onSubmit={() => setEditingQuickInfo(null)}
+                    >
+                      <div className="space-y-4 p-6">
+                        <input type="hidden" name="id" value={editingQuickInfo.id} />
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-quick-info-title" className="text-sm font-semibold text-foreground">Title</Label>
+                            <Input id="edit-quick-info-title" name="title" defaultValue={editingQuickInfo.title} required placeholder="Admission Open" />
+                          </div>
+                          <QuickInfoIconField id="edit-quick-info-icon" defaultValue={editingQuickInfo.icon_key} />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-quick-info-subtitle" className="text-sm font-semibold text-foreground">Subtitle</Label>
+                          <Input id="edit-quick-info-subtitle" name="subtitle" defaultValue={editingQuickInfo.subtitle} required placeholder="Session 2026-2027" />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-quick-info-link" className="text-sm font-semibold text-foreground">Link URL</Label>
+                            <Input id="edit-quick-info-link" name="link_url" defaultValue={editingQuickInfo.link_url ?? ""} placeholder="/admission" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-quick-info-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                            <Input id="edit-quick-info-order" type="number" name="display_order" defaultValue={editingQuickInfo.display_order} min={0} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingQuickInfo(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Quick Info AlertDialog */}
+              <AlertDialog open={Boolean(deletingQuickInfo)} onOpenChange={(open) => { if (!open) setDeletingQuickInfo(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Quick Info Item?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this quick info card.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteHomepageQuickInfoItemAction} onSubmit={() => setDeletingQuickInfo(null)}>
+                    <input type="hidden" name="id" value={deletingQuickInfo?.id || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingQuickInfo(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
             </section>
           ) : null}
 
@@ -991,217 +1171,40 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   <p className="text-sm text-muted-foreground">Manage homepage leaders by name, designation, photo, and message.</p>
                 </div>
 
-                 <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add New Leadership Card
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="!max-w-5xl sm:!max-w-5xl max-h-[90vh] flex flex-col">
-                    <AlertDialogHeader className="flex-shrink-0">
-                      <AlertDialogMedia>
-                        <Sparkles className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Leadership Card</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Create a new homepage leadership card with its own name, designation, photo, and message.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <form action={updateHomepageLeadershipCardAction} className="flex flex-col flex-1 overflow-hidden space-y-4">
-                      <div className="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[55vh]">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div className="space-y-2">
-                            <label htmlFor="leadership-role-slug" className="text-sm font-medium text-foreground">Role Slug</label>
-                            <input id="leadership-role-slug" name="role_slug" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="vice-principal" />
-                          </div>
-                          <div className="space-y-2">
-                            <label htmlFor="leadership-role-title" className="text-sm font-medium text-foreground">Designation</label>
-                            <input id="leadership-role-title" name="role_title" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Vice Principal" />
-                          </div>
-                        </div>
-
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <div className="space-y-2">
-                            <label htmlFor="leadership-name" className="text-sm font-medium text-foreground">Leader Name</label>
-                            <input id="leadership-name" name="leader_name" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Dr. Jane Doe" />
-                          </div>
-                          <div className="space-y-2">
-                            <label htmlFor="leadership-photo-file" className="text-sm font-medium text-foreground">Leader Photo</label>
-                            <input id="leadership-photo-file" name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="leadership-photo-url" className="text-sm font-medium text-foreground">Photo URL Optional</label>
-                          <input id="leadership-photo-url" name="leader_photo_url" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="https://..." />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="leadership-subtitle" className="text-sm font-medium text-foreground">Subtitle</label>
-                          <input id="leadership-subtitle" name="subtitle" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Supporting school growth and operations." />
-                        </div>
-
-                        <div className="space-y-2">
-                          <TiptapEditor
-                            name="leader_message"
-                            label="Leader Message"
-                            initialValue=""
-                            minHeightClassName="min-h-[180px]"
-                            allowImage={false}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <label htmlFor="leadership-order" className="text-sm font-medium text-foreground">Display Order</label>
-                          <input id="leadership-order" type="number" name="display_order" defaultValue={leadershipCards.length > 0 ? Math.max(...leadershipCards.map((card) => card.display_order)) + 1 : 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                        </div>
-                      </div>
-
-                      <AlertDialogFooter className="flex-shrink-0 pt-2 border-t">
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Leadership Card</Button>
-                      </AlertDialogFooter>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setIsAddLeadershipOpen(true)}
+                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                >
+                  <Plus className="size-4" />
+                  <span>Add New Leadership Card</span>
+                </Button>
               </div>
 
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[980px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+              <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                <table className="w-full min-w-[600px] text-sm">
+                  <thead className="bg-muted/40 text-left border-b border-border">
                     <tr>
-                      <th className="px-3 py-2 font-medium">Role</th>
-                      <th className="px-3 py-2 font-medium">Name</th>
-                      <th className="px-3 py-2 font-medium">Designation</th>
-                      <th className="px-3 py-2 font-medium">Photo</th>
-                      <th className="px-3 py-2 font-medium">Message</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Name</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Designation</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Order</th>
+                      <th className="px-4 py-3 font-semibold text-foreground">Status</th>
+                      <th className="px-4 py-3 font-semibold text-foreground text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leadershipCards.map((item) => {
                       const rawMessage = item.leader_message || item.subtitle || "-"
                       const messageText = rawMessage !== "-" ? stripHtmlTags(rawMessage) : "-"
-                      const messagePreview = messageText.length > 90 ? `${messageText.slice(0, 90)}...` : messageText
 
                       return (
-                        <tr key={item.id} className="border-t align-top">
-                          <td className="px-3 py-3 font-medium capitalize">{item.role_slug.replace(/-/g, " ")}</td>
-                          <td className="px-3 py-3">{item.leader_name || "-"}</td>
-                          <td className="px-3 py-3">{item.role_title}</td>
-                          <td className="px-3 py-3">{item.leader_photo_url ? <a href={item.leader_photo_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 dark:text-blue-300">View</a> : "-"}</td>
-                          <td className="px-3 py-3">
-                            <p className="max-w-[280px] text-sm text-slate-700">{messagePreview}</p>
-                            {messageText !== "-" ? (
-                              <Button
-                                type="button"
-                                variant="link"
-                                size="sm"
-                                className="h-auto p-0 text-blue-600 hover:text-blue-700 dark:text-blue-300"
-                                onClick={() => {
-                                  const trigger = document.getElementById(`leadership-view-trigger-${item.id}`)
-                                  trigger?.click()
-                                }}
-                              >
-                                View
-                              </Button>
-                            ) : null}
-                          </td>
-                          <td className="px-3 py-3">{item.display_order}</td>
-                          <td className="px-3 py-3">
+                        <tr key={item.id} className="border-b border-border/60 hover:bg-muted/30 transition-colors align-middle">
+                          <td className="px-4 py-3 text-foreground font-medium">{item.leader_name || "—"}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{item.role_title}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{item.display_order}</td>
+                          <td className="px-4 py-3">
                             <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
                           </td>
-                          <td className="px-3 py-3 text-right">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <button id={`leadership-edit-trigger-${item.id}`} type="button" className="hidden" />
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="!max-w-5xl sm:!max-w-5xl max-h-[90vh] flex flex-col">
-                                <AlertDialogHeader className="flex-shrink-0">
-                                  <AlertDialogMedia>
-                                    <Pencil className="size-5" />
-                                  </AlertDialogMedia>
-                                  <AlertDialogTitle>Edit Leadership Card</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Update the leader name, designation, photo, and public message.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-
-                                <form action={updateHomepageLeadershipCardAction} className="flex flex-col flex-1 overflow-hidden space-y-4">
-                                  <div className="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[55vh]">
-                                    <input type="hidden" name="role_slug" value={item.role_slug} />
-                                    <input type="hidden" name="display_order" value={item.display_order} />
-                                    <input type="hidden" name="subtitle" value={item.subtitle ?? ""} />
-                                    <input type="hidden" name="staff_id" value="" />
-
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                      <div className="space-y-2">
-                                        <label htmlFor={`leader-name-${item.id}`} className="text-sm font-medium text-foreground">Leader Name</label>
-                                        <input id={`leader-name-${item.id}`} name="leader_name" defaultValue={item.leader_name ?? ""} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Leader name" />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <label htmlFor={`role-title-${item.id}`} className="text-sm font-medium text-foreground">Designation</label>
-                                        <input id={`role-title-${item.id}`} name="role_title" defaultValue={item.role_title} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Designation" />
-                                      </div>
-                                    </div>
-
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                      <div className="space-y-2">
-                                        <label htmlFor={`leader-photo-url-${item.id}`} className="text-sm font-medium text-foreground">Photo URL</label>
-                                        <input id={`leader-photo-url-${item.id}`} name="leader_photo_url" defaultValue={item.leader_photo_url ?? ""} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="https://..." />
-                                      </div>
-                                      <div className="space-y-2">
-                                        <label htmlFor={`leader-photo-file-${item.id}`} className="text-sm font-medium text-foreground">Replace Photo</label>
-                                        <input id={`leader-photo-file-${item.id}`} name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <TiptapEditor
-                                        name="leader_message"
-                                        label="Leader Message"
-                                        initialValue={item.leader_message ?? ""}
-                                        minHeightClassName="min-h-[200px]"
-                                        allowImage={false}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <AlertDialogFooter className="flex-shrink-0 pt-2 border-t">
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <Button type="submit">Save Changes</Button>
-                                  </AlertDialogFooter>
-                                </form>
-                              </AlertDialogContent>
-                            </AlertDialog>
-
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <button id={`leadership-view-trigger-${item.id}`} type="button" className="hidden" />
-                              </AlertDialogTrigger>
-                              <AlertDialogContent className="max-w-xl sm:max-w-xl">
-                                <AlertDialogHeader>
-                                  <AlertDialogMedia>
-                                    <Eye className="size-5" />
-                                  </AlertDialogMedia>
-                                  <AlertDialogTitle>Leader Message</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {item.leader_name || item.role_title}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="max-h-[55vh] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700 whitespace-pre-wrap">
-                                  {messageText}
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Close</AlertDialogCancel>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-
+                          <td className="px-4 py-3 text-right">
                             <form id={`leadership-archive-form-${item.id}`} action={setHomepageLeadershipCardStatusAction} className="hidden">
                               <input type="hidden" name="role_slug" value={item.role_slug} />
                               <input type="hidden" name="status" value="archived" />
@@ -1212,49 +1215,29 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                               <input type="hidden" name="status" value="published" />
                             </form>
 
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <button id={`leadership-delete-trigger-${item.id}`} type="button" className="hidden" />
-                              </AlertDialogTrigger>
-                              <AlertDialogContent size="sm">
-                                <AlertDialogHeader>
-                                  <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                                    <Trash2Icon />
-                                  </AlertDialogMedia>
-                                  <AlertDialogTitle>Delete Leadership Card?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will permanently delete this leadership card.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-
-                                <form action={deleteHomepageLeadershipCardAction}>
-                                  <input type="hidden" name="role_slug" value={item.role_slug} />
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                    <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </form>
-                              </AlertDialogContent>
-                            </AlertDialog>
-
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="size-4" />
-                                  <span className="sr-only">Open leadership actions</span>
+                              <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+                                <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
+                              <DropdownMenuContent align="end" className="w-44">
+                                {messageText !== "-" ? (
+                                  <DropdownMenuItem
+                                    onClick={() => setViewingLeadershipMessage(item)}
+                                    className="cursor-pointer gap-2 text-sm"
+                                  >
+                                    <Eye className="h-4 w-4 text-[#2563EB]" />
+                                    <span>View Message</span>
+                                  </DropdownMenuItem>
+                                ) : null}
                                 <DropdownMenuItem
-                                  onClick={() => {
-                                    const trigger = document.getElementById(`leadership-edit-trigger-${item.id}`)
-                                    trigger?.click()
-                                  }}
+                                  onClick={() => setEditingLeadership(item)}
+                                  className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <Pencil className="mr-2 size-4" />
-                                  Edit
+                                  <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                  <span>Edit Card</span>
                                 </DropdownMenuItem>
                                 {item.is_active ? (
                                   <DropdownMenuItem
@@ -1262,9 +1245,10 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                       const form = document.getElementById(`leadership-archive-form-${item.id}`) as HTMLFormElement | null
                                       form?.requestSubmit()
                                     }}
+                                    className="cursor-pointer gap-2 text-sm"
                                   >
-                                    <Archive className="mr-2 size-4" />
-                                    Archive
+                                    <Archive className="h-4 w-4 text-amber-600" />
+                                    <span>Archive</span>
                                   </DropdownMenuItem>
                                 ) : (
                                   <DropdownMenuItem
@@ -1272,20 +1256,20 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                       const form = document.getElementById(`leadership-publish-form-${item.id}`) as HTMLFormElement | null
                                       form?.requestSubmit()
                                     }}
+                                    className="cursor-pointer gap-2 text-sm"
                                   >
-                                    <Send className="mr-2 size-4" />
-                                    Publish
+                                    <Send className="h-4 w-4 text-emerald-600" />
+                                    <span>Publish</span>
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  className="text-red-600 focus:text-red-700"
-                                  onClick={() => {
-                                    const trigger = document.getElementById(`leadership-delete-trigger-${item.id}`)
-                                    trigger?.click()
-                                  }}
+                                  variant="destructive"
+                                  onClick={() => setDeletingLeadership(item)}
+                                  className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
                                 >
-                                  <Trash2Icon className="mr-2 size-4" />
-                                  Delete
+                                  <Trash2Icon className="h-4 w-4 text-rose-600" />
+                                  <span>Delete</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1295,14 +1279,251 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                     })}
                     {leadershipCards.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-3 py-6 text-center text-sm text-muted-foreground">
-                          No leadership cards found. The default three roles will appear after the migration is applied.
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          No leadership cards found. The default roles will appear after the migration is applied.
                         </td>
                       </tr>
                     ) : null}
                   </tbody>
                 </table>
               </div>
+
+              {/* Global Add Leadership Card Dialog */}
+              <Dialog open={isAddLeadershipOpen} onOpenChange={setIsAddLeadershipOpen}>
+                <DialogContent size="xl" className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Leadership Card</DialogTitle>
+                    <DialogDescription>
+                      Create a new homepage leadership card with its own name, designation, photo, and message.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form action={updateHomepageLeadershipCardAction} onSubmit={() => setIsAddLeadershipOpen(false)}>
+                    <div className="space-y-4 p-6 max-h-[65vh] overflow-y-auto">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="leadership-role-slug" className="text-sm font-semibold text-foreground">Role Slug</Label>
+                          <Input id="leadership-role-slug" name="role_slug" required placeholder="vice-principal" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="leadership-role-title" className="text-sm font-semibold text-foreground">Designation</Label>
+                          <Input id="leadership-role-title" name="role_title" required placeholder="Vice Principal" />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="leadership-name" className="text-sm font-semibold text-foreground">Leader Name</Label>
+                          <Input id="leadership-name" name="leader_name" placeholder="Dr. Jane Doe" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="leadership-photo-file" className="text-sm font-semibold text-foreground">Leader Photo File</Label>
+                          <Input id="leadership-photo-file" name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="cursor-pointer file:cursor-pointer" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="leadership-photo-url" className="text-sm font-semibold text-foreground">
+                          Photo URL <span className="text-xs text-muted-foreground font-normal">(Optional fallback)</span>
+                        </Label>
+                        <Input id="leadership-photo-url" name="leader_photo_url" placeholder="https://..." />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="leadership-subtitle" className="text-sm font-semibold text-foreground">Subtitle</Label>
+                        <Input id="leadership-subtitle" name="subtitle" placeholder="Supporting school growth and operations." />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <TiptapEditor
+                          name="leader_message"
+                          label="Leader Message"
+                          initialValue=""
+                          minHeightClassName="min-h-[180px]"
+                          allowImage={false}
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="leadership-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                        <Input id="leadership-order" type="number" name="display_order" defaultValue={leadershipCards.length > 0 ? Math.max(...leadershipCards.map((card) => card.display_order)) + 1 : 1} min={0} />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button" className="h-10 rounded-lg px-4 text-sm font-medium border-border">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        Save Leadership Card
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Leadership Card Dialog */}
+              <Dialog open={Boolean(editingLeadership)} onOpenChange={(open) => { if (!open) setEditingLeadership(null) }}>
+                <DialogContent size="xl" className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Leadership Card</DialogTitle>
+                    <DialogDescription>
+                      Update the leader name, designation, photo, and public message.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {editingLeadership ? (
+                    <form
+                      key={editingLeadership.id}
+                      action={updateHomepageLeadershipCardAction}
+                      onSubmit={() => setEditingLeadership(null)}
+                    >
+                      <div className="space-y-4 p-6 max-h-[65vh] overflow-y-auto">
+                        <input type="hidden" name="role_slug" value={editingLeadership.role_slug} />
+                        <input type="hidden" name="subtitle" value={editingLeadership.subtitle ?? ""} />
+                        <input type="hidden" name="staff_id" value="" />
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-leader-name" className="text-sm font-semibold text-foreground">Leader Name</Label>
+                            <Input id="edit-leader-name" name="leader_name" defaultValue={editingLeadership.leader_name ?? ""} placeholder="Leader name" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-role-title" className="text-sm font-semibold text-foreground">Designation</Label>
+                            <Input id="edit-role-title" name="role_title" defaultValue={editingLeadership.role_title} required placeholder="Designation" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold text-foreground">Current Photo</Label>
+                          {editingLeadership.leader_photo_url ? (
+                            <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                              <div className="relative h-16 w-16 shrink-0 rounded-full overflow-hidden border border-border bg-muted">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={editingLeadership.leader_photo_url}
+                                  alt={editingLeadership.leader_name || editingLeadership.role_title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-xs font-semibold text-foreground">Photo Preview</span>
+                                <a
+                                  href={editingLeadership.leader_photo_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-[#4F46E5] hover:underline"
+                                >
+                                  <ExternalLink className="size-3" />
+                                  <span>View full photo</span>
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No photo currently set.</p>
+                          )}
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-leader-photo-file" className="text-sm font-semibold text-foreground">
+                              Replace Photo <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                            </Label>
+                            <Input id="edit-leader-photo-file" name="leader_photo_file" type="file" accept="image/jpeg,image/png,image/webp" className="cursor-pointer file:cursor-pointer" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-leader-photo-url" className="text-sm font-semibold text-foreground">
+                              Photo URL Fallback <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                            </Label>
+                            <Input id="edit-leader-photo-url" name="leader_photo_url" defaultValue={editingLeadership.leader_photo_url ?? ""} placeholder="https://..." />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <TiptapEditor
+                            name="leader_message"
+                            label="Leader Message"
+                            initialValue={editingLeadership.leader_message ?? ""}
+                            minHeightClassName="min-h-[200px]"
+                            allowImage={false}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-leadership-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="edit-leadership-order" type="number" name="display_order" defaultValue={editingLeadership.display_order} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingLeadership(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global View Leader Message Dialog */}
+              <Dialog open={Boolean(viewingLeadershipMessage)} onOpenChange={(open) => { if (!open) setViewingLeadershipMessage(null) }}>
+                <DialogContent size="lg" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Leader Message</DialogTitle>
+                    <DialogDescription>
+                      {viewingLeadershipMessage?.leader_name ? `${viewingLeadershipMessage.leader_name} (${viewingLeadershipMessage.role_title})` : viewingLeadershipMessage?.role_title}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="max-h-[60vh] overflow-y-auto p-6 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                    {stripHtmlTags(viewingLeadershipMessage?.leader_message || viewingLeadershipMessage?.subtitle || "No message provided.")}
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => setViewingLeadershipMessage(null)}
+                      className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                    >
+                      Close
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Leadership Card AlertDialog */}
+              <AlertDialog open={Boolean(deletingLeadership)} onOpenChange={(open) => { if (!open) setDeletingLeadership(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Leadership Card?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this leadership card.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteHomepageLeadershipCardAction} onSubmit={() => setDeletingLeadership(null)}>
+                    <input type="hidden" name="role_slug" value={deletingLeadership?.role_slug || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingLeadership(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
             </section>
           ) : null}
 
@@ -1599,236 +1820,98 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h2 className="text-xl font-semibold">Homepage Statistics</h2>
-                  <p className="text-sm text-muted-foreground">Manage stat counters, values and styling.</p>
+                  <p className="text-sm text-muted-foreground">Manage stat counters, values and ordering.</p>
                 </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add Statistic
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <BarChart3 className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Statistic</AlertDialogTitle>
-                      <AlertDialogDescription>Create a new homepage statistic.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <form action={createStatAction} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="stat-label" className="text-sm font-medium text-foreground">Stat Label</label>
-                        <input id="stat-label" name="stat_label" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Students Enrolled" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="stat-slug" className="text-sm font-medium text-foreground">Slug</label>
-                        <input id="stat-slug" name="stat_slug" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="students-enrolled" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label htmlFor="stat-value" className="text-sm font-medium text-foreground">Value</label>
-                          <input id="stat-value" type="number" name="stat_value" required defaultValue={0} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="stat-suffix" className="text-sm font-medium text-foreground">Suffix</label>
-                          <input id="stat-suffix" name="stat_suffix" defaultValue="+" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="+" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="stat-desc" className="text-sm font-medium text-foreground">Description</label>
-                        <textarea id="stat-desc" name="description" rows={2} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" placeholder="Description..." />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label htmlFor="stat-icon" className="text-sm font-medium text-foreground">Icon</label>
-                          <Select defaultValue="users" name="icon_key">
-                            <SelectTrigger id="stat-icon" className="!h-11">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {iconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="stat-color" className="text-sm font-medium text-foreground">Color</label>
-                          <Select defaultValue="emerald" name="color_scheme">
-                            <SelectTrigger id="stat-color" className="!h-11">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {colorSchemeOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="stat-order" className="text-sm font-medium text-foreground">Display Order</label>
-                        <input id="stat-order" type="number" name="display_order" defaultValue={homeStats.length + 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Stat</Button>
-                      </AlertDialogFooter>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setIsAddStatOpen(true)}
+                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                >
+                  <Plus className="size-4" />
+                  <span>Add Statistic</span>
+                </Button>
               </div>
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[1000px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full min-w-[600px] text-sm text-left">
+                  <thead className="bg-muted/50 text-muted-foreground text-xs font-semibold uppercase tracking-wider border-b border-border">
                     <tr>
-                      <th className="px-3 py-2 font-medium">Label</th>
-                      <th className="px-3 py-2 font-medium">Value</th>
-                      <th className="px-3 py-2 font-medium">Suffix</th>
-                      <th className="px-3 py-2 font-medium">Icon</th>
-                      <th className="px-3 py-2 font-medium">Color</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3">Label</th>
+                      <th className="px-4 py-3">Value</th>
+                      <th className="px-4 py-3">Order</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border">
                     {homeStats.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-medium">{item.stat_label}</td>
-                        <td className="px-3 py-2">{item.stat_value}</td>
-                        <td className="px-3 py-2 text-xs">{item.stat_suffix}</td>
-                        <td className="px-3 py-2 text-sm">{item.icon_key}</td>
-                        <td className="px-3 py-2"><span className={`inline-block px-2 py-1 rounded text-xs font-medium bg-${item.color_scheme}-50 text-${item.color_scheme}-700`}>{item.color_scheme}</span></td>
-                        <td className="px-3 py-2">{item.display_order}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground">{item.stat_label}</td>
+                        <td className="px-4 py-3 font-semibold text-foreground">{item.stat_value}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.display_order}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={item.is_active ? "success" : "secondary"}>
+                            {item.is_active ? "Active" : "Inactive"}
+                          </Badge>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`stat-edit-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia><Pencil className="size-5" /></AlertDialogMedia>
-                                <AlertDialogTitle>Edit Statistic</AlertDialogTitle>
-                                <AlertDialogDescription>Update stat details and styling.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={updateStatAction} className="space-y-4">
-                                <input type="hidden" name="id" value={item.id} />
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-stat-label-${item.id}`} className="text-sm font-medium text-foreground">Stat Label</label>
-                                  <input id={`edit-stat-label-${item.id}`} name="stat_label" defaultValue={item.stat_label} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-stat-value-${item.id}`} className="text-sm font-medium text-foreground">Value</label>
-                                    <input id={`edit-stat-value-${item.id}`} type="number" name="stat_value" defaultValue={item.stat_value} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-stat-suffix-${item.id}`} className="text-sm font-medium text-foreground">Suffix</label>
-                                    <input id={`edit-stat-suffix-${item.id}`} name="stat_suffix" defaultValue={item.stat_suffix} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-stat-desc-${item.id}`} className="text-sm font-medium text-foreground">Description</label>
-                                  <textarea id={`edit-stat-desc-${item.id}`} name="description" defaultValue={item.description || ""} rows={2} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-stat-icon-${item.id}`} className="text-sm font-medium text-foreground">Icon</label>
-                                    <Select defaultValue={item.icon_key} name="icon_key">
-                                      <SelectTrigger id={`edit-stat-icon-${item.id}`} className="!h-11">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectGroup>
-                                          {iconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-stat-color-${item.id}`} className="text-sm font-medium text-foreground">Color</label>
-                                    <Select defaultValue={item.color_scheme} name="color_scheme">
-                                      <SelectTrigger id={`edit-stat-color-${item.id}`} className="!h-11">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectGroup>
-                                          {colorSchemeOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-stat-order-${item.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                  <input id={`edit-stat-order-${item.id}`} type="number" name="display_order" defaultValue={item.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <form id={`stat-archive-${item.id}`} action={setStatStatusAction} className="hidden">
+                        <td className="px-4 py-3 text-right">
+                          <form id={`stat-archive-form-${item.id}`} action={setStatStatusAction} className="hidden">
                             <input type="hidden" name="id" value={item.id} />
                             <input type="hidden" name="status" value="archived" />
                           </form>
-                          <form id={`stat-publish-${item.id}`} action={setStatStatusAction} className="hidden">
+                          <form id={`stat-publish-form-${item.id}`} action={setStatStatusAction} className="hidden">
                             <input type="hidden" name="id" value={item.id} />
                             <input type="hidden" name="status" value="published" />
                           </form>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`stat-delete-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive"><Trash2Icon /></AlertDialogMedia>
-                                <AlertDialogTitle>Delete Stat?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently delete this statistic.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={deleteStatAction}>
-                                <input type="hidden" name="id" value={item.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => document.getElementById(`stat-edit-${item.id}`)?.click()}>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => setEditingStat(item)}
+                                className="cursor-pointer gap-2 text-sm"
+                              >
+                                <SquarePen className="h-4 w-4 text-blue-600" />
+                                <span>Edit</span>
                               </DropdownMenuItem>
                               {item.is_active ? (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`stat-archive-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const form = document.getElementById(`stat-archive-form-${item.id}`) as HTMLFormElement | null
+                                    form?.requestSubmit()
+                                  }}
+                                  className="cursor-pointer gap-2 text-sm"
+                                >
+                                  <Archive className="h-4 w-4 text-amber-600" />
+                                  <span>Archive</span>
                                 </DropdownMenuItem>
                               ) : (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`stat-publish-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Send className="mr-2 size-4" />
-                                  Publish
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const form = document.getElementById(`stat-publish-form-${item.id}`) as HTMLFormElement | null
+                                    form?.requestSubmit()
+                                  }}
+                                  className="cursor-pointer gap-2 text-sm"
+                                >
+                                  <Send className="h-4 w-4 text-emerald-600" />
+                                  <span>Publish</span>
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem className="text-red-600" onClick={() => document.getElementById(`stat-delete-${item.id}`)?.click()}>
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setDeletingStat(item)}
+                                className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
+                              >
+                                <Trash2Icon className="h-4 w-4 text-rose-600" />
+                                <span>Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1837,7 +1920,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                     ))}
                     {homeStats.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No statistics found. Add your first stat.
                         </td>
                       </tr>
@@ -1845,6 +1928,162 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   </tbody>
                 </table>
               </div>
+
+              {/* Global Add Stat Dialog */}
+              <Dialog open={isAddStatOpen} onOpenChange={setIsAddStatOpen}>
+                <DialogContent size="xl" className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Statistic</DialogTitle>
+                    <DialogDescription>
+                      Create a new homepage statistic counter.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form action={createStatAction} onSubmit={() => setIsAddStatOpen(false)}>
+                    <div className="space-y-4 p-6 max-h-[70vh] overflow-y-auto">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="stat-label" className="text-sm font-semibold text-foreground">Stat Label</Label>
+                          <Input id="stat-label" name="stat_label" required placeholder="Students Enrolled" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="stat-slug" className="text-sm font-semibold text-foreground">Slug</Label>
+                          <Input id="stat-slug" name="stat_slug" required placeholder="students-enrolled" />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="stat-value" className="text-sm font-semibold text-foreground">Value</Label>
+                          <Input id="stat-value" type="number" name="stat_value" required defaultValue={0} min={0} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="stat-suffix" className="text-sm font-semibold text-foreground">Suffix</Label>
+                          <Input id="stat-suffix" name="stat_suffix" defaultValue="+" placeholder="+" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="stat-desc" className="text-sm font-semibold text-foreground">Description <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+                        <Input id="stat-desc" name="description" placeholder="Brief description..." />
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <StatIconField id="stat-icon" defaultValue="users" />
+                        <StatColorField id="stat-color" defaultValue="emerald" />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="stat-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                        <Input id="stat-order" type="number" name="display_order" defaultValue={homeStats.length + 1} min={0} />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button" className="h-10 rounded-lg px-4 text-sm font-medium border-border">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        Save Statistic
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Stat Dialog */}
+              <Dialog open={Boolean(editingStat)} onOpenChange={(open) => { if (!open) setEditingStat(null) }}>
+                <DialogContent size="xl" className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Statistic</DialogTitle>
+                    <DialogDescription>
+                      Update the statistic details, value, icon, and styling.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {editingStat ? (
+                    <form
+                      key={editingStat.id}
+                      action={updateStatAction}
+                      onSubmit={() => setEditingStat(null)}
+                    >
+                      <input type="hidden" name="id" value={editingStat.id} />
+
+                      <div className="space-y-4 p-6 max-h-[70vh] overflow-y-auto">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-stat-label" className="text-sm font-semibold text-foreground">Stat Label</Label>
+                          <Input id="edit-stat-label" name="stat_label" defaultValue={editingStat.stat_label} required placeholder="Stat label" />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-stat-value" className="text-sm font-semibold text-foreground">Value</Label>
+                            <Input id="edit-stat-value" type="number" name="stat_value" defaultValue={editingStat.stat_value} required min={0} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="edit-stat-suffix" className="text-sm font-semibold text-foreground">Suffix</Label>
+                            <Input id="edit-stat-suffix" name="stat_suffix" defaultValue={editingStat.stat_suffix || ""} placeholder="+" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-stat-desc" className="text-sm font-semibold text-foreground">Description <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+                          <Input id="edit-stat-desc" name="description" defaultValue={editingStat.description || ""} placeholder="Brief description..." />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <StatIconField id="edit-stat-icon" defaultValue={editingStat.icon_key || "users"} />
+                          <StatColorField id="edit-stat-color" defaultValue={editingStat.color_scheme || "emerald"} />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-stat-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="edit-stat-order" type="number" name="display_order" defaultValue={editingStat.display_order} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingStat(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Stat AlertDialog */}
+              <AlertDialog open={Boolean(deletingStat)} onOpenChange={(open) => { if (!open) setDeletingStat(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Statistic?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this statistic.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteStatAction} onSubmit={() => setDeletingStat(null)}>
+                    <input type="hidden" name="id" value={deletingStat?.id || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingStat(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
             </section>
           ) : null}
 
@@ -1855,283 +2094,450 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   <h2 className="text-xl font-semibold">Footer Links</h2>
                   <p className="text-sm text-muted-foreground">Manage footer sections and quick links.</p>
                 </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add Section
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <LinkIcon className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Footer Section</AlertDialogTitle>
-                      <AlertDialogDescription>Create a new footer link section.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <form action={createFooterLinkSectionAction} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="footer-section-name" className="text-sm font-medium text-foreground">Section Name</label>
-                        <input id="footer-section-name" name="section_name" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Quick Links" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="footer-section-slug" className="text-sm font-medium text-foreground">Section Slug</label>
-                        <input id="footer-section-slug" name="section_slug" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="quick-links" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="footer-section-order" className="text-sm font-medium text-foreground">Display Order</label>
-                        <input id="footer-section-order" type="number" name="display_order" defaultValue={footerSections.length + 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Section</Button>
-                      </AlertDialogFooter>
-                    </form>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setIsAddSectionOpen(true)}
+                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                >
+                  <Plus className="size-4" />
+                  <span>Add Section</span>
+                </Button>
               </div>
+
               <div className="space-y-6">
                 {footerSections.map((section) => (
-                  <div key={section.id} className="rounded-lg border p-4">
-                    <div className="mb-4 flex items-center justify-between">
-                      <div>
+                  <div key={section.id} className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/20 border-b border-border">
+                      <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{section.section_name}</h3>
+                          <h3 className="font-semibold text-foreground text-base">{section.section_name}</h3>
                           <Badge variant={section.is_active ? "success" : "secondary"}>
                             {section.is_active ? "Active" : "Inactive"}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{section.links.length} links</p>
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-medium">
+                          {section.links.length} {section.links.length === 1 ? "link" : "links"}
+                        </span>
                       </div>
-                      <div className="flex gap-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" className="text-xs">
-                              <Plus className="mr-1 size-3" />
-                              Add Link
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="max-w-2xl">
-                            <AlertDialogHeader>
-                              <AlertDialogMedia><Plus className="size-5" /></AlertDialogMedia>
-                              <AlertDialogTitle>Add Footer Link</AlertDialogTitle>
-                              <AlertDialogDescription>Add a new link to {section.section_name}.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form action={createFooterLinkAction} className="space-y-4">
-                              <input type="hidden" name="section_id" value={section.id} />
-                              <div className="space-y-2">
-                                <label htmlFor={`link-label-${section.id}`} className="text-sm font-medium text-foreground">Link Label</label>
-                                <input id={`link-label-${section.id}`} name="link_label" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="About Us" />
-                              </div>
-                              <div className="space-y-2">
-                                <label htmlFor={`link-url-${section.id}`} className="text-sm font-medium text-foreground">Link URL</label>
-                                <input id={`link-url-${section.id}`} name="link_url" type="url" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="/about" />
-                              </div>
-                              <div className="space-y-2">
-                                <label htmlFor={`link-order-${section.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                <input id={`link-order-${section.id}`} type="number" name="display_order" defaultValue={section.links.length + 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                              </div>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Button type="submit">Save Link</Button>
-                              </AlertDialogFooter>
-                            </form>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button id={`footer-section-edit-${section.id}`} type="button" className="hidden" />
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="max-w-2xl">
-                            <AlertDialogHeader>
-                              <AlertDialogMedia><Pencil className="size-5" /></AlertDialogMedia>
-                              <AlertDialogTitle>Edit Section</AlertDialogTitle>
-                              <AlertDialogDescription>Update section details.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form action={updateFooterLinkSectionAction} className="space-y-4">
-                              <input type="hidden" name="id" value={section.id} />
-                              <div className="space-y-2">
-                                <label htmlFor={`edit-footer-name-${section.id}`} className="text-sm font-medium text-foreground">Section Name</label>
-                                <input id={`edit-footer-name-${section.id}`} name="section_name" defaultValue={section.section_name} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                              </div>
-                              <div className="space-y-2">
-                                <label htmlFor={`edit-footer-order-${section.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                <input id={`edit-footer-order-${section.id}`} type="number" name="display_order" defaultValue={section.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                              </div>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Button type="submit">Save Changes</Button>
-                              </AlertDialogFooter>
-                            </form>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        <form id={`footer-section-archive-${section.id}`} action={setFooterLinkSectionStatusAction} className="hidden">
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setAddingLinkToSection(section)}
+                          className="h-8 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1 font-semibold text-xs px-3"
+                        >
+                          <Plus className="size-3.5" />
+                          <span>Add Link</span>
+                        </Button>
+
+                        <form id={`footer-section-archive-form-${section.id}`} action={setFooterLinkSectionStatusAction} className="hidden">
                           <input type="hidden" name="id" value={section.id} />
                           <input type="hidden" name="status" value="archived" />
                         </form>
-                        <form id={`footer-section-publish-${section.id}`} action={setFooterLinkSectionStatusAction} className="hidden">
+                        <form id={`footer-section-publish-form-${section.id}`} action={setFooterLinkSectionStatusAction} className="hidden">
                           <input type="hidden" name="id" value={section.id} />
                           <input type="hidden" name="status" value="published" />
                         </form>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button id={`footer-section-delete-${section.id}`} type="button" className="hidden" />
-                          </AlertDialogTrigger>
-                          <AlertDialogContent size="sm">
-                            <AlertDialogHeader>
-                              <AlertDialogMedia className="bg-destructive/10 text-destructive"><Trash2Icon /></AlertDialogMedia>
-                              <AlertDialogTitle>Delete Section?</AlertDialogTitle>
-                              <AlertDialogDescription>This will permanently delete this footer section and all its links.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form action={deleteFooterLinkSectionAction}>
-                              <input type="hidden" name="id" value={section.id} />
-                              <AlertDialogFooter>
-                                <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </form>
-                          </AlertDialogContent>
-                        </AlertDialog>
+
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="size-4" />
+                            <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open section menu</span>
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => document.getElementById(`footer-section-edit-${section.id}`)?.click()}>
-                              <Pencil className="mr-2 size-4" />
-                              Edit
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem
+                              onClick={() => setEditingSection(section)}
+                              className="cursor-pointer gap-2 text-sm"
+                            >
+                              <SquarePen className="h-4 w-4 text-blue-600" />
+                              <span>Edit Section</span>
                             </DropdownMenuItem>
                             {section.is_active ? (
-                              <DropdownMenuItem onClick={() => (document.getElementById(`footer-section-archive-${section.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                <Archive className="mr-2 size-4" />
-                                Archive
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const form = document.getElementById(`footer-section-archive-form-${section.id}`) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                }}
+                                className="cursor-pointer gap-2 text-sm"
+                              >
+                                <Archive className="h-4 w-4 text-amber-600" />
+                                <span>Archive</span>
                               </DropdownMenuItem>
                             ) : (
-                              <DropdownMenuItem onClick={() => (document.getElementById(`footer-section-publish-${section.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                <Send className="mr-2 size-4" />
-                                Publish
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const form = document.getElementById(`footer-section-publish-form-${section.id}`) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                }}
+                                className="cursor-pointer gap-2 text-sm"
+                              >
+                                <Send className="h-4 w-4 text-emerald-600" />
+                                <span>Publish</span>
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600" onClick={() => document.getElementById(`footer-section-delete-${section.id}`)?.click()}>
-                              <Trash2Icon className="mr-2 size-4" />
-                              Delete Section
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => setDeletingSection(section)}
+                              className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
+                            >
+                              <Trash2Icon className="h-4 w-4 text-rose-600" />
+                              <span>Delete Section</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      {section.links.map((link) => (
-                        <div key={link.id} className="flex items-center justify-between rounded-md border border-border bg-muted/30 p-3">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{link.link_label}</p>
-                            <p className="text-xs text-muted-foreground">{link.link_url}</p>
-                          </div>
-                          <Badge variant={link.is_active ? "success" : "secondary"}>{link.is_active ? "Active" : "Inactive"}</Badge>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`footer-link-edit-${link.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia><Pencil className="size-5" /></AlertDialogMedia>
-                                <AlertDialogTitle>Edit Link</AlertDialogTitle>
-                                <AlertDialogDescription>Update link details.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={updateFooterLinkAction} className="space-y-4">
-                                <input type="hidden" name="id" value={link.id} />
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-link-label-${link.id}`} className="text-sm font-medium text-foreground">Link Label</label>
-                                  <input id={`edit-link-label-${link.id}`} name="link_label" defaultValue={link.link_label} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-link-url-${link.id}`} className="text-sm font-medium text-foreground">Link URL</label>
-                                  <input id={`edit-link-url-${link.id}`} name="link_url" type="url" defaultValue={link.link_url} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-link-order-${link.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                  <input id={`edit-link-order-${link.id}`} type="number" name="display_order" defaultValue={link.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <form id={`footer-link-archive-${link.id}`} action={setFooterLinkStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={link.id} />
-                            <input type="hidden" name="status" value="archived" />
-                          </form>
-                          <form id={`footer-link-publish-${link.id}`} action={setFooterLinkStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={link.id} />
-                            <input type="hidden" name="status" value="published" />
-                          </form>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`footer-link-delete-${link.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive"><Trash2Icon /></AlertDialogMedia>
-                                <AlertDialogTitle>Delete Link?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently delete this footer link.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={deleteFooterLinkAction}>
-                                <input type="hidden" name="id" value={link.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => document.getElementById(`footer-link-edit-${link.id}`)?.click()}>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              {link.is_active ? (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`footer-link-archive-${link.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`footer-link-publish-${link.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Send className="mr-2 size-4" />
-                                  Publish
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem className="text-red-600" onClick={() => document.getElementById(`footer-link-delete-${link.id}`)?.click()}>
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ))}
-                      {section.links.length === 0 ? (
-                        <p className="text-center text-sm text-muted-foreground">No links in this section. Add one to get started.</p>
-                      ) : null}
-                    </div>
+
+                    {section.links.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[600px] text-sm text-left">
+                          <thead className="bg-muted/50 text-muted-foreground text-xs font-semibold uppercase tracking-wider border-b border-border">
+                            <tr>
+                              <th className="px-4 py-3">Link Label</th>
+                              <th className="px-4 py-3">URL</th>
+                              <th className="px-4 py-3">Order</th>
+                              <th className="px-4 py-3">Status</th>
+                              <th className="px-4 py-3 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {section.links.map((link) => (
+                              <tr key={link.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-4 py-3 font-medium text-foreground">{link.link_label}</td>
+                                <td className="px-4 py-3">
+                                  <a
+                                    href={link.link_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-[#4F46E5] hover:underline"
+                                  >
+                                    <LinkIcon className="size-3 shrink-0" />
+                                    <span className="truncate max-w-[280px]">{link.link_url}</span>
+                                  </a>
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">{link.display_order}</td>
+                                <td className="px-4 py-3">
+                                  <Badge variant={link.is_active ? "success" : "secondary"}>
+                                    {link.is_active ? "Active" : "Inactive"}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <form id={`footer-link-archive-form-${link.id}`} action={setFooterLinkStatusAction} className="hidden">
+                                    <input type="hidden" name="id" value={link.id} />
+                                    <input type="hidden" name="status" value="archived" />
+                                  </form>
+                                  <form id={`footer-link-publish-form-${link.id}`} action={setFooterLinkStatusAction} className="hidden">
+                                    <input type="hidden" name="id" value={link.id} />
+                                    <input type="hidden" name="status" value="published" />
+                                  </form>
+
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Open link menu</span>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-44">
+                                      <DropdownMenuItem
+                                        onClick={() => setEditingLink({ sectionId: section.id, link })}
+                                        className="cursor-pointer gap-2 text-sm"
+                                      >
+                                        <SquarePen className="h-4 w-4 text-blue-600" />
+                                        <span>Edit</span>
+                                      </DropdownMenuItem>
+                                      {link.is_active ? (
+                                        <DropdownMenuItem
+                                          onClick={() => {
+                                            const form = document.getElementById(`footer-link-archive-form-${link.id}`) as HTMLFormElement | null
+                                            form?.requestSubmit()
+                                          }}
+                                          className="cursor-pointer gap-2 text-sm"
+                                        >
+                                          <Archive className="h-4 w-4 text-amber-600" />
+                                          <span>Archive</span>
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem
+                                          onClick={() => {
+                                            const form = document.getElementById(`footer-link-publish-form-${link.id}`) as HTMLFormElement | null
+                                            form?.requestSubmit()
+                                          }}
+                                          className="cursor-pointer gap-2 text-sm"
+                                        >
+                                          <Send className="h-4 w-4 text-emerald-600" />
+                                          <span>Publish</span>
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        variant="destructive"
+                                        onClick={() => setDeletingLink(link)}
+                                        className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
+                                      >
+                                        <Trash2Icon className="h-4 w-4 text-rose-600" />
+                                        <span>Delete</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-sm text-muted-foreground">
+                        No links in this section yet. Click &quot;Add Link&quot; above to create one.
+                      </div>
+                    )}
                   </div>
                 ))}
                 {footerSections.length === 0 ? (
-                  <div className="rounded-lg border border-dashed p-6 text-center">
-                    <p className="text-sm text-muted-foreground">No footer sections found. Create your first section above.</p>
+                  <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                    No footer sections found. Create your first section above.
                   </div>
                 ) : null}
               </div>
+
+              {/* Global Add Section Dialog */}
+              <Dialog open={isAddSectionOpen} onOpenChange={setIsAddSectionOpen}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Footer Section</DialogTitle>
+                    <DialogDescription>Create a new footer link section category.</DialogDescription>
+                  </DialogHeader>
+
+                  <form action={createFooterLinkSectionAction} onSubmit={() => setIsAddSectionOpen(false)}>
+                    <div className="space-y-4 p-6">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="footer-section-name" className="text-sm font-semibold text-foreground">Section Name</Label>
+                          <Input id="footer-section-name" name="section_name" required placeholder="Quick Links" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="footer-section-slug" className="text-sm font-semibold text-foreground">Section Slug</Label>
+                          <Input id="footer-section-slug" name="section_slug" required placeholder="quick-links" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="footer-section-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                        <Input id="footer-section-order" type="number" name="display_order" defaultValue={footerSections.length + 1} min={0} />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button" className="h-10 rounded-lg px-4 text-sm font-medium border-border">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        Save Section
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Section Dialog */}
+              <Dialog open={Boolean(editingSection)} onOpenChange={(open) => { if (!open) setEditingSection(null) }}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Footer Section</DialogTitle>
+                    <DialogDescription>Update the section name and ordering.</DialogDescription>
+                  </DialogHeader>
+
+                  {editingSection ? (
+                    <form
+                      key={editingSection.id}
+                      action={updateFooterLinkSectionAction}
+                      onSubmit={() => setEditingSection(null)}
+                    >
+                      <input type="hidden" name="id" value={editingSection.id} />
+
+                      <div className="space-y-4 p-6">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-footer-name" className="text-sm font-semibold text-foreground">Section Name</Label>
+                          <Input id="edit-footer-name" name="section_name" defaultValue={editingSection.section_name} required placeholder="Section name" />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-footer-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="edit-footer-order" type="number" name="display_order" defaultValue={editingSection.display_order} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingSection(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Section AlertDialog */}
+              <AlertDialog open={Boolean(deletingSection)} onOpenChange={(open) => { if (!open) setDeletingSection(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Section?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this footer section and all its links.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteFooterLinkSectionAction} onSubmit={() => setDeletingSection(null)}>
+                    <input type="hidden" name="id" value={deletingSection?.id || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingSection(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete Section</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              {/* Global Add Link Dialog */}
+              <Dialog open={Boolean(addingLinkToSection)} onOpenChange={(open) => { if (!open) setAddingLinkToSection(null) }}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Footer Link</DialogTitle>
+                    <DialogDescription>
+                      Add a new link into &ldquo;{addingLinkToSection?.section_name}&rdquo;.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {addingLinkToSection ? (
+                    <form
+                      key={addingLinkToSection.id}
+                      action={createFooterLinkAction}
+                      onSubmit={() => setAddingLinkToSection(null)}
+                    >
+                      <input type="hidden" name="section_id" value={addingLinkToSection.id} />
+
+                      <div className="space-y-4 p-6">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="link-label" className="text-sm font-semibold text-foreground">Link Label</Label>
+                          <Input id="link-label" name="link_label" required placeholder="About Us" />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="link-url" className="text-sm font-semibold text-foreground">Link URL</Label>
+                          <Input id="link-url" name="link_url" type="url" required placeholder="https://... or /about" />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="link-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="link-order" type="number" name="display_order" defaultValue={addingLinkToSection.links.length + 1} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setAddingLinkToSection(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Link
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Edit Link Dialog */}
+              <Dialog open={Boolean(editingLink)} onOpenChange={(open) => { if (!open) setEditingLink(null) }}>
+                <DialogContent size="xl" className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Footer Link</DialogTitle>
+                    <DialogDescription>Update link label, URL, or ordering.</DialogDescription>
+                  </DialogHeader>
+
+                  {editingLink ? (
+                    <form
+                      key={editingLink.link.id}
+                      action={updateFooterLinkAction}
+                      onSubmit={() => setEditingLink(null)}
+                    >
+                      <input type="hidden" name="id" value={editingLink.link.id} />
+
+                      <div className="space-y-4 p-6">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-link-label" className="text-sm font-semibold text-foreground">Link Label</Label>
+                          <Input id="edit-link-label" name="link_label" defaultValue={editingLink.link.link_label} required placeholder="About Us" />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-link-url" className="text-sm font-semibold text-foreground">Link URL</Label>
+                          <Input id="edit-link-url" name="link_url" type="url" defaultValue={editingLink.link.link_url} required placeholder="https://... or /about" />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="edit-link-order" className="text-sm font-semibold text-foreground">Display Order</Label>
+                          <Input id="edit-link-order" type="number" name="display_order" defaultValue={editingLink.link.display_order} min={0} />
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={() => setEditingLink(null)}
+                          className="h-10 rounded-lg px-4 text-sm font-medium border-border"
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
+
+              {/* Global Delete Link AlertDialog */}
+              <AlertDialog open={Boolean(deletingLink)} onOpenChange={(open) => { if (!open) setDeletingLink(null) }}>
+                <AlertDialogContent size="sm">
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Delete Link?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this footer link.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <form action={deleteFooterLinkAction} onSubmit={() => setDeletingLink(null)}>
+                    <input type="hidden" name="id" value={deletingLink?.id || ""} />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant="outline" onClick={() => setDeletingLink(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction type="submit" variant="destructive">Delete Link</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </form>
+                </AlertDialogContent>
+              </AlertDialog>
             </section>
           ) : null}
 

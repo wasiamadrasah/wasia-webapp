@@ -142,7 +142,7 @@ function NoticeViewer({ notice, basePath = "/admin/notices" }: { notice: NoticeT
             </div>
             <div className="flex flex-col gap-1.5">
               <Label className="text-sm font-bold text-foreground">Author</Label>
-              <Input defaultValue={notice.author ?? ""} placeholder="-" readOnly className="h-10 text-sm border-border" />
+              <Input defaultValue={notice.author || "Admin"} placeholder="Admin" readOnly className="h-10 text-sm border-border" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -272,7 +272,7 @@ export function NoticeDataTable({
       header: "Author",
       cell: ({ row }) => (
         <span className="text-sm font-medium text-foreground whitespace-nowrap">
-          {row.original.author ?? "—"}
+          {row.original.author || "Admin"}
         </span>
       ),
     },

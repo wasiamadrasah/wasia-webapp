@@ -20,8 +20,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Crown,
   LayoutGrid,
   MoreHorizontalIcon,
@@ -33,14 +31,17 @@ import {
   Phone,
   Calendar,
   User,
+  Filter,
+  Copy,
+  Check,
 } from "lucide-react"
 
 import {
-  createTeacherAction,
-  deleteTeacherByFormAction,
-  resetTeacherPasswordAction,
-  setTeacherLoginAccessAction,
-  setTeacherStatusAction,
+  createEmployeeAction,
+  deleteEmployeeByFormAction,
+  resetEmployeePasswordAction,
+  setEmployeeLoginAccessAction,
+  setEmployeeStatusAction,
 } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -76,7 +77,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -95,14 +95,18 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 
-export type TeacherTableRow = {
+export type EmployeeTableRow = {
   id: string
   name: string
+  nameBn?: string | null
   profilePhoto: string | null
   employeeId: string | null
   designation: string | null
   phone: string | null
+  email?: string | null
+  category: "teacher" | "staff"
   registeredOn: string | null
   status: "active" | "inactive"
   canLogin: boolean
@@ -117,12 +121,42 @@ function formatDate(raw: string | null) {
   return `${day}/${month}/${d.getFullYear()}`
 }
 
-function TeacherStatusToggle({ teacherId, checked }: { teacherId: string; checked: boolean }) {
+function CopyableIdBadge({ employeeId }: { employeeId: string | null }) {
+  const [copied, setCopied] = React.useState(false)
+
+  if (!employeeId) return null
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    navigator.clipboard.writeText(employeeId)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="Click to copy Employee ID"
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground text-[11px] font-mono font-medium border border-border/80 transition-colors cursor-pointer group"
+    >
+      <span>ID: {employeeId}</span>
+      {copied ? (
+        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+      ) : (
+        <Copy className="h-3 w-3 text-muted-foreground/70 group-hover:text-foreground shrink-0" />
+      )}
+    </button>
+  )
+}
+
+function EmployeeStatusToggle({ employeeId, checked }: { employeeId: string; checked: boolean }) {
   const formRef = React.useRef<HTMLFormElement>(null)
 
   return (
-    <form ref={formRef} action={setTeacherStatusAction} className="inline-flex items-center">
-      <input type="hidden" name="teacher_id" value={teacherId} />
+    <form ref={formRef} action={setEmployeeStatusAction} className="inline-flex items-center">
+      <input type="hidden" name="employee_id" value={employeeId} />
       <input type="hidden" name="status" value={checked ? "active" : "inactive"} />
       <Switch
         checked={checked}
@@ -133,18 +167,18 @@ function TeacherStatusToggle({ teacherId, checked }: { teacherId: string; checke
           }
           formRef.current?.requestSubmit()
         }}
-        aria-label="Toggle teacher status"
+        aria-label="Toggle employee status"
       />
     </form>
   )
 }
 
-function TeacherLoginToggle({
-  teacherId,
+function EmployeeLoginToggle({
+  employeeId,
   checked,
   disabled = false,
 }: {
-  teacherId: string
+  employeeId: string
   checked: boolean
   disabled?: boolean
 }) {
@@ -152,8 +186,8 @@ function TeacherLoginToggle({
   const isChecked = disabled ? false : checked
 
   return (
-    <form ref={formRef} action={setTeacherLoginAccessAction} className="inline-flex items-center">
-      <input type="hidden" name="teacher_id" value={teacherId} />
+    <form ref={formRef} action={setEmployeeLoginAccessAction} className="inline-flex items-center">
+      <input type="hidden" name="employee_id" value={employeeId} />
       <input type="hidden" name="can_login" value={isChecked ? "true" : "false"} />
       <Switch
         checked={isChecked}
@@ -165,20 +199,20 @@ function TeacherLoginToggle({
           }
           formRef.current?.requestSubmit()
         }}
-        aria-label="Toggle teacher login access"
+        aria-label="Toggle employee login access"
       />
     </form>
   )
 }
 
-function ResetTeacherPasswordAction({ teacherId }: { teacherId: string }) {
+function ResetEmployeePasswordAction({ employeeId }: { employeeId: string }) {
   const [open, setOpen] = React.useState(false)
   const formRef = React.useRef<HTMLFormElement>(null)
 
   return (
     <>
-      <form ref={formRef} action={resetTeacherPasswordAction}>
-        <input type="hidden" name="teacher_id" value={teacherId} />
+      <form ref={formRef} action={resetEmployeePasswordAction}>
+        <input type="hidden" name="employee_id" value={employeeId} />
       </form>
 
       <DropdownMenuItem
@@ -188,7 +222,7 @@ function ResetTeacherPasswordAction({ teacherId }: { teacherId: string }) {
         }}
         className="cursor-pointer gap-2 text-sm"
       >
-        <ShieldCheck className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+        <ShieldCheck className="h-4 w-4 text-primary" />
         <span>Reset Password</span>
       </DropdownMenuItem>
 
@@ -198,10 +232,10 @@ function ResetTeacherPasswordAction({ teacherId }: { teacherId: string }) {
             <AlertDialogMedia className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
               <ShieldCheck />
             </AlertDialogMedia>
-            <AlertDialogTitle>Reset teacher password?</AlertDialogTitle>
+            <AlertDialogTitle>Reset employee password?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will generate a new 6-character password (a-z, 0-9), reset the current password, and email it to the teacher.
-              The teacher will be advised to change it immediately.
+              This will generate a new secure password, reset the current password, and email it to the employee.
+              The employee will be advised to change it immediately after login.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -220,20 +254,20 @@ function ResetTeacherPasswordAction({ teacherId }: { teacherId: string }) {
   )
 }
 
-function DeleteTeacherAction({
-  teacherId,
-  teacherName,
+function DeleteEmployeeAction({
+  employeeId,
+  employeeName,
 }: {
-  teacherId: string
-  teacherName: string
+  employeeId: string
+  employeeName: string
 }) {
   const [open, setOpen] = React.useState(false)
   const formRef = React.useRef<HTMLFormElement>(null)
 
   return (
     <>
-      <form ref={formRef} action={deleteTeacherByFormAction}>
-        <input type="hidden" name="teacher_id" value={teacherId} />
+      <form ref={formRef} action={deleteEmployeeByFormAction}>
+        <input type="hidden" name="employee_id" value={employeeId} />
       </form>
 
       <DropdownMenuItem
@@ -253,20 +287,21 @@ function DeleteTeacherAction({
             <AlertDialogMedia className="bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300">
               <Trash2Icon />
             </AlertDialogMedia>
-            <AlertDialogTitle>Delete teacher?</AlertDialogTitle>
+            <AlertDialogTitle>Delete employee record?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {teacherName} and related profile records. This action cannot be undone.
+              Are you sure you want to delete <span className="font-semibold text-foreground">{employeeName}</span>?
+              This will permanently remove the employee profile and linked credentials.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              className="bg-rose-600 text-white hover:bg-rose-700"
               onClick={() => {
                 formRef.current?.requestSubmit()
               }}
             >
-              Delete
+              Delete Record
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -275,78 +310,129 @@ function DeleteTeacherAction({
   )
 }
 
-function AddTeacherDialog() {
+function AddEmployeeDialog() {
+  const [open, setOpen] = React.useState(false)
+  const [category, setCategory] = React.useState<"teacher" | "staff">("teacher")
+  const formRef = React.useRef<HTMLFormElement>(null)
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-2xs gap-2 transition-colors">
+        <Button className="h-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-2xs gap-2">
           <Plus className="h-4 w-4" />
-          <span>Add Teacher</span>
+          <span>Add Employee</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <form action={createTeacherAction} className="space-y-4">
-          <DialogHeader>
-            <DialogTitle>Add Teacher</DialogTitle>
-            <DialogDescription>
-              Fill in the teacher information and set an initial login password.
-            </DialogDescription>
-          </DialogHeader>
 
-          <div className="space-y-3.5 px-6 py-2">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold text-foreground">Add New Employee</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Create an employee account for teaching or administrative personnel. The system will auto-generate an Employee ID.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form ref={formRef} action={createEmployeeAction} className="space-y-4 pt-2">
+          <div className="space-y-3.5">
             <div className="space-y-1.5">
-              <Label htmlFor="teacher_full_name_en" className="text-sm font-bold text-foreground">
-                Name (EN) <span className="text-rose-500">*</span>
+              <Label htmlFor="employee_category" className="text-sm font-bold text-foreground">
+                Employee Category <span className="text-rose-500">*</span>
+              </Label>
+              <Select
+                name="type"
+                value={category}
+                onValueChange={(val: "teacher" | "staff") => setCategory(val)}
+              >
+                <SelectTrigger id="employee_category" className="h-10 border-input bg-background w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="teacher">Teaching Personnel</SelectItem>
+                  <SelectItem value="staff">Administrative Personnel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="employee_full_name_en" className="text-sm font-bold text-foreground">
+                Full Name (English) <span className="text-rose-500">*</span>
               </Label>
               <Input
-                id="teacher_full_name_en"
+                id="employee_full_name_en"
                 name="full_name_en"
                 required
-                placeholder="Enter teacher full name"
+                placeholder="Enter employee full name"
                 className="h-10 border-input bg-background"
               />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="teacher_phone" className="text-sm font-bold text-foreground">
+              <Label htmlFor="employee_full_name_bn" className="text-sm font-bold text-foreground">
+                Full Name (Bangla)
+              </Label>
+              <Input
+                id="employee_full_name_bn"
+                name="full_name_bn"
+                placeholder="বাংলায় নাম লিখুন"
+                className="h-10 border-input bg-background font-bensen"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="employee_designation" className="text-sm font-bold text-foreground">
+                Designation <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="employee_designation"
+                name="designation"
+                required
+                placeholder={category === "teacher" ? "e.g. সহকারী শিক্ষক / Assistant Teacher" : "e.g. প্রধান হিসাবরক্ষক / Accountant"}
+                className="h-10 border-input bg-background"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="employee_phone" className="text-sm font-bold text-foreground">
                 Phone Number <span className="text-rose-500">*</span>
               </Label>
               <Input
-                id="teacher_phone"
+                id="employee_phone"
                 name="contact_number"
                 required
-                placeholder="Enter phone number"
+                placeholder="018XXXXXXXX"
                 className="h-10 border-input bg-background"
               />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="teacher_email" className="text-sm font-bold text-foreground">
-                Email Address <span className="text-rose-500">*</span>
+              <Label htmlFor="employee_email" className="text-sm font-bold text-foreground">
+                Email Address
               </Label>
               <Input
-                id="teacher_email"
+                id="employee_email"
                 type="email"
                 name="email"
-                required
-                placeholder="teacher@example.com"
+                placeholder="employee@example.com"
                 className="h-10 border-input bg-background"
               />
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="teacher_password" className="text-sm font-bold text-foreground">
-                Password <span className="text-rose-500">*</span>
+              <Label htmlFor="employee_password" className="text-sm font-bold text-foreground">
+                Password
               </Label>
               <Input
-                id="teacher_password"
+                id="employee_password"
                 type="password"
                 name="password"
-                required
+                defaultValue="Wasia@2026"
                 placeholder="Enter login password"
                 className="h-10 border-input bg-background"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <DialogClose asChild>
               <Button type="button" variant="outline" className="h-9 px-4 text-sm font-medium border-border">
                 Cancel
@@ -362,17 +448,31 @@ function AddTeacherDialog() {
   )
 }
 
-export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
+export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [categoryFilter, setCategoryFilter] = React.useState<"all" | "teacher" | "staff">("all")
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   })
 
-  const columns: ColumnDef<TeacherTableRow>[] = [
+  // Filter data based on category filter
+  const filteredData = React.useMemo(() => {
+    if (categoryFilter === "all") return data
+    return data.filter((item) => item.category === categoryFilter)
+  }, [data, categoryFilter])
+
+  const counts = React.useMemo(() => {
+    const total = data.length
+    const teachers = data.filter((d) => d.category === "teacher").length
+    const staff = data.filter((d) => d.category === "staff").length
+    return { total, teachers, staff }
+  }, [data])
+
+  const columns: ColumnDef<EmployeeTableRow>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -398,28 +498,36 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
           />
         </div>
       ),
+      meta: {
+        className: "w-10 px-2 text-center",
+      },
       enableSorting: false,
       enableHiding: false,
     },
     {
       id: "photo",
-      header: "Photo",
+      header: () => <span className="block text-center">Photo</span>,
       cell: ({ row }) => {
         const photo = row.original.profilePhoto
         const name = row.original.name
         return (
-          <div className="h-9 w-9 rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300 shrink-0">
-            {photo ? (
-              <img
-                src={photo}
-                alt={name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              name.charAt(0)
-            )}
+          <div className="flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300 shrink-0">
+              {photo ? (
+                <img
+                  src={photo}
+                  alt={name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                name.charAt(0)
+              )}
+            </div>
           </div>
         )
+      },
+      meta: {
+        className: "w-12 px-2 text-center",
       },
       enableSorting: false,
     },
@@ -428,22 +536,45 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
       header: "Name",
       cell: ({ row }) => {
         const designation = (row.original.designation || "").toLowerCase().trim()
-        const isHeadmaster = designation === "headmaster" || designation === "head master"
+        const isHeadmaster = designation === "headmaster" || designation === "head master" || designation.includes("principal") || designation.includes("অধ্যক্ষ")
         return (
-          <span className="font-bold text-sm text-foreground inline-flex items-center gap-1.5">
-            {row.original.name}
-            {isHeadmaster && <Crown className="h-4 w-4 text-amber-500 fill-amber-500 shrink-0" />}
-          </span>
+          <div className="space-y-1 py-0.5">
+            <span className="font-bold text-sm text-foreground inline-flex items-center gap-1.5">
+              {row.original.name}
+              {isHeadmaster && <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />}
+            </span>
+            <div>
+              <CopyableIdBadge employeeId={row.original.employeeId} />
+            </div>
+          </div>
         )
+      },
+      meta: {
+        className: "min-w-[180px] px-3",
       },
       enableHiding: false,
     },
     {
-      accessorKey: "employeeId",
-      header: "ID",
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-foreground font-mono">{row.original.employeeId || "-"}</span>
-      ),
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => {
+        const isTeacher = row.original.category === "teacher"
+        return (
+          <Badge
+            variant="outline"
+            className={
+              isTeacher
+                ? "rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 font-semibold text-xs px-2.5 py-0.5"
+                : "rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60 font-semibold text-xs px-2.5 py-0.5"
+            }
+          >
+            {isTeacher ? "Teaching" : "Administrative"}
+          </Badge>
+        )
+      },
+      meta: {
+        className: "w-36 px-3",
+      },
     },
     {
       accessorKey: "designation",
@@ -451,42 +582,58 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
       cell: ({ row }) => (
         <span className="text-sm font-medium text-foreground">{row.original.designation || "-"}</span>
       ),
+      meta: {
+        className: "w-44 px-3",
+      },
     },
     {
       accessorKey: "phone",
       header: "Phone",
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.phone || "-"}</span>
+        <span className="text-sm text-muted-foreground font-mono">{row.original.phone || "-"}</span>
       ),
+      meta: {
+        className: "w-36 px-3",
+      },
     },
     {
       id: "status",
-      header: "Status",
+      header: () => <div className="text-center">Status</div>,
       cell: ({ row }) => (
-        <TeacherStatusToggle
-          teacherId={row.original.id}
-          checked={row.original.status === "active"}
-        />
+        <div className="flex justify-center">
+          <EmployeeStatusToggle
+            employeeId={row.original.id}
+            checked={row.original.status === "active"}
+          />
+        </div>
       ),
+      meta: {
+        className: "w-20 px-2 text-center",
+      },
       enableSorting: false,
     },
     {
       id: "login",
-      header: "Login",
+      header: () => <div className="text-center">Login</div>,
       cell: ({ row }) => (
-        <TeacherLoginToggle
-          teacherId={row.original.id}
-          checked={row.original.canLogin}
-          disabled={row.original.status === "inactive"}
-        />
+        <div className="flex justify-center">
+          <EmployeeLoginToggle
+            employeeId={row.original.id}
+            checked={row.original.canLogin}
+            disabled={row.original.status === "inactive"}
+          />
+        </div>
       ),
+      meta: {
+        className: "w-20 px-2 text-center",
+      },
       enableSorting: false,
     },
     {
       id: "actions",
       header: () => <div className="text-right">Action</div>,
       cell: ({ row }) => {
-        const teacher = row.original
+        const employee = row.original
 
         return (
           <div className="flex items-center justify-end">
@@ -502,25 +649,34 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
-                    <Link href={`/admin/teachers/${teacher.id}`}>
+                    <Link href={`/admin/employees/${employee.id}`}>
                       <UserRound className="h-4 w-4 text-primary" />
                       <span>View Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <ResetTeacherPasswordAction teacherId={teacher.id} />
-                  <DeleteTeacherAction teacherId={teacher.id} teacherName={teacher.name} />
+                  <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
+                    <Link href={`/admin/employees/${employee.id}/edit`}>
+                      <User className="h-4 w-4 text-blue-600" />
+                      <span>Edit Details</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <ResetEmployeePasswordAction employeeId={employee.id} />
+                  <DropdownMenuSeparator />
+                  <DeleteEmployeeAction employeeId={employee.id} employeeName={employee.name} />
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         )
       },
+      meta: {
+        className: "w-16 px-3 text-right",
+      },
     },
   ]
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -546,16 +702,39 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
 
   return (
     <div className="w-full max-w-full space-y-4">
-      {/* Header Toolbar */}
+      {/* Header Toolbar matching DigiCampus style */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search teachers by name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-            className="h-10 pl-9 border-input bg-background text-sm w-full"
-          />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1 max-w-2xl">
+          {/* Search bar */}
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search employees by name..."
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+              className="h-10 pl-9 border-input bg-background text-sm w-full"
+            />
+          </div>
+
+          {/* Category Filter Selector */}
+          <div className="w-full sm:w-60">
+            <Select
+              value={categoryFilter}
+              onValueChange={(val: "all" | "teacher" | "staff") => setCategoryFilter(val)}
+            >
+              <SelectTrigger className="h-10 border-input bg-background text-sm w-full">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Category Filter" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Personnel ({counts.total})</SelectItem>
+                <SelectItem value="teacher">Teaching Personnel ({counts.teachers})</SelectItem>
+                <SelectItem value="staff">Administrative Personnel ({counts.staff})</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
@@ -587,18 +766,25 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <AddTeacherDialog />
+          <AddEmployeeDialog />
         </div>
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden md:block w-full overflow-x-auto rounded-lg border border-border bg-card shadow-2xs">
-        <Table className="w-full">
+      {/* Desktop & Tablet Table View */}
+      <div className="hidden md:block w-full">
+        <Table className="w-full min-w-[850px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/40 border-b border-border">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} colSpan={header.colSpan} className="text-sm font-bold text-foreground">
+                  <TableHead
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className={cn(
+                      "text-sm font-bold text-foreground",
+                      (header.column.columnDef.meta as { className?: string } | undefined)?.className
+                    )}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -612,7 +798,13 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="hover:bg-muted/40 border-b border-border transition-colors">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3.5 whitespace-nowrap">
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3 whitespace-nowrap",
+                        (cell.column.columnDef.meta as { className?: string } | undefined)?.className
+                      )}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -621,7 +813,7 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-sm font-medium text-muted-foreground">
-                  No teachers found.
+                  No employees found in this category.
                 </TableCell>
               </TableRow>
             )}
@@ -633,49 +825,57 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
       <div className="block md:hidden space-y-3">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => {
-            const teacher = row.original
-            const designation = (teacher.designation || "").toLowerCase().trim()
-            const isHeadmaster = designation === "headmaster" || designation === "head master"
+            const employee = row.original
+            const isTeacher = employee.category === "teacher"
+            const designation = (employee.designation || "").toLowerCase().trim()
+            const isHeadmaster = designation === "headmaster" || designation === "head master" || designation.includes("principal") || designation.includes("অধ্যক্ষ")
 
             return (
-              <div key={teacher.id} className="rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs">
+              <div key={employee.id} className="rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300">
-                      {teacher.profilePhoto ? (
+                      {employee.profilePhoto ? (
                         <img
-                          src={teacher.profilePhoto}
-                          alt={teacher.name}
+                          src={employee.profilePhoto}
+                          alt={employee.name}
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        teacher.name.charAt(0)
+                        employee.name.charAt(0)
                       )}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 space-y-1">
                       <p className="text-sm font-bold text-foreground truncate flex items-center gap-1.5">
-                        {teacher.name}
+                        {employee.name}
                         {isHeadmaster && <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate">{teacher.designation || "Faculty Member"}</p>
+                      <CopyableIdBadge employeeId={employee.employeeId} />
                     </div>
                   </div>
-                  <Badge variant="outline" className="rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60 font-semibold text-xs px-2.5 py-0.5 shrink-0">
-                    {teacher.employeeId || "Teacher"}
+                  <Badge
+                    variant="outline"
+                    className={
+                      isTeacher
+                        ? "rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 font-semibold text-xs px-2.5 py-0.5 shrink-0"
+                        : "rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60 font-semibold text-xs px-2.5 py-0.5 shrink-0"
+                    }
+                  >
+                    {isTeacher ? "Teaching" : "Admin"}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
-                  {teacher.phone && (
+                  {employee.phone && (
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>{teacher.phone}</span>
+                      <span>{employee.phone}</span>
                     </div>
                   )}
-                  {teacher.registeredOn && (
+                  {employee.registeredOn && (
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>{formatDate(teacher.registeredOn)}</span>
+                      <span>{formatDate(employee.registeredOn)}</span>
                     </div>
                   )}
                 </div>
@@ -684,11 +884,11 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-medium text-muted-foreground">Status:</span>
-                      <TeacherStatusToggle teacherId={teacher.id} checked={teacher.status === "active"} />
+                      <EmployeeStatusToggle employeeId={employee.id} checked={employee.status === "active"} />
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-medium text-muted-foreground">Login:</span>
-                      <TeacherLoginToggle teacherId={teacher.id} checked={teacher.canLogin} disabled={teacher.status === "inactive"} />
+                      <EmployeeLoginToggle employeeId={employee.id} checked={employee.canLogin} disabled={employee.status === "inactive"} />
                     </div>
                   </div>
 
@@ -698,7 +898,7 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
                     size="sm"
                     className="h-8 gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60"
                   >
-                    <Link href={`/admin/teachers/${teacher.id}`}>
+                    <Link href={`/admin/employees/${employee.id}`}>
                       <User className="h-3.5 w-3.5" />
                       <span>Profile</span>
                     </Link>
@@ -709,7 +909,7 @@ export function TeacherDataTable({ data }: { data: TeacherTableRow[] }) {
           })
         ) : (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            No teachers found.
+            No employees found in this category.
           </div>
         )}
       </div>

@@ -25,7 +25,7 @@ export default async function StudentLayout({
   const pathname = (await headers()).get("x-pathname") ?? ""
 
   if (pathname === "/student/login") {
-    return <div className={outfit.className}>{children}</div>
+    return <>{children}</>
   }
 
   const session = await getAuthSession()

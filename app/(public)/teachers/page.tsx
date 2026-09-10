@@ -1,30 +1,19 @@
-import { Outfit } from "next/font/google"
+import { GraduationCap } from "lucide-react"
 import { createSupabaseAdminClient } from "@/lib/db"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
-import { TeacherGrid } from "@/components/layout/teacher-grid"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
+import { TeacherGrid, type TeacherCard } from "@/components/layout/teacher-grid"
 import { createPageMetadata } from "@/lib/seo"
-import { Mail } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 60
 
 export const metadata = createPageMetadata({
-  title: "Teachers",
-  description: "Browse teacher profiles, designations, contact details, and faculty information.",
+  title: "সম্মানিত শিক্ষকমণ্ডলী",
+  description: "সুযোগ্য, অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষক ও অনুষদ সদস্যদের তালিকা ও প্রোফাইল।",
   path: "/teachers",
-  keywords: ["teachers", "faculty", "school teachers", "teacher profiles"],
+  keywords: ["শিক্ষকমণ্ডলী", "teachers", "faculty", "অনুষদ সদস্য", "মাদ্রাসার শিক্ষক"],
 })
-
-type TeacherCard = {
-  id: string
-  profile_photo: string | null
-  full_name_en: string | null
-  designation: string | null
-  email: string | null
-  contact_number: string | null
-  joining_date: string | null
-  status?: string | null
-}
 
 type StaffAccountStatus = {
   staff_id: string | null
@@ -58,30 +47,27 @@ async function withoutInactiveAccounts(
   return teachers.filter((teacher) => !inactiveIds.has(teacher.id))
 }
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
-
 export default async function TeachersPage() {
   const supabase = createSupabaseAdminClient()
 
-  const primaryResult = await supabase
-    .from("staffs")
-    .select("id, profile_photo, full_name_en, designation, email, contact_number, joining_date, status")
-    .eq("type", "teacher")
-    .eq("status", "active")
-    .order("joining_date", { ascending: true })
+  const [primaryResult, instituteSettings] = await Promise.all([
+    supabase
+      .from("staffs")
+      .select("id, profile_photo, full_name_en, full_name_bn, designation, email, contact_number, joining_date, status")
+      .eq("type", "teacher")
+      .eq("status", "active")
+      .order("joining_date", { ascending: true }),
+    getInstituteSettings(),
+  ])
 
   const fallbackResult =
     primaryResult.error &&
-    primaryResult.error.message.toLowerCase().includes("column") &&
-    primaryResult.error.message.toLowerCase().includes("status")
+    primaryResult.error.message.toLowerCase().includes("column")
       ? await supabase
-      .from("staffs")
-      .select("id, profile_photo, full_name_en, designation, email, contact_number, joining_date")
-      .eq("type", "teacher")
-      .order("joining_date", { ascending: true })
+          .from("staffs")
+          .select("id, profile_photo, full_name_en, designation, email, contact_number, joining_date")
+          .eq("type", "teacher")
+          .order("joining_date", { ascending: true })
       : null
 
   const teachers = await withoutInactiveAccounts(
@@ -91,58 +77,72 @@ export default async function TeachersPage() {
 
   // Sort: headmaster/principal first, then by joining date
   teachers.sort((a, b) => {
-    const aDesignation = a.designation?.toLowerCase() || ""
-    const bDesignation = b.designation?.toLowerCase() || ""
+    const aDesignation = (a.designation || "").toLowerCase()
+    const bDesignation = (b.designation || "").toLowerCase()
     
-    const isAHeadmaster = aDesignation.includes("headmaster") || aDesignation.includes("principal")
-    const isBHeadmaster = bDesignation.includes("headmaster") || bDesignation.includes("principal")
+    const isAHeadmaster =
+      aDesignation.includes("headmaster") ||
+      aDesignation.includes("principal") ||
+      aDesignation.includes("অধ্যক্ষ") ||
+      aDesignation.includes("উপাধ্যক্ষ")
+    const isBHeadmaster =
+      bDesignation.includes("headmaster") ||
+      bDesignation.includes("principal") ||
+      bDesignation.includes("অধ্যক্ষ") ||
+      bDesignation.includes("উপাধ্যক্ষ")
     
     if (isAHeadmaster && !isBHeadmaster) return -1
     if (!isAHeadmaster && isBHeadmaster) return 1
     
-    // If both are headmasters or both are regular teachers, sort by joining date
+    // If both or neither, sort by joining date
     const aDate = a.joining_date ? new Date(a.joining_date).getTime() : Infinity
     const bDate = b.joining_date ? new Date(b.joining_date).getTime() : Infinity
     
     return aDate - bDate
   })
 
-  return (
-    <main>
-      {/* Header */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <Mail className="h-3.5 w-3.5 text-emerald-400" />
-            <span>FACULTY DESK</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Our <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">Teachers</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Dedicated educators committed to student success.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Teachers" className="text-sm" plainCurrent />
-          </div>
-        </div>
-      </section>
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    ""
 
-      {/* Grid */}
-      <section className="px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          {teachers.length === 0 ? (
-            <p className="text-center text-slate-500">No teachers found.</p>
-          ) : (
-            <TeacherGrid teachers={teachers} />
-          )}
+  const heroSubtitle = instituteName
+    ? `ইলম ও আমলের সমন্বয়ে ভবিষ্যৎ প্রজন্ম গঠনে ${instituteName}-এর নিবেদিতপ্রাণ শিক্ষকবৃন্দ।`
+    : "ইলম ও আমলের সমন্বয়ে ভবিষ্যৎ প্রজন্ম গঠনে অত্র মাদ্রাসার নিবেদিতপ্রাণ শিক্ষকবৃন্দ।"
+
+  return (
+    <main className="min-h-screen bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title="সম্মানিত শিক্ষকমণ্ডলী"
+        subtitle={heroSubtitle}
+        badgeText="অনুষদ ও শিক্ষকমণ্ডলী"
+        badgeIcon={GraduationCap}
+        breadcrumbCurrent="শিক্ষকমণ্ডলী"
+      />
+
+      {/* 2. Main Section with Teacher Grid & Watermark Pattern */}
+      <section className="relative py-12 md:py-16 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="teachers-islamic-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#teachers-islamic-pattern)" />
+          </svg>
+        </div>
+
+        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <TeacherGrid teachers={teachers} />
         </div>
       </section>
     </main>

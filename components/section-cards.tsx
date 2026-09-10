@@ -11,7 +11,7 @@ const CARDS = [
     subtitle: "active members",
     key: "totalTeachers" as const,
     icon: Users,
-    href: "/admin/teachers",
+    href: "/admin/employees",
     bg: "#0062e3",          // Vibrant Blue
     shadow: "rgba(0,98,227,0.35)",
   },
@@ -20,7 +20,7 @@ const CARDS = [
     subtitle: "on the team",
     key: "totalStaff" as const,
     icon: BookOpen,
-    href: "/admin/staff",
+    href: "/admin/employees",
     bg: "#00a65a",          // Vibrant Green
     shadow: "rgba(0,166,90,0.35)",
   },

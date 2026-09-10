@@ -20,8 +20,7 @@ export async function saveIDGenerationSettingsAction(settings: IDGenerationSetti
   try {
     await saveIDGenerationSettings(settings)
     revalidatePath("/admin/settings/id-generation")
-    revalidatePath("/admin/teachers")
-    revalidatePath("/admin/staffs")
+    revalidatePath("/admin/employees")
     revalidatePath("/admin/students")
 
     return { success: true, message: "ID generation settings saved successfully." }

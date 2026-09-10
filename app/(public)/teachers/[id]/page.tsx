@@ -1,11 +1,21 @@
-import { Outfit } from "next/font/google"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createSupabaseAdminClient } from "@/lib/db"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
 import { absoluteUrl, createPageMetadata } from "@/lib/seo"
-import { Mail, Phone, GraduationCap, Briefcase, BookOpen, ArrowLeft, User, Droplet } from "lucide-react"
+import {
+  Mail,
+  Phone,
+  GraduationCap,
+  Briefcase,
+  BookOpen,
+  ArrowLeft,
+  Award,
+  Calendar,
+  HeartPulse,
+} from "lucide-react"
 
 type TeacherRecord = {
   id: string
@@ -21,9 +31,11 @@ type TeacherRecord = {
   contact_number: string | null
   email: string | null
 }
+
 type StaffAccountStatus = {
   status: string | null
 }
+
 type AcademicRecord = {
   id: string
   degree: string | null
@@ -33,6 +45,7 @@ type AcademicRecord = {
   duration: string | null
   result: string | null
 }
+
 type ExperienceRecord = {
   id: string
   institute_name: string | null
@@ -44,6 +57,7 @@ type ExperienceRecord = {
   end_date: string | null
   currently_working: boolean | null
 }
+
 type TrainingRecord = {
   id: string
   training_name: string | null
@@ -55,16 +69,31 @@ type TrainingRecord = {
 
 async function getPublicTeacher(id: string) {
   const supabase = createSupabaseAdminClient()
-  const result = await supabase.from("staffs").select(`
-    id, status, full_name_en, full_name_bn, profile_photo, religion, blood_group,
-    designation, employment_type, joining_date, contact_number, email
-  `).eq("id", id).eq("type", "teacher").eq("status", "active").single<TeacherRecord>()
-
-  if (result.error && result.error.message.toLowerCase().includes("column") && result.error.message.toLowerCase().includes("status")) {
-    return supabase.from("staffs").select(`
-      id, full_name_en, full_name_bn, profile_photo, religion, blood_group,
+  const result = await supabase
+    .from("staffs")
+    .select(`
+      id, status, full_name_en, full_name_bn, profile_photo, religion, blood_group,
       designation, employment_type, joining_date, contact_number, email
-    `).eq("id", id).eq("type", "teacher").single<TeacherRecord>()
+    `)
+    .eq("id", id)
+    .eq("type", "teacher")
+    .eq("status", "active")
+    .single<TeacherRecord>()
+
+  if (
+    result.error &&
+    result.error.message.toLowerCase().includes("column") &&
+    result.error.message.toLowerCase().includes("status")
+  ) {
+    return supabase
+      .from("staffs")
+      .select(`
+        id, full_name_en, full_name_bn, profile_photo, religion, blood_group,
+        designation, employment_type, joining_date, contact_number, email
+      `)
+      .eq("id", id)
+      .eq("type", "teacher")
+      .single<TeacherRecord>()
   }
 
   return result
@@ -76,31 +105,27 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!teacher) {
     return createPageMetadata({
-      title: "Teacher Not Found",
-      description: "The requested teacher profile could not be found.",
+      title: "শিক্ষকের তথ্য পাওয়া যায়নি",
+      description: "অনুরোধকৃত শিক্ষকের প্রোফাইল খুঁজে পাওয়া যায়নি।",
       path: `/teachers/${id}`,
     })
   }
 
+  const name = teacher.full_name_bn || teacher.full_name_en || "সম্মানিত শিক্ষক"
   return createPageMetadata({
-    title: teacher.full_name_en || "Teacher Profile",
-    description: `${teacher.full_name_en || "Teacher"}${teacher.designation ? `, ${teacher.designation}` : ""} at Purba Bakalia City Corporation High School.`,
+    title: `${name} - প্রোফাইল`,
+    description: `${name}${teacher.designation ? `, ${teacher.designation}` : ""} - ওয়াসিয়া কামিল মাদ্রাসা।`,
     path: `/teachers/${id}`,
     image: teacher.profile_photo || undefined,
-    keywords: ["teacher profile", teacher.designation || "teacher", "PBCCHS teacher"],
+    keywords: ["শিক্ষক প্রোফাইল", teacher.designation || "শিক্ষক", "ওয়াসিয়া কামিল মাদ্রাসা"],
   })
 }
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
 
 export default async function TeacherProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = createSupabaseAdminClient()
 
-  const [teacherResult, accountResult, { data: academics }, { data: experience }, { data: training }] =
+  const [teacherResult, accountResult, { data: academics }, { data: experience }, { data: training }, instituteSettings] =
     await Promise.all([
       getPublicTeacher(id),
       supabase.from("staff_accounts").select("status").eq("staff_id", id).maybeSingle<StaffAccountStatus>(),
@@ -110,15 +135,25 @@ export default async function TeacherProfile({ params }: { params: Promise<{ id:
         start_date, end_date, currently_working
       `).eq("staff_id", id),
       supabase.from("staff_training").select("id, training_name, training_institute, year, duration, subject").eq("staff_id", id),
+      getInstituteSettings(),
     ])
 
   let teacher = teacherResult.data
 
-  if (teacherResult.error && teacherResult.error.message.toLowerCase().includes("column") && teacherResult.error.message.toLowerCase().includes("status")) {
-    const fallback = await supabase.from("staffs").select(`
-      id, full_name_en, full_name_bn, profile_photo, religion, blood_group,
-      designation, employment_type, joining_date, contact_number, email
-    `).eq("id", id).eq("type", "teacher").single<TeacherRecord>()
+  if (
+    teacherResult.error &&
+    teacherResult.error.message.toLowerCase().includes("column") &&
+    teacherResult.error.message.toLowerCase().includes("status")
+  ) {
+    const fallback = await supabase
+      .from("staffs")
+      .select(`
+        id, full_name_en, full_name_bn, profile_photo, religion, blood_group,
+        designation, employment_type, joining_date, contact_number, email
+      `)
+      .eq("id", id)
+      .eq("type", "teacher")
+      .single<TeacherRecord>()
 
     if (!fallback.data) {
       notFound()
@@ -133,6 +168,11 @@ export default async function TeacherProfile({ params }: { params: Promise<{ id:
 
   if (!teacher) notFound()
 
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    ""
+
   const acads = (academics ?? []) as AcademicRecord[]
   const exps = (experience ?? []) as ExperienceRecord[]
   const trainings = (training ?? []) as TrainingRecord[]
@@ -141,6 +181,7 @@ export default async function TeacherProfile({ params }: { params: Promise<{ id:
     if (!date) return null
     return new Date(date).toLocaleDateString("en-BD", { year: "numeric", month: "short", day: "2-digit" })
   }
+
   const formatNaturalText = (val: string | null | undefined, fallback = "N/A") => {
     if (!val) return fallback
     return val
@@ -148,250 +189,270 @@ export default async function TeacherProfile({ params }: { params: Promise<{ id:
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ")
   }
+
+  const displayName = teacher.full_name_bn || teacher.full_name_en || "সম্মানিত শিক্ষক"
+  const secondaryName = teacher.full_name_bn && teacher.full_name_en ? teacher.full_name_en : null
+
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: teacher.full_name_en || teacher.full_name_bn || "Teacher",
-    alternateName: teacher.full_name_bn || undefined,
+    name: displayName,
+    alternateName: secondaryName || undefined,
     image: teacher.profile_photo ? absoluteUrl(teacher.profile_photo) : undefined,
     jobTitle: teacher.designation || "Teacher",
     email: teacher.email || undefined,
     telephone: teacher.contact_number || undefined,
     worksFor: {
       "@type": "EducationalOrganization",
-      name: "Purba Bakalia City Corporation High School",
+      name: instituteName || "Madrasah",
       url: absoluteUrl("/"),
     },
     url: absoluteUrl(`/teachers/${teacher.id}`),
   }
 
+  const heroSubtitle = instituteName
+    ? `${teacher.designation || "শিক্ষক"} • ${instituteName}`
+    : (teacher.designation || "সম্মানিত শিক্ষক")
+
   return (
-    <main className="min-h-screen bg-slate-50 pb-20">
+    <main className="min-h-screen bg-[#F7F8F5]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
 
-      {/* Top Header Navigation */}
-      <div className="border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+      {/* 1. Header Banner */}
+      <PublicHero
+        title={displayName}
+        subtitle={heroSubtitle}
+        badgeText="শিক্ষক প্রোফাইল"
+        badgeIcon={GraduationCap}
+        breadcrumbCurrent={displayName}
+        breadcrumbParent={{ label: "শিক্ষকমণ্ডলী", href: "/teachers" }}
+      />
+
+      {/* 2. Main Content */}
+      <section className="relative py-12 md:py-16">
+        <div className="container relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 space-y-8">
+          
+          {/* Back Link */}
+          <div>
             <Link
               href="/teachers"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#006a4e] hover:opacity-80 transition"
+              className="inline-flex items-center gap-2 text-[14.5px] font-semibold text-[#075E54] hover:text-[#064A42] transition"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>All Faculty Members</span>
+              <span>সকল শিক্ষকমণ্ডলীর তালিকা</span>
             </Link>
-            <div className="hidden sm:block">
-              <PublicBreadcrumb
-                current={teacher.full_name_en || "Teacher Profile"}
-                className="text-xs"
-                plainCurrent
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Single Card Container */}
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          {/* Top Profile Banner Section */}
-          <div className="relative border-b border-slate-100 bg-slate-50/50 p-8 md:p-10">
-            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
-              {/* Photo Frame */}
-              <div className="relative h-40 w-40 flex-shrink-0 overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-1.5 shadow-sm">
-                <Image
-                  src={teacher.profile_photo || "/avatar.png"}
-                  alt={teacher.full_name_en || "Teacher"}
-                  width={500}
-                  height={500}
-                  unoptimized
-                  className="h-full w-full rounded object-cover"
-                />
-              </div>
-
-              {/* Bio Details */}
-              <div className="flex-1 space-y-4 text-center md:text-left">
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                    {teacher.full_name_en || "Teacher Profile"}
-                  </h1>
-                  {teacher.full_name_bn && (
-                    <p className="text-lg font-semibold text-slate-500">
-                      {teacher.full_name_bn}
-                    </p>
-                  )}
-                  <p className="inline-flex items-center rounded-full bg-[#006a4e] px-3 py-1 text-xs font-semibold text-white mt-1">
-                    {teacher.designation || "Faculty Member"}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-2 md:justify-start">
-                  {teacher.email && (
-                    <a
-                      href={`mailto:${teacher.email}`}
-                      className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#006a4e] transition"
-                    >
-                      <Mail className="h-4 w-4 text-[#006a4e]" />
-                      <span>{teacher.email}</span>
-                    </a>
-                  )}
-                  {teacher.contact_number && (
-                    <a
-                      href={`tel:${teacher.contact_number}`}
-                      className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#006a4e] transition"
-                    >
-                      <Phone className="h-4 w-4 text-[#006a4e]" />
-                      <span>{teacher.contact_number}</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Details Body */}
-          <div className="p-8 md:p-10 space-y-12">
-            {/* Grid for Personal Details */}
-            <section className="space-y-4">
-              <h2 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <span className="h-4 w-1 bg-[#006a4e] rounded-full inline-block"></span>
-                Personal & Employment Details
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 rounded-lg border border-slate-100 bg-slate-50/40 p-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Employment Type</p>
-                  <p className="mt-1 text-sm font-bold text-slate-800">{formatNaturalText(teacher.employment_type)}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Joining Date</p>
-                  <p className="mt-1 text-sm font-bold text-slate-800">{teacher.joining_date ? formatDate(teacher.joining_date) : "N/A"}</p>
-                </div>
-                {teacher.blood_group && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Blood Group</p>
-                    <p className="mt-1 text-sm font-extrabold text-red-600">{teacher.blood_group}</p>
+          {/* Profile Overview Card */}
+          <div className="overflow-hidden rounded-3xl border border-[#E2E7E4] bg-white shadow-sm">
+            
+            {/* Top Bio Banner */}
+            <div className="border-b border-[#E2E7E4] bg-[#F7F8F5]/60 p-6 sm:p-8 md:p-10">
+              <div className="flex flex-col items-center gap-6 sm:gap-8 md:flex-row md:items-start">
+                
+                {/* Photo Frame with Islamic Border */}
+                <div className="relative h-44 w-44 shrink-0 overflow-hidden rounded-2xl border-2 border-[#075E54]/30 bg-white p-1.5 shadow-md">
+                  <div className="relative h-full w-full overflow-hidden rounded-xl bg-[#064A42]">
+                    <Image
+                      src={teacher.profile_photo || "/avatar.png"}
+                      alt={displayName}
+                      fill
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                )}
+                </div>
+
+                {/* Bio Info */}
+                <div className="flex-1 space-y-3 text-center md:text-left">
+                  <div className="space-y-1">
+                    <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-[#17211E]">
+                      {displayName}
+                    </h1>
+                    {secondaryName && (
+                      <p className="text-[16px] font-medium text-[#5F6B67]">
+                        {secondaryName}
+                      </p>
+                    )}
+                    <div className="pt-1.5">
+                      <span className="inline-flex items-center rounded-full bg-[#075E54] px-3.5 py-1 text-[13.5px] font-semibold text-white shadow-2xs">
+                        {teacher.designation || "অনুষদ সদস্য"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Contact Badges */}
+                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 pt-3 md:justify-start">
+                    {teacher.email && (
+                      <a
+                        href={`mailto:${teacher.email}`}
+                        className="inline-flex items-center gap-2 rounded-xl border border-[#E2E7E4] bg-white px-3.5 py-1.5 text-[14px] font-semibold text-[#17211E] transition hover:border-[#075E54] hover:text-[#075E54] shadow-2xs"
+                      >
+                        <Mail className="h-4 w-4 text-[#B68A18]" />
+                        <span>{teacher.email}</span>
+                      </a>
+                    )}
+                    {teacher.contact_number && (
+                      <a
+                        href={`tel:${teacher.contact_number}`}
+                        className="inline-flex items-center gap-2 rounded-xl border border-[#E2E7E4] bg-white px-3.5 py-1.5 text-[14px] font-semibold text-[#17211E] transition hover:border-[#075E54] hover:text-[#075E54] shadow-2xs"
+                      >
+                        <Phone className="h-4 w-4 text-[#075E54]" />
+                        <span>{teacher.contact_number}</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
-            </section>
+            </div>
 
-            {/* Academic Journey Timeline */}
-            <section className="space-y-6">
-              <h2 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <span className="h-4 w-1 bg-[#006a4e] rounded-full inline-block"></span>
-                Academic Qualifications
-              </h2>
-              {acads.length === 0 ? (
-                <p className="text-sm text-slate-400">No academic qualifications listed.</p>
-              ) : (
-                <div className="relative border-l-2 border-slate-200 pl-6 ml-2 space-y-8">
-                  {acads.map((item) => (
-                    <div key={item.id} className="relative group">
-                      {/* Timeline Dot */}
-                      <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#006a4e] shadow-sm transition-transform group-hover:scale-110"></span>
-                      
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-extrabold text-slate-900 md:text-base">
-                            {item.degree}
-                          </span>
-                          {item.passing_year && (
-                            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                              Class of {item.passing_year}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-semibold text-[#006a4e]">
-                          {item.subject ? `Major in ${item.subject}` : "General Curriculum"}
-                        </p>
-                        <p className="text-sm text-slate-500">
-                          {item.institution || "Undocumented Institution"}
-                        </p>
-                        {item.result && (
-                          <p className="text-xs text-slate-400 mt-1">
-                            Result: <span className="font-semibold text-slate-700">{item.result}</span>
-                            {item.duration && ` • Duration: ${item.duration}`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Professional Experience Timeline */}
-            <section className="space-y-6">
-              <h2 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <span className="h-4 w-1 bg-[#006a4e] rounded-full inline-block"></span>
-                Professional Experience
-              </h2>
-              {exps.length === 0 ? (
-                <p className="text-sm text-slate-400">No experience history listed.</p>
-              ) : (
-                <div className="relative border-l-2 border-slate-200 pl-6 ml-2 space-y-8">
-                  {exps.map((item) => (
-                    <div key={item.id} className="relative group">
-                      {/* Timeline Dot */}
-                      <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#006a4e] shadow-sm transition-transform group-hover:scale-110"></span>
-
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-extrabold text-slate-900 md:text-base">
-                            {item.designation}
-                          </span>
-                          <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                            {item.start_date ? formatDate(item.start_date) : "N/A"}
-                            {" → "}
-                            {item.currently_working ? (
-                              <span className="text-[#006a4e] font-bold">Present</span>
-                            ) : (
-                              item.end_date ? formatDate(item.end_date) : "N/A"
-                            )}
-                          </span>
-                        </div>
-                        <p className="text-sm font-semibold text-slate-700">
-                          {item.institute_name}
-                        </p>
-                        {item.location && (
-                          <p className="text-xs text-slate-400">
-                            {item.location} {item.subject && `• Subject: ${item.subject}`} {item.employment_type && `• ${formatNaturalText(item.employment_type)}`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Trainings & Workshops */}
-            {trainings.length > 0 && (
-              <section className="space-y-6">
-                <h2 className="text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                  <span className="h-4 w-1 bg-[#006a4e] rounded-full inline-block"></span>
-                  Trainings & Workshops
+            {/* Profile Details Sections */}
+            <div className="p-6 sm:p-8 md:p-10 space-y-10">
+              
+              {/* 1. Personal & Employment Grid */}
+              <section className="space-y-4">
+                <h2 className="font-heading text-xl font-bold text-[#17211E] flex items-center gap-2.5">
+                  <span className="h-4 w-1.5 bg-[#075E54] rounded-full inline-block"></span>
+                  ব্যক্তিগত ও কর্মসংক্রান্ত তথ্য
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {trainings.map((item) => (
-                    <div key={item.id} className="rounded-lg border border-slate-200 p-5 bg-white transition hover:border-[#006a4e]/20 hover:shadow-sm">
-                      <h4 className="font-bold text-slate-900 text-sm">{item.training_name}</h4>
-                      <p className="text-xs font-semibold text-[#006a4e] mt-1">{item.training_institute}</p>
-                      <p className="text-xs text-slate-500 mt-2">
-                        {item.subject && `Subject: ${item.subject}`} {item.year && `• Year: ${item.year}`} {item.duration && `• Duration: ${item.duration}`}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 rounded-2xl border border-[#E2E7E4] bg-[#F7F8F5]/80 p-5 sm:p-6">
+                  <div>
+                    <p className="text-[12.5px] font-semibold uppercase tracking-wider text-[#5F6B67]">কর্মসংস্থানের ধরণ</p>
+                    <p className="mt-1 text-[15px] font-bold text-[#17211E]">{formatNaturalText(teacher.employment_type)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[12.5px] font-semibold uppercase tracking-wider text-[#5F6B67]">যোগদানের তারিখ</p>
+                    <p className="mt-1 text-[15px] font-bold text-[#17211E]">{teacher.joining_date ? formatDate(teacher.joining_date) : "তথ্য নেই"}</p>
+                  </div>
+                  {teacher.blood_group && (
+                    <div>
+                      <p className="text-[12.5px] font-semibold uppercase tracking-wider text-[#5F6B67]">রক্তের গ্রুপ</p>
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-[15px] font-extrabold text-red-600">
+                        <HeartPulse className="h-4 w-4 text-red-500" />
+                        <span>{teacher.blood_group}</span>
                       </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </section>
-            )}
+
+              {/* 2. Academic Journey Timeline */}
+              <section className="space-y-4">
+                <h2 className="font-heading text-xl font-bold text-[#17211E] flex items-center gap-2.5">
+                  <span className="h-4 w-1.5 bg-[#075E54] rounded-full inline-block"></span>
+                  শিক্ষাগত যোগ্যতা
+                </h2>
+                {acads.length === 0 ? (
+                  <p className="text-[14.5px] text-[#5F6B67] bg-[#F7F8F5] p-4 rounded-xl border border-[#E2E7E4]">কোনো শিক্ষাগত যোগ্যতার তথ্য সংরক্ষিত নেই।</p>
+                ) : (
+                  <div className="relative border-l-2 border-[#075E54]/20 pl-6 ml-2 space-y-6">
+                    {acads.map((item) => (
+                      <div key={item.id} className="relative group">
+                        {/* Timeline Dot */}
+                        <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#075E54] shadow-xs"></span>
+                        
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-heading text-[16.5px] font-bold text-[#17211E]">
+                              {item.degree}
+                            </span>
+                            {item.passing_year && (
+                              <span className="rounded-full bg-[#F0F7F5] border border-[#075E54]/20 px-2.5 py-0.5 text-[12px] font-semibold text-[#075E54]">
+                                পাস: {item.passing_year}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[14.5px] font-semibold text-[#075E54]">
+                            {item.subject ? `বিষয়: ${item.subject}` : "সাধারণ পাঠ্যক্রম"}
+                          </p>
+                          <p className="text-[14px] text-[#5F6B67]">
+                            {item.institution || "শিক্ষা প্রতিষ্ঠান"}
+                          </p>
+                          {item.result && (
+                            <p className="text-[13px] text-[#5F6B67] mt-0.5">
+                              ফলাফল: <span className="font-semibold text-[#17211E]">{item.result}</span>
+                              {item.duration && ` • মেয়াদ: ${item.duration}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* 3. Professional Experience Timeline */}
+              <section className="space-y-4">
+                <h2 className="font-heading text-xl font-bold text-[#17211E] flex items-center gap-2.5">
+                  <span className="h-4 w-1.5 bg-[#075E54] rounded-full inline-block"></span>
+                  পেশাগত অভিজ্ঞতা
+                </h2>
+                {exps.length === 0 ? (
+                  <p className="text-[14.5px] text-[#5F6B67] bg-[#F7F8F5] p-4 rounded-xl border border-[#E2E7E4]">কোনো পূর্ববর্তী অভিজ্ঞতার তথ্য সংরক্ষিত নেই।</p>
+                ) : (
+                  <div className="relative border-l-2 border-[#075E54]/20 pl-6 ml-2 space-y-6">
+                    {exps.map((item) => (
+                      <div key={item.id} className="relative group">
+                        {/* Timeline Dot */}
+                        <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#075E54] shadow-xs"></span>
+
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-heading text-[16.5px] font-bold text-[#17211E]">
+                              {item.designation}
+                            </span>
+                            <span className="rounded-full bg-[#F7F8F5] border border-[#E2E7E4] px-2.5 py-0.5 text-[12px] font-semibold text-[#5F6B67]">
+                              {item.start_date ? formatDate(item.start_date) : "N/A"}
+                              {" → "}
+                              {item.currently_working ? (
+                                <span className="text-[#075E54] font-bold">বর্তমান</span>
+                              ) : (
+                                item.end_date ? formatDate(item.end_date) : "N/A"
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-[14.5px] font-semibold text-[#17211E]">
+                            {item.institute_name}
+                          </p>
+                          {item.location && (
+                            <p className="text-[13px] text-[#5F6B67]">
+                              {item.location} {item.subject && `• বিষয়: ${item.subject}`} {item.employment_type && `• ${formatNaturalText(item.employment_type)}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* 4. Trainings & Workshops */}
+              {trainings.length > 0 && (
+                <section className="space-y-4">
+                  <h2 className="font-heading text-xl font-bold text-[#17211E] flex items-center gap-2.5">
+                    <span className="h-4 w-1.5 bg-[#075E54] rounded-full inline-block"></span>
+                    প্রশিক্ষণ ও কর্মশালা
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {trainings.map((item) => (
+                      <div key={item.id} className="rounded-2xl border border-[#E2E7E4] p-5 bg-[#F7F8F5]/60 transition hover:border-[#075E54]/30 hover:bg-white hover:shadow-sm">
+                        <h4 className="font-heading font-bold text-[#17211E] text-[15px]">{item.training_name}</h4>
+                        <p className="text-[13.5px] font-semibold text-[#075E54] mt-1">{item.training_institute}</p>
+                        <p className="text-[12.5px] text-[#5F6B67] mt-2">
+                          {item.subject && `বিষয়: ${item.subject}`} {item.year && ` • বছর: ${item.year}`} {item.duration && ` • মেয়াদ: ${item.duration}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </main>
   )
 }
-

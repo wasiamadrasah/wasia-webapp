@@ -1041,18 +1041,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Divider between President & Principal */}
-          <div className="relative flex items-center justify-center py-2">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E2E7E4]" />
-            </div>
-            <div className="relative flex items-center gap-2 bg-[#F7F9F8] px-4">
-              <span className="h-1.5 w-1.5 rotate-45 bg-[#B68A18]" />
-              <span className="h-2 w-2 rotate-45 bg-[#075E54]" />
-              <span className="h-1.5 w-1.5 rotate-45 bg-[#B68A18]" />
-            </div>
-          </div>
-
           {/* 2. PRINCIPAL / HEADMASTER SUBSECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
             {/* Portrait & Profile (4 cols) */}
@@ -1112,7 +1100,7 @@ export default function HomePage() {
               {/* Actions */}
               <div className="pt-2 flex flex-wrap items-center gap-3.5">
                 <Link
-                  href="/headmaster"
+                  href="/principal"
                   className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-6 py-2.5 text-[14px] font-bold text-white transition-all hover:bg-[#064A42] shadow-xs"
                 >
                   <span>সম্পূর্ণ বক্তব্য পড়ুন</span>

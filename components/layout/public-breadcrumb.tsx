@@ -40,6 +40,8 @@ const banglaBreadcrumbMap: Record<string, string> = {
   "Governing Body": "পরিচালনা পর্ষদ",
   "Head Teacher": "মুহতামিম / প্রধান",
   "Headmaster": "মুহতামিম / প্রধান",
+  "Principal": "অধ্যক্ষ",
+  "principal": "অধ্যক্ষ",
   "Performance Report": "অর্জন ও মূল্যায়ন",
   "History": "ইতিহাস ও পটভূমি",
 }

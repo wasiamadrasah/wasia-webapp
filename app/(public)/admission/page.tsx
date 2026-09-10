@@ -1,262 +1,359 @@
-"use client"
-
-import { Outfit } from "next/font/google"
 import Link from "next/link"
 import {
   GraduationCap,
-  CalendarDays,
-  FileCheck,
-  Download,
-  ClipboardList,
-  BadgeCheck,
   Phone,
   ExternalLink,
-  AlertCircle,
+  Laptop,
+  Languages,
+  Users,
+  HeartHandshake,
+  Trophy,
+  Moon,
+  Tv,
+  Sparkles,
+  MapPin,
+  Building2,
+  Globe,
+  ArrowRight,
 } from "lucide-react"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import { PublicHero } from "@/components/layout/public-hero"
+import { createPageMetadata } from "@/lib/seo"
 
-const admissionSteps = [
-  {
-    title: "Online Application Submission",
-    description:
-      "Applicants must complete the admission form online through the government school admission portal.",
-    icon: ClipboardList,
-  },
-  {
-    title: "Application Fee Payment",
-    description:
-      "After form submission, application fees must be paid via Teletalk SMS following official instructions.",
-    icon: FileCheck,
-  },
-  {
-    title: "Lottery / Merit Selection",
-    description:
-      "Student selection is conducted through the official centralized admission process.",
-    icon: BadgeCheck,
-  },
-  {
-    title: "Final Admission Confirmation",
-    description:
-      "Selected students must complete document verification and final admission within the given dates.",
-    icon: GraduationCap,
-  },
-]
+export const dynamic = "force-dynamic"
+export const revalidate = 60
 
-const requirements = [
-  "Online application print copy",
-  "Student birth certificate copy",
-  "Passport-size photographs",
-  "Guardian NID copy",
-  "Previous academic transcript / testimonial",
-  "Migration / transfer certificate (if applicable)",
-]
-
-const schedule = [
-  {
-    title: "Online Application",
-    date: "Government schedule as published",
-  },
-  {
-    title: "Lottery / Selection Result",
-    date: "Official merit list publication date",
-  },
-  {
-    title: "Final Admission",
-    date: "17, 18 & 21 December 2025 (1st merit as per school notice)",
-  },
-]
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
+export const metadata = createPageMetadata({
+  title: "২০২৬-২৭ সেশনের আলিম ১ম বর্ষে ভর্তি চলছে - ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা",
+  description: "ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসায় ২০২৬-২৭ সেশনে আলিম ১ম বর্ষে আবাসিক ও অনাবাসিক শাখায় ভর্তি চলছে। EIIN: 104233, মাদ্রাসা কোড: 20188।",
+  path: "/admission",
+  keywords: ["আলিম ১ম বর্ষে ভর্তি", "ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা", "আবাসিক অনাবাসিক মাদ্রাসা", "xiclassadmission.gov.bd", "মাদ্রাসা ভর্তি ২০২৬-২৭"],
 })
+
+const features = [
+  {
+    icon: Users,
+    title: "অভিজ্ঞ শিক্ষকমণ্ডলী দ্বারা পাঠদান",
+    description: "অভিজ্ঞ, নিবেদিতপ্রাণ ও প্রশিক্ষণপ্রাপ্ত ওলামা এবং শিক্ষকমণ্ডলীর সার্বক্ষণিক নিবিড় পাঠদান।",
+  },
+  {
+    icon: Moon,
+    title: "সান্ধ্যকালীন বিশেষ ক্লাস",
+    description: "উপযুক্ত আলেমেদ্বীন তৈরির লক্ষ্যে সুদক্ষ শিক্ষকদের তত্ত্বাবধানে নিয়মিত সান্ধ্যকালীন বিশেষ ক্লাস।",
+  },
+  {
+    icon: Languages,
+    title: "আরবি গ্রামার ও ভাষার বিশেষ কোর্স",
+    description: "কুরআন-সুন্নাহর গভীর জ্ঞান অর্জনের জন্য আরবি ব্যাকরণ ও কথোপকথনের উপর বিশেষ কোর্সের ব্যবস্থা।",
+  },
+  {
+    icon: Laptop,
+    title: "ডিজিটাল ল্যাব ও কম্পিউটার প্রশিক্ষণ",
+    description: "আধুনিক ডিজিটাল কম্পিউটার ল্যাবের মাধ্যমে ছাত্র-ছাত্রীদের তথ্যপ্রযুক্তি ও যুগোপযোগী প্রশিক্ষণ।",
+  },
+  {
+    icon: Tv,
+    title: "মাল্টিমিডিয়া ক্লাসরুম",
+    description: "অডিও-ভিজ্যুয়াল প্রজেক্টরের মাধ্যমে প্রতিটি পাঠ সহজ ও আনন্দদায়কভাবে উপস্থাপন।",
+  },
+  {
+    icon: HeartHandshake,
+    title: "এতিম, গরীব ও মেধাবীদের বিশেষ সুবিধা",
+    description: "এতিম, অসচ্ছল এবং মেধার স্বাক্ষর রাখা শিক্ষার্থীদের জন্য বিশেষ আর্থিক ছাড় ও সুযোগ-সুবিধা।",
+  },
+  {
+    icon: Trophy,
+    title: "সাপ্তাহিক প্রতিযোগিতা ও বিতর্ক",
+    description: "শিক্ষার্থীদের সুপ্ত প্রতিভা বিকাশে কেরাত, হামদ-নাত, ক্বেরাত ও সাধারণ জ্ঞান প্রতিযোগিতা।",
+  },
+  {
+    icon: Building2,
+    title: "খেলার মাঠ ও মনোরম ক্যাম্পাস",
+    description: "শারীরিক সুস্থতা ও মানসিক প্রফুল্লতার জন্য নিজস্ব খেলার মাঠ ও নিরিবিলি শিক্ষা পরিবেশ।",
+  },
+]
+
+const helplines = [
+  { phone: "০১৮৭৮-৯২৫৩২৫", tel: "01878925325" },
+  { phone: "০১৮১২-৪৭১০৪০", tel: "01812471040" },
+  { phone: "০১৭০১-০১৮৭২৬", tel: "01701018726" },
+]
 
 export default function AdmissionPage() {
   return (
-    <main>
-      {/* Hero Section */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
+    <main className="bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title="২০২৬-২৭ সেশনের আলিম ১ম বর্ষে ভর্তি চলছে"
+        subtitle="ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা • EIIN: ১০৪২৩৩ • মাদ্রাসা কোড: ২০১৮৮"
+        badgeText="ইসলামী ও আধুনিক শিক্ষাই আমাদের বৈশিষ্ট্য"
+        badgeIcon={GraduationCap}
+        breadcrumbCurrent="ভর্তি তথ্য"
+      />
 
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <GraduationCap className="h-3.5 w-3.5 text-emerald-400" />
-            <span>ENROLLMENT GUIDE</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Admission{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              Information
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Purba Bakalia City Corporation High School admission process follows
-            government online application and centralized selection guidelines.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Admission" className="text-sm" plainCurrent />
-          </div>
+      {/* 2. Main Section */}
+      <section className="relative py-10 md:py-12 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="admission-poster-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#admission-poster-pattern)" />
+          </svg>
         </div>
-      </section>
 
-      {/* Highlights */}
-      <section className="bg-slate-50 px-6 py-10 md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            {/* Fixed-size icon container — prevents flex shrink on narrow screens */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-              <CalendarDays className="h-6 w-6 text-emerald-600" />
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-slate-900">Application Mode</h3>
-            <p className="mt-2 text-sm text-slate-600">Online (Government Portal)</p>
-          </div>
+        <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8 md:space-y-10">
+          
+          {/* Top Clean Institutional Admission Announcement Card */}
+          <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-8 md:p-9 shadow-xs">
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+              
+              {/* Left Column: Admission Overview & Actions (7 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[13.5px] font-bold text-[#B68A18]">
+                    বিসমিল্লাহির রাহমানির রাহিম • ইসলামী ও আধুনিক শিক্ষাই আমাদের বৈশিষ্ট্য
+                  </p>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
+                    ওয়াসিয়া আহমদিয়া সুন্নিয়া আলিম মাদ্রাসা
+                  </h2>
+                </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-              <ClipboardList className="h-6 w-6 text-emerald-600" />
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-slate-900">Fee Payment</h3>
-            <p className="mt-2 text-sm text-slate-600">Teletalk SMS System</p>
-          </div>
+                <p className="text-[15px] leading-relaxed text-[#5F6B67]">
+                  সুশিক্ষিত, আদর্শবান ও চরিত্রবান নাগরিক তৈরির লক্ষ্যে ২০২৬-২৭ শিক্ষাবর্ষে আলিম ১ম বর্ষে শিক্ষার্থী ভর্তি চলছে। দ্বীনি পরিবেশ, মানসম্মত পাঠদান ও সুদক্ষ ওলামায়ে কেরামের সার্বক্ষণিক তত্ত্বাবধানে পাঠদান নিশ্চিত করা হয়।
+                </p>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-              <BadgeCheck className="h-6 w-6 text-emerald-600" />
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-slate-900">Selection</h3>
-            <p className="mt-2 text-sm text-slate-600">Lottery / Merit Based</p>
-          </div>
+                {/* Facility Tags */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#B68A18]/40 bg-[#FFFDF5] px-3.5 py-1.5 text-[13.5px] font-bold text-[#B68A18]">
+                    <span className="h-2 w-2 rounded-full bg-[#B68A18]" />
+                    <span>আবাসিক সুবিধা</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#075E54]/20 bg-[#F0F7F5] px-3.5 py-1.5 text-[13.5px] font-bold text-[#075E54]">
+                    <span className="h-2 w-2 rounded-full bg-[#075E54]" />
+                    <span>অনাবাসিক সুবিধা</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E7E4] bg-[#F7F8F5] px-3.5 py-1.5 text-[13.5px] font-semibold text-[#17211E]">
+                    <span>সেশন: ২০২৬-২৭</span>
+                  </span>
+                </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
-              <Phone className="h-6 w-6 text-emerald-600" />
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-slate-900">Admission Help</h3>
-            <p className="mt-2 text-sm text-slate-600">01309-131385</p>
-          </div>
-        </div>
-      </section>
+                {/* Direct Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <Link
+                    href="http://www.xiclassadmission.gov.bd"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-5 py-2.5 text-[14px] font-bold text-white shadow-xs hover:bg-[#064A42] transition-colors"
+                  >
+                    <span>কেন্দ্রীয় অনলাইন আবেদন</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                  <a
+                    href="tel:01878925325"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#075E54]/30 bg-white px-4 py-2.5 text-[14px] font-semibold text-[#075E54] hover:bg-[#F0F7F5] transition-colors"
+                  >
+                    <Phone className="h-4 w-4" />
+                    <span>ভর্তি হেল্পলাইন: ০১৮৭৮-৯২৫৩২৫</span>
+                  </a>
+                </div>
+              </div>
 
-      {/* Process */}
-      <section className="bg-white px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-slate-900">Admission Process</h2>
-            <p className="mt-3 text-slate-600">Complete these steps for successful admission.</p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {admissionSteps.map((step, index) => {
-              const Icon = step.icon
-
-              return (
-                <div
-                  key={step.title}
-                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:shadow-md"
-                >
-                  {/* shrink-0 keeps the icon box square at all screen widths */}
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
-                    <Icon className="h-7 w-7 text-emerald-600" />
+              {/* Right Column: Key Institutional Identifiers Box (5 cols) */}
+              <div className="lg:col-span-5 rounded-2xl border border-[#E2E7E4] bg-[#F7F8F5] p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-white border border-[#E2E7E4] p-3.5 text-center">
+                    <span className="text-[12px] font-semibold uppercase tracking-wider text-[#5F6B67]">
+                      EIIN নম্বর
+                    </span>
+                    <p className="font-heading text-xl font-extrabold text-[#075E54] mt-0.5">
+                      ১০৪২৩৩
+                    </p>
                   </div>
 
-                  <div className="mt-5">
-                    <span className="text-sm font-semibold text-emerald-700">Step {index + 1}</span>
-                    <h3 className="mt-2 text-xl font-bold text-slate-900">{step.title}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-600">{step.description}</p>
+                  <div className="rounded-xl bg-white border border-[#E2E7E4] p-3.5 text-center">
+                    <span className="text-[12px] font-semibold uppercase tracking-wider text-[#5F6B67]">
+                      মাদ্রাসা কোড
+                    </span>
+                    <p className="font-heading text-xl font-extrabold text-[#B68A18] mt-0.5">
+                      ২০১৮৮
+                    </p>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* Requirements + Schedule */}
-      <section className="bg-slate-50 px-6 py-16 md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-          {/* Requirements */}
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">Required Documents</h2>
-
-            <ul className="mt-6 space-y-4">
-              {requirements.map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  {/* Wrapper div with fixed h-6 w-6 + shrink-0 ensures uniform icon size in the list */}
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center">
-                    <BadgeCheck className="h-5 w-5 text-emerald-600" />
+                <div className="space-y-2.5 pt-1 text-[13.5px]">
+                  <div className="flex items-start gap-2 text-[#5F6B67]">
+                    <Globe className="h-4 w-4 text-[#075E54] shrink-0 mt-0.5" />
+                    <span>
+                      <strong>ভর্তি পোর্টাল:</strong>{" "}
+                      <Link
+                        href="http://www.xiclassadmission.gov.bd"
+                        target="_blank"
+                        className="text-[#075E54] font-semibold hover:underline"
+                      >
+                        xiclassadmission.gov.bd
+                      </Link>
+                    </span>
                   </div>
-                  <span className="text-sm text-slate-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Schedule */}
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">Important Schedule</h2>
-
-            <div className="mt-6 space-y-4">
-              {schedule.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-slate-100 px-4 py-4"
-                >
-                  <h3 className="font-semibold text-slate-900">{item.title}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{item.date}</p>
+                  <div className="flex items-start gap-2 text-[#5F6B67]">
+                    <MapPin className="h-4 w-4 text-[#075E54] shrink-0 mt-0.5" />
+                    <span>
+                      <strong>ক্যাম্পাস:</strong> খাজা রোড, বাদামতল, পূর্ব ষোলশহর, চান্দগাঁও, চট্টগ্রাম।
+                    </span>
+                  </div>
                 </div>
-              ))}
+              </div>
+
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Important Notice */}
-      <section className="bg-white px-6 py-12 md:px-10">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8">
-          <div className="flex items-start gap-4">
-            {/* Rounded pill container with fixed size — icon stays clearly visible on mobile */}
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100">
-              <AlertCircle className="h-6 w-6 text-amber-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Important Note</h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Students must carefully follow official government admission
-                instructions, submit accurate information, and preserve payment
-                confirmation details for future verification.
+          {/* Section 2: Institutional Features Grid (আমাদের বৈশিষ্ট্যসমূহ) */}
+          <div className="space-y-6">
+            <div className="text-center max-w-2xl mx-auto space-y-1.5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#F0F7F5] border border-[#075E54]/20 px-3.5 py-1 text-[13px] font-semibold text-[#075E54]">
+                <Sparkles className="h-3.5 w-3.5 text-[#075E54]" />
+                <span>আমাদের স্বাতন্ত্র্য ও শ্রেষ্ঠত্ব</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
+                আমাদের বিশেষ বৈশিষ্ট্যসমূহ
+              </h2>
+              <p className="text-[15px] text-[#5F6B67]">
+                ইসলামী মূল্যবোধ ও আধুনিক শিক্ষার এক অনন্য সমন্বিত পরিবেশ
               </p>
             </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((item, idx) => {
+                const Icon = item.icon
+                return (
+                  <div
+                    key={idx}
+                    className="card-appear rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-xs flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15 shadow-2xs">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <h3 className="mt-4 font-heading text-[17px] font-bold text-[#17211E] leading-snug">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-[14px] leading-relaxed text-[#5F6B67]">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="bg-white px-6 pb-20 md:px-10">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
-            <Download className="h-8 w-8 text-emerald-600" />
+          {/* Section 3: Special Evening Note Callout (বিশেষ দ্রষ্টব্য) */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#FFFDF5] p-6 sm:p-8 border-l-8 border-l-[#B68A18] shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#B68A18]/15 text-[#B68A18]">
+                  <Moon className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <span className="inline-block rounded-full bg-[#B68A18] px-3 py-0.5 text-[12px] font-bold text-white">
+                    বিশেষ দ্রষ্টব্য
+                  </span>
+                  <h3 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
+                    সান্ধ্যকালীন বিশেষ ক্লাসের ব্যবস্থা
+                  </h3>
+                  <p className="text-[14.5px] leading-relaxed text-[#5F6B67]">
+                    উপযুক্ত আলেমেদ্বীন তৈরির লক্ষ্যে সুদক্ষ ও অভিজ্ঞ শিক্ষকদের সরাসরি তত্ত্বাবধানে সান্ধ্যকালীন বিশেষ পাঠদান ও তত্ত্বাবধান কার্যক্রম পরিচালিত হয়।
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <h2 className="mt-4 text-3xl font-bold text-slate-900">Apply Online</h2>
+          {/* Section 4: Helpline and Application Gateway */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            
+            {/* Left: Contact Helplines (6 cols) */}
+            <div className="lg:col-span-6 rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-8 shadow-xs space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-[#17211E]">
+                    ভর্তি হেল্পলাইন ও পরামর্শ
+                  </h3>
+                  <p className="text-[13.5px] text-[#5F6B67]">
+                    যেকোনো তথ্যের জন্য সরাসরি কল করুন
+                  </p>
+                </div>
+              </div>
 
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
-            Complete your admission application through the official portal and
-            school notice instructions.
-          </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                {helplines.map((h, i) => (
+                  <a
+                    key={i}
+                    href={`tel:${h.tel}`}
+                    className="flex flex-col items-center justify-center rounded-xl border border-[#E2E7E4] bg-[#F7F8F5] p-3 text-center transition hover:border-[#075E54] hover:bg-[#F0F7F5] shadow-2xs"
+                  >
+                    <Phone className="h-4 w-4 text-[#075E54] mb-1" />
+                    <span className="text-[14px] font-bold text-[#17211E]">
+                      {h.phone}
+                    </span>
+                  </a>
+                ))}
+              </div>
 
-          <Link
-            href="https://gsa.teletalk.com.bd"
-            target="_blank"
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
-          >
-            <ExternalLink className="h-4 w-4 shrink-0" />
-            Apply Now
-          </Link>
+              <div className="flex items-start gap-2.5 pt-2 text-[13.5px] text-[#5F6B67] border-t border-[#E2E7E4]">
+                <MapPin className="h-4 w-4 text-[#075E54] shrink-0 mt-0.5" />
+                <span>
+                  <strong>ক্যাম্পাস ঠিকানা:</strong> খাজা রোড, বাদামতল, পূর্ব ষোলশহর, চান্দগাঁও, চট্টগ্রাম।
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Online Application Gateway (6 cols) */}
+            <div className="lg:col-span-6 rounded-3xl border border-[#B68A18]/40 bg-[#064A42] p-6 sm:p-8 text-white shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#B68A18]/40 bg-white/10 px-3 py-0.5 text-[12.5px] font-semibold text-[#B68A18]">
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>ভর্তির মূল ওয়েবসাইট</span>
+                </div>
+                <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
+                  একাদশ ও আলিম ভর্তি পোর্টাল
+                </h3>
+                <p className="text-[14.5px] leading-relaxed text-[#DCEEE9]">
+                  ভর্তি সংক্রান্ত সকল আপডেট ও কেন্দ্রীয় অনলাইন আবেদন করার জন্য সরকারি ভর্তি পোর্টালে চোখ রাখুন।
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <Link
+                  href="http://www.xiclassadmission.gov.bd"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] border border-[#B68A18]/40 px-5 py-2.5 text-[14.5px] font-bold text-white shadow-xs hover:bg-[#064A42] transition-colors"
+                >
+                  <span>xiclassadmission.gov.bd</span>
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-white/20 transition-colors"
+                >
+                  <span>যোগাযোগ করুন</span>
+                </Link>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
     </main>

@@ -1,247 +1,305 @@
-"use client"
-
-import { Outfit } from "next/font/google"
 import Link from "next/link"
 import {
+  GraduationCap,
   HeartHandshake,
   BookOpen,
   ShieldCheck,
-  Users,
-  Stethoscope,
   Trophy,
   Phone,
-  ChevronRight,
-  BadgeCheck,
-  School,
+  ArrowRight,
+  Laptop,
+  Languages,
+  Moon,
+  Building2,
+  CheckCircle2,
+  HelpCircle,
+  LogIn,
+  Library,
 } from "lucide-react"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 const supportServices = [
   {
-    title: "Academic Guidance",
-    description:
-      "Subject support, mentoring, study planning, exam preparation guidance, and teacher consultation.",
     icon: BookOpen,
+    title: "একাডেমিক নিবিড় তত্ত্বাবধান",
+    description: "প্রতিটি শিক্ষার্থীর পড়াশোনার অগ্রগতি নিয়মিত মূল্যায়ন, বিষয়ভিত্তিক বিশেষ দিকনির্দেশনা ও শিক্ষক পরামর্শ।",
   },
   {
-    title: "Counseling & Wellbeing",
-    description:
-      "Emotional support, personal counseling, motivation, and student wellbeing initiatives.",
-    icon: HeartHandshake,
+    icon: Moon,
+    title: "সান্ধ্যকালীন বিশেষ পাঠদান",
+    description: "আবাসিক ও অনাবাসিক শিক্ষার্থীদের উপযুক্ত আলেমেদ্বীন ও দক্ষ নাগরিক হিসেবে গড়ে তুলতে সান্ধ্যকালীন তত্ত্বাবধান।",
   },
   {
-    title: "Safety & Discipline",
-    description:
-      "Safe campus environment, anti-bullying policies, discipline monitoring, and student protection.",
+    icon: Languages,
+    title: "ভাষা ও দক্ষতা উন্নয়ন",
+    description: "বিশুদ্ধ কুরআন তিলাওয়াত, আরবি ব্যাকরণ চর্চা ও আধুনিক কম্পিউটার প্রযুক্তির ব্যবহারিক প্রশিক্ষণ।",
+  },
+  {
     icon: ShieldCheck,
-  },
-  {
-    title: "Health Support",
-    description:
-      "Basic first aid, health awareness, hygiene education, and emergency medical support.",
-    icon: Stethoscope,
+    title: "শৃঙ্খলা ও নিরাপদ পরিবেশ",
+    description: "সুশৃঙ্খল ইসলামিক অনুশাসন, সর্বোচ্চ নিরাপত্তা এবং শিক্ষার্থীদের জন্য সম্পূর্ণ রাজনীতি ও ধূমপানমুক্ত পরিবেশ।",
   },
 ]
 
 const activities = [
-  "Scout Activities & Leadership Programs",
-  "Red Crescent Volunteer Services",
-  "Annual Sports & Physical Development",
-  "Debate, Quiz & Creative Competitions",
-  "Cultural Programs & National Events",
-  "Student Cabinet & Leadership Development",
+  "সাপ্তাহিক কিরাত, হামদ-নাত ও আজান প্রতিযোগিতা",
+  "বিতর্ক প্রতিযোগিতা ও সাধারণ জ্ঞান আসর",
+  "বার্ষিক ক্রীড়া ও শারীরিক সক্ষমতা উন্নয়ন",
+  "স্কাউট ও রেড ক্রিসেন্ট সমাজসেবামূলক কার্যক্রম",
+  "ইসলামিক ক্যালিগ্রাফি ও সাহিত্য চর্চা",
+  "জাতীয় ও আন্তর্জাতিক দিবসসমূহ যথাযথ মর্যাদায় উদযাপন",
 ]
 
 const facilities = [
-  "Modern classrooms with digital support",
-  "Library and reading opportunities",
-  "ICT-enabled academic services",
-  "Co-curricular participation",
-  "Guardian communication support",
-  "Inclusive student development environment",
+  "আধুনিক কম্পিউটার ও ডিজিটাল আইসিটি ল্যাব",
+  "সমৃদ্ধ ইসলামিক পাঠাগার ও গবেষণা কিতাবখানা",
+  "মাল্টিমিডিয়া প্রজেক্টর সম্বলিত আধুনিক ক্লাসরুম",
+  "মনোরম ও উন্মুক্ত খেলার মাঠ",
+  "আবাসিক শিক্ষার্থীদের জন্য সুব্যবস্থাপনাযুক্ত হোস্টেল",
+  "নিয়মিত প্রাথমিক স্বাস্থ্যসেবা ও ফার্স্ট এইড সুবিধা",
 ]
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+export default async function StudentsPage() {
+  const instituteSettings = await getInstituteSettings()
 
-export default function StudentLifeSupportPage() {
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    ""
+
+  const contactPhone =
+    instituteSettings.contact.mobile?.trim() ||
+    instituteSettings.contact.telephone?.trim() ||
+    "+৮৮০১৭০০-০০০০০০"
+
+  const heroSubtitle = instituteName
+    ? `${instituteName}-এর শিক্ষার্থীদের দ্বীনি ও আধুনিক শিক্ষার সুযোগ-সুবিধা, সহ-শিক্ষা কার্যক্রম ও কল্যাণমূলক সেবা।`
+    : "শিক্ষার্থীদের দ্বীনি ও আধুনিক শিক্ষার সুযোগ-সুবিধা, সহ-শিক্ষা কার্যক্রম ও কল্যাণমূলক সেবা।"
+
   return (
-    <main>
-      {/* Hero Section */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <School className="h-3.5 w-3.5 text-emerald-400" />
-            <span>STUDENT LIFE & SUPPORT</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Student Life{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              & Support
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            Empowering students through academic excellence, wellbeing,
-            leadership, safety, and co-curricular opportunities.
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Student Life & Support" className="text-sm" plainCurrent />
-          </div>
+    <main className="bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title="শিক্ষার্থী কল্যাণ ও সেবা"
+        subtitle={heroSubtitle}
+        badgeText="শিক্ষার্থী সেবা ও সুবিধা"
+        badgeIcon={GraduationCap}
+        breadcrumbCurrent="শিক্ষার্থী সেবা"
+      />
+
+      {/* 2. Main Section with Islamic Watermark */}
+      <section className="relative py-10 md:py-12 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="students-islamic-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#students-islamic-pattern)" />
+          </svg>
         </div>
-      </section>
 
-      {/* Quick Highlights */}
-      <section className="bg-slate-50 px-6 py-10 md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <BookOpen className="h-8 w-8 text-emerald-600" />
-            <h3 className="mt-4 text-xl font-bold text-slate-900">
-              Academic Support
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Mentorship, planning, and performance guidance
-            </p>
+        <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10 md:space-y-12">
+          
+          {/* Section 1: Quick Highlights 4-Cards Grid */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="card-appear rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold text-[#17211E]">একাডেমিক সেবা</h3>
+              <p className="mt-1 text-[14.5px] text-[#5F6B67]">পরিকল্পিত সিলেবাস, পাঠদান ও নিয়মিত পরীক্ষা</p>
+            </div>
+
+            <div className="card-appear rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-xs" style={{ animationDelay: "60ms" }}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15">
+                <Moon className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold text-[#17211E]">সান্ধ্যকালীন ক্লাস</h3>
+              <p className="mt-1 text-[14.5px] text-[#5F6B67]">দক্ষ শিক্ষকদের অধীনে নিয়মিত সান্ধ্যকালীন পাঠ</p>
+            </div>
+
+            <div className="card-appear rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-xs" style={{ animationDelay: "120ms" }}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15">
+                <Trophy className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold text-[#17211E]">সহ-শিক্ষা ও ক্রীড়া</h3>
+              <p className="mt-1 text-[14.5px] text-[#5F6B67]">সাপ্তাহিক প্রতিযোগিতা, কেরাত ও খেলাধুলা</p>
+            </div>
+
+            <div className="card-appear rounded-2xl border border-[#E2E7E4] bg-white p-6 shadow-xs" style={{ animationDelay: "180ms" }}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/15">
+                <Phone className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold text-[#17211E]">অভিভাবক যোগাযোগ</h3>
+              <a href={`tel:${contactPhone}`} className="mt-1 block text-[14.5px] font-bold text-[#075E54] hover:underline">
+                {contactPhone}
+              </a>
+            </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <HeartHandshake className="h-8 w-8 text-emerald-600" />
-            <h3 className="mt-4 text-xl font-bold text-slate-900">
-              Wellbeing
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Counseling and student care support
-            </p>
-          </div>
+          {/* Section 2: Core Student Support Services */}
+          <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-8 md:p-10 shadow-xs space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-1.5">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#F0F7F5] border border-[#075E54]/20 px-3.5 py-1 text-[13px] font-semibold text-[#075E54]">
+                <GraduationCap className="h-3.5 w-3.5 text-[#075E54]" />
+                <span>সার্বিক পরিচর্যা ও সেবা</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#17211E]">
+                শিক্ষার্থী কল্যাণমূলক সেবাসমূহ
+              </h2>
+              <p className="text-[15px] text-[#5F6B67]">
+                শিক্ষার্থীদের দ্বীনি, চারিত্রিক ও বুদ্ধিবৃত্তিক বিকাশে আমাদের বিশেষ উদ্যোগ
+              </p>
+            </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <Trophy className="h-8 w-8 text-emerald-600" />
-            <h3 className="mt-4 text-xl font-bold text-slate-900">
-              Activities
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Sports, leadership, and competitions
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <Phone className="h-8 w-8 text-emerald-600" />
-            <h3 className="mt-4 text-xl font-bold text-slate-900">
-              Guardian Support
-            </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Parent-school communication system
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Support Services */}
-      <section className="bg-white px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-slate-900">
-              Student Support Services
-            </h2>
-            <p className="mt-3 text-slate-600">
-              Comprehensive support systems for holistic student development.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {supportServices.map((service) => {
-              const Icon = service.icon
-
-              return (
-                <div
-                  key={service.title}
-                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:shadow-md"
-                >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
-                    <Icon className="h-7 w-7 text-emerald-600" />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {supportServices.map((s, idx) => {
+                const Icon = s.icon
+                return (
+                  <div
+                    key={s.title}
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className="card-appear rounded-2xl border border-[#E2E7E4] bg-[#F7F8F5]/80 p-6 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-[#E2E7E4] text-[#075E54] shadow-2xs">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <h3 className="mt-4 font-heading text-[17px] font-bold text-[#17211E]">
+                        {s.title}
+                      </h3>
+                      <p className="mt-2 text-[14px] leading-relaxed text-[#5F6B67]">
+                        {s.description}
+                      </p>
+                    </div>
                   </div>
+                )
+              })}
+            </div>
+          </div>
 
-                  <h3 className="mt-5 text-xl font-bold text-slate-900">
-                    {service.title}
-                  </h3>
-
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                    {service.description}
+          {/* Section 3: Activities + Facilities Split Grid */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            
+            {/* Left: Co-curricular Activities */}
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-heading text-xl font-bold text-[#17211E]">
+                    সহ-শিক্ষা কার্যক্রম
+                  </h2>
+                  <p className="text-[13.5px] text-[#5F6B67]">
+                    সুপ্ত মেধার সর্বোচ্চ বিকাশ ও নেতৃত্বের চর্চা
                   </p>
                 </div>
-              )
-            })}
+              </div>
+
+              <ul className="space-y-3.5 pt-1">
+                {activities.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3 rounded-xl bg-[#F7F8F5] p-3.5 border border-[#E2E7E4]/70">
+                    <CheckCircle2 className="h-5 w-5 text-[#075E54] shrink-0 mt-0.5" />
+                    <span className="text-[14.5px] font-medium text-[#17211E] leading-snug">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Right: Institutional Facilities */}
+            <div className="rounded-3xl border border-[#E2E7E4] bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0F7F5] text-[#075E54] border border-[#075E54]/20">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-heading text-xl font-bold text-[#17211E]">
+                    ক্যাম্পাস সুযোগ-সুবিধাসমূহ
+                  </h2>
+                  <p className="text-[13.5px] text-[#5F6B67]">
+                    আধুনিক ও মানসম্মত শিক্ষা অবকাঠামো
+                  </p>
+                </div>
+              </div>
+
+              <ul className="space-y-3.5 pt-1">
+                {facilities.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3 rounded-xl bg-[#F7F8F5] p-3.5 border border-[#E2E7E4]/70">
+                    <CheckCircle2 className="h-5 w-5 text-[#075E54] shrink-0 mt-0.5" />
+                    <span className="text-[14.5px] font-medium text-[#17211E] leading-snug">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Activities + Facilities */}
-      <section className="bg-slate-50 px-6 py-16 md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-          {/* Activities */}
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Student Activities
-            </h2>
-
-            <ul className="mt-6 space-y-4">
-              {activities.map((activity) => (
-                <li key={activity} className="flex items-start gap-3">
-                  <BadgeCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
-                  <span className="text-sm text-slate-700">{activity}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Section 4: Special Scholarship Callout */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#FFFDF5] p-6 sm:p-8 border-l-8 border-l-[#B68A18] shadow-xs">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#B68A18]/15 text-[#B68A18]">
+                <HeartHandshake className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <span className="inline-block rounded-full bg-[#B68A18] px-3 py-0.5 text-[12px] font-bold text-white">
+                  বৃত্তি ও সহায়তা
+                </span>
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-[#17211E]">
+                  এতিম, অসচ্ছল ও মেধাবী শিক্ষার্থীদের বিশেষ সুযোগ-সুবিধা
+                </h3>
+                <p className="text-[14.5px] leading-relaxed text-[#5F6B67]">
+                  দ্বীনি শিক্ষার আলো সকলের মাঝে ছড়িয়ে দিতে অসচ্ছল, এতিম ও মেধার স্বাক্ষর রাখা শিক্ষার্থীদের জন্য মাদ্রাসার পক্ষ থেকে বিশেষ ছাড়, বৃত্তি এবং বিনা বেতনে পড়ার সুযোগ প্রদান করা হয়।
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Facilities */}
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Student Facilities
-            </h2>
+          {/* Section 5: Student Portal & Support CTA */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#064A42] p-8 sm:p-10 text-white text-center space-y-5 shadow-xs">
+            <div className="max-w-2xl mx-auto space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B68A18]/40 bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-[#B68A18]">
+                <HelpCircle className="h-4 w-4 text-[#B68A18]" />
+                <span>শিক্ষার্থী সেবা ও তথ্য পোর্টাল</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white">
+                যেকোনো একাডেমিক ও শিক্ষার্থী সহায়তায় আমরা প্রস্তুত
+              </h2>
+              <p className="text-[15px] leading-relaxed text-[#DCEEE9]">
+                পড়াশোনা, ফলাফল কিংবা পরীক্ষার রুটিন সংক্রান্ত তথ্যের জন্য সরাসরি অফিসে যোগাযোগ করুন অথবা স্টুডেন্ট পোর্টালে লগইন করুন।
+              </p>
+            </div>
 
-            <ul className="mt-6 space-y-4">
-              {facilities.map((facility) => (
-                <li key={facility} className="flex items-start gap-3">
-                  <BadgeCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
-                  <span className="text-sm text-slate-700">{facility}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Link
+                href="/student/login"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#075E54] px-5 py-2.5 text-[14.5px] font-bold text-white border border-[#B68A18]/30 shadow-xs hover:bg-[#064A42] transition-colors"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>স্টুডেন্ট পোর্টাল লগইন</span>
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[14.5px] font-semibold text-white hover:bg-white/20 transition-colors"
+              >
+                <span>যোগাযোগ করুন</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Leadership & Community */}
-      <section className="bg-white px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-slate-200 bg-slate-50 p-10 text-center">
-          <Users className="mx-auto h-12 w-12 text-emerald-600" />
-
-          <h2 className="mt-5 text-3xl font-bold text-slate-900">
-            Building Responsible Future Citizens
-          </h2>
-
-          <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-slate-600">
-            Through leadership programs, volunteerism, academic discipline, and
-            character development, we prepare students to become responsible,
-            skilled, and compassionate contributors to society.
-          </p>
-
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
-          >
-            Contact Student Support
-            <ChevronRight className="h-4 w-4" />
-          </Link>
         </div>
       </section>
     </main>

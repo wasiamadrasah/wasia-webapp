@@ -3,19 +3,19 @@
 import { useState } from "react"
 import { ProfilePhotoUpload } from "./profile-photo-upload"
 
-type StaffProfilePhotoFieldProps = {
-  staffId: string
+type EmployeeProfilePhotoFieldProps = {
+  employeeId: string
   currentPhotoUrl?: string | null
 }
 
-export function StaffProfilePhotoField({ staffId, currentPhotoUrl }: StaffProfilePhotoFieldProps) {
+export function EmployeeProfilePhotoField({ employeeId, currentPhotoUrl }: EmployeeProfilePhotoFieldProps) {
   const [photoUrl, setPhotoUrl] = useState(currentPhotoUrl || "")
 
   return (
     <ProfilePhotoUpload
       currentPhotoUrl={photoUrl}
       onPhotoUrlChange={setPhotoUrl}
-      uploadFolder={`staffs/${staffId}`}
+      uploadFolder={`employees/${employeeId}`}
       label="Profile Photo"
     />
   )

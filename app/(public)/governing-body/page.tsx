@@ -1,175 +1,234 @@
-import { Outfit } from "next/font/google"
 import Image from "next/image"
-import { Mail, Phone } from "lucide-react"
-import { PublicBreadcrumb } from "@/components/layout/public-breadcrumb"
+import Link from "next/link"
+import { Mail, Phone, Users, ShieldCheck, ArrowRight } from "lucide-react"
 import { getGoverningBodyMembers } from "@/lib/db"
-
-const categoryColors: Record<string, string> = {
-  President: "bg-emerald-50 text-emerald-700",
-  VicePresident: "bg-blue-50 text-blue-700",
-  Secretary: "bg-amber-50 text-amber-700",
-  Treasurer: "bg-violet-50 text-violet-700",
-  Auditor: "bg-rose-50 text-rose-700",
-  Chairman: "bg-emerald-50 text-emerald-700",
-  Principal: "bg-blue-50 text-blue-700",
-  Guardian: "bg-amber-50 text-amber-700",
-  Teacher: "bg-violet-50 text-violet-700",
-  Donor: "bg-rose-50 text-rose-700",
-  Nominee: "bg-slate-100 text-slate-700",
-}
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  display: "swap",
-})
+import { getInstituteSettings } from "@/lib/institute-settings-store"
+import { PublicHero } from "@/components/layout/public-hero"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 60
+
+const categoryTranslations: Record<string, string> = {
+  President: "সভাপতি",
+  VicePresident: "সহ-সভাপতি",
+  Secretary: "সাধারণ সম্পাদক",
+  Treasurer: "কোষাধ্যক্ষ",
+  Auditor: "অডিটর",
+  Chairman: "চেয়ারম্যান",
+  Principal: "অধ্যক্ষ / সদস্য সচিব",
+  Guardian: "অভিভাবক সদস্য",
+  Teacher: "শিক্ষক প্রতিনিধি",
+  Donor: "দাতা সদস্য",
+  Nominee: "মনোনীত সদস্য",
+}
+
+function formatCategory(cat: string | null | undefined): string {
+  if (!cat) return "পরিচালনা সদস্য"
+  return categoryTranslations[cat] || cat
+}
+
+function isValidUrl(value: string | null | undefined) {
+  if (!value) return false
+  try {
+    new URL(value)
+    return true
+  } catch {
+    return false
+  }
+}
 
 export default async function GoverningBodyPage() {
-  const governingBody = await getGoverningBodyMembers()
-  const totalMembers = governingBody.length
-  const remainder = totalMembers % 4
+  const [governingBody, instituteSettings] = await Promise.all([
+    getGoverningBodyMembers(),
+    getInstituteSettings(),
+  ])
 
-  function isValidUrl(value: string | null | undefined) {
-    if (!value) return false
-    try {
-      // Accept absolute URLs only
-      new URL(value)
-      return true
-    } catch {
-      return false
-    }
-  }
+  const instituteName =
+    instituteSettings.primary.instituteNameBn?.trim() ||
+    instituteSettings.primary.instituteName?.trim() ||
+    ""
+
+  const heroSubtitle = instituteName
+    ? `${instituteName}-এর সার্বিক তত্ত্বাবধান, নীতি নির্ধারণ ও উন্নয়নে দায়িত্বপ্রাপ্ত সম্মানিত পরিচালনা পর্ষদ।`
+    : "মাদ্রাসার সার্বিক তত্ত্বাবধান, নীতি নির্ধারণ ও উন্নয়নে দায়িত্বপ্রাপ্ত সম্মানিত পরিচালনা পর্ষদ।"
 
   return (
-    <main>
-      {/* Hero Section */}
-      <section className={`${outfit.className} relative overflow-hidden bg-gradient-to-b from-[#021e17] via-[#01251e] to-slate-900 border-b border-emerald-950/40 px-6 py-6 md:px-10 md:py-8`}>
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:32px_32px]" />
-        
-        {/* Modern radial glow overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          {/* Pill Badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300 shadow-md shadow-emerald-950/30 backdrop-blur-md">
-            <Mail className="h-3.5 w-3.5 text-emerald-400" />
-            <span>GOVERNANCE</span>
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Governing{" "}
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-              Body
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-300/90 sm:text-base">
-            For Academic Year 2026
-          </p>
-          <div className="mt-4 flex justify-center">
-            <PublicBreadcrumb current="Governing Body" className="text-sm" plainCurrent />
-          </div>
+    <main className="bg-[#F7F8F5]">
+      {/* 1. Public Standard Hero Banner */}
+      <PublicHero
+        title="সম্মানিত পরিচালনা পর্ষদ"
+        subtitle={heroSubtitle}
+        badgeText="পরিচালনা পর্ষদ ও ট্রাস্টি"
+        badgeIcon={ShieldCheck}
+        breadcrumbCurrent="পরিচালনা পর্ষদ"
+      />
+
+      {/* 2. Main Section with Members Grid & Watermark Pattern */}
+      <section className="relative py-10 md:py-12 overflow-hidden">
+        {/* Subtle Islamic Geometric Watermark */}
+        <div className="absolute inset-0 pointer-events-none select-none opacity-[0.025]" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="governing-islamic-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path
+                  d="M35,8 L41,22 L56,16 L50,30 L64,35 L50,40 L56,54 L41,48 L35,62 L29,48 L14,54 L20,40 L6,35 L20,30 L14,16 L29,22 Z"
+                  fill="none"
+                  stroke="#075E54"
+                  strokeWidth="1.2"
+                />
+                <circle cx="35" cy="35" r="12" fill="none" stroke="#B68A18" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#governing-islamic-pattern)" />
+          </svg>
         </div>
-      </section>
 
-      {/* Governing Body Members */}
-      <section className="bg-slate-50 px-6 py-16 md:px-10">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-12">
-            {governingBody.map((member, index) => {
-              let colClass = "lg:col-span-3"
+        <div className="container relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+          {/* Members Grid */}
+          {governingBody.length === 0 ? (
+            <div className="card-appear rounded-2xl border border-dashed border-[#E2E7E4] bg-white p-12 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F0F7F5] text-[#075E54]">
+                <Users className="h-7 w-7" />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold text-[#17211E]">
+                কোনো সদস্যের তথ্য পাওয়া যায়নি
+              </h3>
+              <p className="mt-1 text-[14.5px] text-[#5F6B67]">
+                বর্তমানে পরিচালনা পর্ষদের সদস্য তালিকা প্রস্তুত করা হচ্ছে।
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {governingBody.map((member, index) => {
+                const isPresident =
+                  (member.category || "").toLowerCase() === "president" ||
+                  (member.designation || "").includes("সভাপতি")
+                const isPrincipal =
+                  (member.category || "").toLowerCase() === "principal" ||
+                  (member.designation || "").includes("অধ্যক্ষ")
 
-              // Center incomplete final row
-              if (remainder > 0 && index >= totalMembers - remainder) {
-                if (remainder === 1 && index === totalMembers - 1) {
-                  colClass = "lg:col-span-3 lg:col-start-5"
-                }
-
-                if (remainder === 2) {
-                  if (index === totalMembers - 2) {
-                    colClass = "lg:col-span-3 lg:col-start-4"
-                  }
-                }
-
-                if (remainder === 3) {
-                  if (index === totalMembers - 3) {
-                    colClass = "lg:col-span-3 lg:col-start-2"
-                  }
-                }
-              }
-
-              return (
-                <div key={member.id} className={colClass}>
-                  <div className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                    {/* Square Image */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                      {isValidUrl(member.image_url) ? (
-                        <Image
-                          src={member.image_url as string}
-                          alt={member.name}
-                          fill
-                          className="object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
-                          <span className="text-center text-slate-400">No image</span>
+                return (
+                  <div
+                    key={member.id}
+                    style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
+                    className="card-appear group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E2E7E4] bg-white shadow-xs transition-colors duration-200 hover:border-[#075E54]/40 hover:shadow-md"
+                  >
+                    {/* Card Content Top Section */}
+                    <div className="p-5 pb-3">
+                      {/* Photo Container with Rounded frame */}
+                      <div className="relative mx-auto aspect-square w-full max-w-[200px] overflow-hidden rounded-2xl border-2 border-[#E2E7E4] bg-[#F7F8F5] p-1 shadow-2xs group-hover:border-[#075E54]/30 transition-colors">
+                        <div className="relative h-full w-full overflow-hidden rounded-xl bg-slate-100">
+                          {isValidUrl(member.image_url) ? (
+                            <Image
+                              src={member.image_url as string}
+                              alt={member.name}
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                              unoptimized
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-[#F0F7F5] text-[#075E54]">
+                              <Users className="h-10 w-10 opacity-40" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-5">
-                      <div className="mb-3">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            categoryColors[member.category] ??
-                            "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {member.category}
-                        </span>
                       </div>
 
-                      <h2 className="text-lg font-bold text-slate-900">
-                        {member.name}
-                      </h2>
+                      {/* Member Information */}
+                      <div className="mt-4 text-center space-y-2">
+                        <h3 className="font-heading text-[17.5px] font-bold text-[#17211E] group-hover:text-[#075E54] transition-colors line-clamp-1 leading-snug">
+                          {member.name}
+                        </h3>
 
-                      <p className="mt-1 text-sm font-medium text-emerald-700">
-                        {member.designation}
-                      </p>
+                        {/* Category / Role Badge */}
+                        <div>
+                          <span className="inline-flex items-center rounded-full bg-[#F0F7F5] border border-[#075E54]/15 px-3 py-0.5 text-[12.5px] font-semibold text-[#075E54] line-clamp-1">
+                            {formatCategory(member.category)}
+                          </span>
+                        </div>
 
-                      <div className="mt-4 space-y-2">
-                        {member.phone && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Phone className="h-4 w-4 text-slate-400" />
-                            <span>{member.phone}</span>
-                          </div>
+                        {/* Designation if different from category */}
+                        {member.designation && member.designation !== member.category && (
+                          <p className="text-[13px] font-medium text-[#5F6B67] line-clamp-1">
+                            {member.designation}
+                          </p>
                         )}
+                      </div>
+                    </div>
 
-                        {member.email && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Mail className="h-4 w-4 text-slate-400" />
-                            <span className="break-all">{member.email}</span>
-                          </div>
-                        )}
+                    {/* Card Footer: Quick Contact Actions & Leadership Speech Link */}
+                    <div className="mt-2 border-t border-[#E2E7E4] bg-[#F7F8F5]/60 px-4 py-3">
+                      <div className="flex items-center justify-between gap-2">
+                        {/* Contact Action Icons */}
+                        <div className="flex items-center gap-1.5">
+                          {member.phone && (
+                            <a
+                              href={`tel:${member.phone}`}
+                              title={`কল করুন: ${member.phone}`}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E7E4] bg-white text-[#075E54] transition-colors duration-200 hover:bg-[#075E54] hover:text-white hover:border-[#075E54] shadow-2xs"
+                            >
+                              <Phone className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+
+                          {member.email && (
+                            <a
+                              href={`mailto:${member.email}`}
+                              title={`ইমেইল: ${member.email}`}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E2E7E4] bg-white text-[#B68A18] transition-colors duration-200 hover:bg-[#B68A18] hover:text-white hover:border-[#B68A18] shadow-2xs"
+                            >
+                              <Mail className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+
+                          {!member.phone && !member.email && (
+                            <span className="text-[12.5px] font-medium text-[#5F6B67]">
+                              পরিচালনা পর্ষদ
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Leadership Message Link if President/Principal */}
+                        {isPresident ? (
+                          <Link
+                            href="/leadership/president"
+                            className="inline-flex items-center gap-1 rounded-lg bg-white border border-[#075E54]/20 px-2.5 py-1.5 text-[12.5px] font-semibold text-[#075E54] transition-colors duration-200 hover:bg-[#075E54] hover:text-white shadow-2xs ml-auto"
+                          >
+                            <span>বাণী দেখুন</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        ) : isPrincipal ? (
+                          <Link
+                            href="/leadership/headmaster"
+                            className="inline-flex items-center gap-1 rounded-lg bg-white border border-[#075E54]/20 px-2.5 py-1.5 text-[12.5px] font-semibold text-[#075E54] transition-colors duration-200 hover:bg-[#075E54] hover:text-white shadow-2xs ml-auto"
+                          >
+                            <span>বাণী দেখুন</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
 
-          {/* Footer */}
-          <div className="mt-16 rounded-3xl border border-dashed border-slate-300 bg-white px-8 py-8 text-center">
-            <h3 className="text-xl font-bold text-slate-900">
-              Institutional Governance & Accountability
-            </h3>
-            <p className="mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-slate-600">
-              The Governing Body ensures transparent administration, strategic
-              leadership, policy implementation, and continuous institutional
-              development for academic excellence.
-            </p>
+          {/* Institutional Governance Banner (Solid color, compact bottom) */}
+          <div className="rounded-3xl border border-[#B68A18]/40 bg-[#064A42] p-6 sm:p-8 text-white shadow-xs">
+            <div className="max-w-3xl mx-auto text-center space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B68A18]/40 bg-white/10 px-3.5 py-1 text-[13px] font-semibold text-[#B68A18]">
+                <ShieldCheck className="h-4 w-4 text-[#B68A18]" />
+                <span>প্রাতিষ্ঠানিক সুশাসন ও দায়বদ্ধতা</span>
+              </div>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white">
+                দক্ষ নেতৃত্ব ও সুশৃঙ্খল প্রাতিষ্ঠানিক পরিচালনা
+              </h2>
+              <p className="text-[15px] leading-relaxed text-[#DCEEE9]">
+                সম্মানিত পরিচালনা পর্ষদ মাদ্রাসার স্বচ্ছ প্রশাসন, কৌশলগত নেতৃত্ব, শিক্ষা নীতির সঠিক বাস্তবায়ন এবং শিক্ষার্থীদের দ্বীনি ও নৈতিক বিকাশে সার্বক্ষণিক দিকনির্দেশনা প্রদান করে থাকে।
+              </p>
+            </div>
           </div>
         </div>
       </section>

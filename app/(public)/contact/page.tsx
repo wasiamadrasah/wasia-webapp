@@ -20,9 +20,9 @@ export const revalidate = 60
 
 export const metadata = createPageMetadata({
   title: "যোগাযোগ",
-  description: "ওয়াসিয়া কামিল মাদ্রাসার ঠিকানা, ফোন, ইমেইল, অফিস সময় এবং গুগল ম্যাপ অবস্থান। যেকোনো তথ্য বা পরামর্শের জন্য আমাদের সাথে যোগাযোগ করুন।",
+  description: "ওয়াছিয়া আহমদিয়া সুন্নিয়া মাদ্রাসার ঠিকানা, ফোন, ইমেইল, অফিস সময় এবং গুগল ম্যাপ অবস্থান। যেকোনো তথ্য বা পরামর্শের জন্য আমাদের সাথে যোগাযোগ করুন।",
   path: "/contact",
-  keywords: ["মাদ্রাসা যোগাযোগ", "ওয়াসিয়া মাদ্রাসা ঠিকানা", "মাদ্রাসা ফোন নম্বর", "মাদ্রাসা ইমেইল"],
+  keywords: ["মাদ্রাসা যোগাযোগ", "ওয়াছিয়া আহমদিয়া সুন্নিয়া মাদ্রাসা ঠিকানা", "মাদ্রাসা ফোন নম্বর", "মাদ্রাসা ইমেইল"],
 })
 
 export default async function ContactPage() {
@@ -31,7 +31,7 @@ export default async function ContactPage() {
   const instituteName =
     instituteSettings.primary.instituteNameBn?.trim() ||
     instituteSettings.primary.instituteName?.trim() ||
-    "ওয়াসিয়া কামিল মাদ্রাসা"
+    "ওয়াছিয়া আহমদিয়া সুন্নিয়া মাদ্রাসা"
 
   const contactDetails = [
     {
@@ -39,23 +39,23 @@ export default async function ContactPage() {
       label: "ক্যাম্পাস ঠিকানা",
       value:
         instituteSettings.contact.address?.trim() ||
-        "ওয়াসিয়া কামিল মাদ্রাসা ক্যাম্পাস, বাংলাদেশ",
+        "ওয়াছিয়া আহমদিয়া সুন্নিয়া মাদ্রাসা ক্যাম্পাস, বাংলাদেশ",
     },
     {
       icon: Phone,
-      label: "ফোন / মোবাইল",
+      label: "মোবাইল",
       values: [
         instituteSettings.contact.telephone?.trim()
           ? {
-              text: instituteSettings.contact.telephone.trim(),
-              href: `tel:${instituteSettings.contact.telephone.trim()}`,
-            }
+            text: instituteSettings.contact.telephone.trim(),
+            href: `tel:${instituteSettings.contact.telephone.trim()}`,
+          }
           : null,
         instituteSettings.contact.mobile?.trim()
           ? {
-              text: instituteSettings.contact.mobile.trim(),
-              href: `tel:${instituteSettings.contact.mobile.trim()}`,
-            }
+            text: instituteSettings.contact.mobile.trim(),
+            href: `tel:${instituteSettings.contact.mobile.trim()}`,
+          }
           : null,
       ].filter((item): item is { text: string; href: string } => Boolean(item)),
       fallback: "+৮৮০১৭০০-০০০০০০",
@@ -65,11 +65,11 @@ export default async function ContactPage() {
       label: "অফিসিয়াল ইমেইল",
       values: instituteSettings.contact.email?.trim()
         ? [
-            {
-              text: instituteSettings.contact.email.trim(),
-              href: `mailto:${instituteSettings.contact.email.trim()}`,
-            },
-          ]
+          {
+            text: instituteSettings.contact.email.trim(),
+            href: `mailto:${instituteSettings.contact.email.trim()}`,
+          },
+        ]
         : [{ text: "info@wasiamadrasah.edu.bd", href: "mailto:info@wasiamadrasah.edu.bd" }],
     },
     {
@@ -222,7 +222,7 @@ export default async function ContactPage() {
                   গুগল ম্যাপে আমাদের অবস্থান
                 </h2>
                 <p className="mt-1.5 max-w-xl text-[15px] leading-relaxed text-[#5F6B67]">
-                  সরাসরি মাদ্রাসায় আসার সুবিধার্থে নিচের মানচিত্র নির্দেশনাটি অনুসরণ করুন।
+                  সরাসরি মাদ্রাসায় আসার সুবিধার্থে নিচের মানচিত্র নির্দেশনাটি অনুসরণ করুন
                 </p>
               </div>
             </div>
