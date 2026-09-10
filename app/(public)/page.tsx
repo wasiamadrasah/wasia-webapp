@@ -1033,7 +1033,7 @@ export default function HomePage() {
               </div>
 
               <div className="relative rounded-2xl bg-white p-5 sm:p-7 border border-[#E2E7E4] shadow-xs">
-                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal line-clamp-6 sm:line-clamp-none">
+                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] font-normal line-clamp-6 sm:line-clamp-none">
                   {presidentMessage
                     ? stripHtml(presidentMessage)
                     : "“সকল প্রশংসা মহান আল্লাহ রাব্বুল আলামিনের জন্য এবং অসংখ্য দরুদ ও সালাম পেশ করছি সর্বশেষ ও সর্বশ্রেষ্ঠ নবি, হজরত মুহাম্মদ (সা.)-এর প্রতি। অত্র প্রতিষ্ঠানের সভাপতির দায়িত্ব গ্রহণ করে এর সার্বিক শৃঙ্খলা ও শিক্ষার পরিবেশ আরও উন্নত করার লক্ষ্যে আমি দৃঢ়প্রতিজ্ঞ। ছাত্র, শিক্ষক, অভিভাবক এবং ম্যানেজিং কমিটির সদস্যবৃন্দসহ আমরা সবাই এক অভিন্ন লক্ষ্যে ঐক্যবদ্ধ— এই প্রতিষ্ঠানকে শ্রেষ্ঠত্বের মর্যাদায় অভিষিক্ত করতে আমাদের নিরলস প্রচেষ্টা অব্যাহত রয়েছে।”"}
@@ -1112,7 +1112,7 @@ export default function HomePage() {
               </div>
 
               <div className="relative rounded-2xl bg-white p-5 sm:p-7 border border-[#E2E7E4]">
-                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] italic font-normal line-clamp-6 sm:line-clamp-none">
+                <p className="text-[15px] sm:text-[16.5px] leading-relaxed text-[#2C3834] font-normal line-clamp-6 sm:line-clamp-none">
                   {principalMessage
                     ? stripHtml(principalMessage)
                     : "“বিসমিল্লাহির রাহমানির রাহীম। আসসালামু আলাইকুম ওয়ারাহমাতুল্লাহ। সুশিক্ষিত, আদর্শবান ও খোদাভীরু নাগরিক গড়ে তুলতে মাদ্রাসা শিক্ষা একটি অনন্য মাধ্যম। জাগতিক ও পারলৌকিক উভয় জীবনে সফলতার দ্বারপ্রান্তে উপনীত হতে এই শিক্ষা অগ্রণী ভূমিকা রাখতে সক্ষম। একজন মাদ্রাসা শিক্ষার্থী একাধারে ইলমে দ্বীন অর্জনের সুযোগ লাভ করে, তেমনি আধুনিক সব বিষয়েও জ্ঞান অর্জনের সুযোগ পায়। এই প্রতিষ্ঠানকে একটি মডেল শিক্ষাপ্রতিষ্ঠানে পরিণত করাই আমাদের প্রধান স্বপ্ন ও অঙ্গীকার।”"}
