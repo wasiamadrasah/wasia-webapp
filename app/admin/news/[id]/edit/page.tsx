@@ -51,7 +51,7 @@ export default async function EditNewsPage({ params }: EditNewsPageProps) {
         <div className="lg:col-span-8 space-y-6">
           <div className="rounded-xl border border-border bg-white p-6 shadow-2xs space-y-5">
             <div className="flex items-center gap-2 border-b border-border pb-4">
-              <FileText className="h-5 w-5 text-[#4F46E5]" />
+              <FileText className="h-5 w-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">News Article Details</h2>
             </div>
 
@@ -81,7 +81,7 @@ export default async function EditNewsPage({ params }: EditNewsPageProps) {
 
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center gap-2 mb-3">
-                <ImageIcon className="h-4 w-4 text-[#4F46E5]" />
+                <ImageIcon className="h-4 w-4 text-primary" />
                 <Label className="text-sm font-bold text-foreground">Featured Image</Label>
               </div>
               <NewsFeaturedImageUpload initialUrl={news.featured_image_url || ""} />
@@ -93,7 +93,7 @@ export default async function EditNewsPage({ params }: EditNewsPageProps) {
         <div className="lg:col-span-4 space-y-6">
           <div className="rounded-xl border border-border bg-white p-6 shadow-2xs space-y-5">
             <div className="flex items-center gap-2 border-b border-border pb-4">
-              <Settings className="h-5 w-5 text-[#4F46E5]" />
+              <Settings className="h-5 w-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">Publishing Settings</h2>
             </div>
 

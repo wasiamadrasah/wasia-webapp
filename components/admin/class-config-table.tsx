@@ -50,12 +50,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -211,35 +213,13 @@ export function ClassConfigTable({ data, sessions }: ClassConfigTableProps) {
                   <BookOpen className="mr-1.5 size-4" /> Setup
                 </Link>
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[160px]">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/academics/class-setup/${config.id}`} className="cursor-pointer">
-                      <Eye className="mr-2 h-4 w-4" /> View Setup
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/academics/class-setup/${config.id}/edit`} className="cursor-pointer">
-                      <Pencil className="mr-2 h-4 w-4" /> Edit Config
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-                    onClick={() => setPendingDelete(config.id)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <AdminActionsDropdown
+                viewHref={`/admin/academics/class-setup/${config.id}`}
+                viewLabel="View Setup"
+                editHref={`/admin/academics/class-setup/${config.id}/edit`}
+                editLabel="Edit Config"
+                onDelete={() => setPendingDelete(config.id)}
+              />
             </div>
           )
         },

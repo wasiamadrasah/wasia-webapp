@@ -23,7 +23,7 @@ export function NewMemberDialog({
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="h-10 gap-1.5 rounded-lg bg-[#4F46E5] px-4 text-sm font-semibold text-white shadow-xs hover:bg-[#4338CA] transition-colors"
+        className="h-10 gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 transition-colors"
       >
         <Plus className="h-4 w-4" />
         <span>{triggerLabel}</span>

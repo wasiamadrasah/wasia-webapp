@@ -40,6 +40,14 @@ const SETTINGS_MODULES: Record<string, { title: string; description: string }> =
     title: "Backup & Restore",
     description: "Automated database backups, manual export/import, snapshot scheduling, and restoration.",
   },
+  system: {
+    title: "System Settings",
+    description: "Manage global system configurations, server parameters, and environment preferences.",
+  },
+  "system-settings": {
+    title: "System Settings",
+    description: "Manage global system configurations, server parameters, and environment preferences.",
+  },
   languages: {
     title: "Languages & Localization",
     description: "Manage multilingual translations, default system locale, and bilingual portal texts.",

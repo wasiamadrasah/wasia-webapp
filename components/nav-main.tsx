@@ -171,7 +171,7 @@ function NavItemRenderer({
       >
         <SidebarMenuItem>
           <CollapsibleTrigger asChild>
-            <SidebarMenuButton isActive={isItemActive} tooltip={item.title}>
+            <SidebarMenuButton isActive={isItemActive && (!isOpen || state === "collapsed")} tooltip={item.title}>
               {item.icon && <item.icon className="size-4.5 group-data-[collapsible=icon]:size-5.5 shrink-0" />}
               <span>{item.title}</span>
               <ChevronRight className="ml-auto transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.25,1)] group-data-[state=open]/collapsible:rotate-90" />

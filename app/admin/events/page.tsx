@@ -87,13 +87,13 @@ export default async function EventsPage() {
         <div className="rounded-xl border border-border bg-card p-5 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Upcoming Events</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF2FF] dark:bg-indigo-950/60 text-[#4F46E5] dark:text-indigo-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Calendar className="h-5 w-5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-black text-foreground">{upcomingEvents}</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#EEF2FF] dark:bg-indigo-950/80 px-2.5 py-0.5 text-xs font-semibold text-[#4F46E5] dark:text-indigo-300 border border-[#C7D2FE] dark:border-indigo-800/60">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary border border-primary/20">
               Scheduled
             </span>
           </div>

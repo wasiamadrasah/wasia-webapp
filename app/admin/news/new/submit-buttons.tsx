@@ -13,7 +13,7 @@ export function NewNewsSubmitButtons() {
       <Button
         type="submit"
         disabled={pending}
-        className="flex-1 h-10 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-sm shadow-2xs gap-2 transition-colors justify-center"
+        className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-2xs gap-2 transition-colors justify-center"
       >
         {pending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

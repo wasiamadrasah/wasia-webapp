@@ -62,7 +62,7 @@ export function CreateGradeScaleDetailDialog({ scaleId }: { scaleId: string }) {
       <AlertDialogContent className="sm:max-w-[425px]">
         <form onSubmit={onSubmit}>
           <AlertDialogHeader>
-            <AlertDialogMedia className="bg-[#EEF2FF] text-[#4F46E5] dark:bg-primary/10 dark:text-primary">
+            <AlertDialogMedia className="bg-primary/10 text-primary">
               <Award className="h-5 w-5" />
             </AlertDialogMedia>
             <AlertDialogTitle>Add Grade Detail</AlertDialogTitle>
@@ -197,7 +197,7 @@ export function GradeScaleDetailActions({ detail }: { detail: GradeScaleDetail }
         <AlertDialogContent className="sm:max-w-[425px]">
           <form onSubmit={onEdit}>
             <AlertDialogHeader>
-              <AlertDialogMedia className="bg-[#EEF2FF] text-[#4F46E5] dark:bg-primary/10 dark:text-primary">
+              <AlertDialogMedia className="bg-primary/10 text-primary">
                 <Pencil className="h-5 w-5" />
               </AlertDialogMedia>
               <AlertDialogTitle>Edit Grade Detail</AlertDialogTitle>

@@ -122,7 +122,7 @@ function AlertDialogMedia({
     <div
       data-slot="alert-dialog-media"
       className={cn(
-        "inline-flex size-10 items-center justify-center rounded-lg bg-[#EEF2FF] text-[#4F46E5]",
+        "inline-flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary",
         className
       )}
       {...props}
@@ -175,7 +175,7 @@ function AlertDialogAction({
         data-slot="alert-dialog-action"
         className={cn(
           "h-10 rounded-lg px-4 text-sm font-semibold",
-          variant === "default" && "bg-[#4F46E5] text-white hover:bg-[#4338CA]",
+          variant === "default" && "bg-primary text-primary-foreground hover:bg-primary/90",
           className
         )}
         {...props}

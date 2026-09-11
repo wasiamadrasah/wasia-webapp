@@ -48,8 +48,8 @@ export function GoverningBodyMembersTable({
   if (members.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card py-12 px-4 text-center">
-        <div className="rounded-full bg-[#EEF2FF] p-3 mb-3">
-          <Users className="h-6 w-6 text-[#4F46E5]" />
+        <div className="rounded-full bg-primary/10 p-3 mb-3">
+          <Users className="h-6 w-6 text-primary" />
         </div>
         <h3 className="text-base font-bold text-foreground">No Governing Body Members</h3>
         <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-sm">
@@ -89,7 +89,7 @@ export function GoverningBodyMembersTable({
                           sizes="40px"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[#EEF2FF] text-[#4F46E5] font-bold text-sm">
+                        <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary font-bold text-sm">
                           {member.name ? member.name.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                         </div>
                       )}
@@ -103,7 +103,7 @@ export function GoverningBodyMembersTable({
                 </TableCell>
 
                 <TableCell className="py-3.5 whitespace-nowrap">
-                  <Badge variant="outline" className="rounded-full bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE] font-semibold text-xs px-3 py-1">
+                  <Badge variant="outline" className="rounded-full bg-primary/10 text-primary border-primary/20 font-semibold text-xs px-3 py-1">
                     {member.category}
                   </Badge>
                 </TableCell>
@@ -142,7 +142,7 @@ export function GoverningBodyMembersTable({
                         }}
                         className="cursor-pointer gap-2 text-sm"
                       >
-                        <EditIcon className="h-4 w-4 text-[#4F46E5]" />
+                        <EditIcon className="h-4 w-4 text-primary" />
                         <span>Edit</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -180,7 +180,7 @@ export function GoverningBodyMembersTable({
                       sizes="40px"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-[#EEF2FF] text-[#4F46E5] font-bold text-sm">
+                    <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary font-bold text-sm">
                       {member.name ? member.name.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                     </div>
                   )}
@@ -190,7 +190,7 @@ export function GoverningBodyMembersTable({
                   <p className="text-xs text-muted-foreground truncate">{member.designation}</p>
                 </div>
               </div>
-              <Badge variant="outline" className="rounded-full bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE] font-semibold text-xs px-2.5 py-0.5 shrink-0">
+              <Badge variant="outline" className="rounded-full bg-primary/10 text-primary border-primary/20 font-semibold text-xs px-2.5 py-0.5 shrink-0">
                 {member.category}
               </Badge>
             </div>
@@ -221,7 +221,7 @@ export function GoverningBodyMembersTable({
                   setEditingMember(member)
                   setIsEditOpen(true)
                 }}
-                className="h-8 gap-1.5 text-xs font-semibold text-[#4F46E5] border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF]"
+                className="h-8 gap-1.5 text-xs font-semibold text-primary border-primary/20 bg-primary/10 hover:bg-primary/20"
               >
                 <EditIcon className="h-3.5 w-3.5" />
                 <span>Edit</span>

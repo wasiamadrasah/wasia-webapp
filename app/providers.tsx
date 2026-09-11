@@ -66,6 +66,8 @@ export function ThemeProvider({
   )
 }
 
+import { AdminSystemThemeProvider } from "@/components/admin/admin-system-theme-provider"
+
 export const useTheme = () => React.useContext(ThemeProviderContext)
 
 export function Providers({
@@ -75,10 +77,12 @@ export function Providers({
 }) {
   return (
     <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
-      <ThemeProvider defaultTheme="system" storageKey="theme-preference">
-        {children}
-        <Toaster position="top-right" richColors closeButton expand={true} />
-      </ThemeProvider>
+      <AdminSystemThemeProvider>
+        <ThemeProvider defaultTheme="system" storageKey="theme-preference">
+          {children}
+          <Toaster position="top-right" richColors closeButton expand={true} />
+        </ThemeProvider>
+      </AdminSystemThemeProvider>
     </SessionProvider>
   )
 }

@@ -12,8 +12,12 @@ export async function proxy(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const isWorkspaceSubdomain = hostname.startsWith('console.')
 
-  // 0. Bypass middleware completely for next-auth api endpoints
-  if (pathname.startsWith("/api/auth/")) {
+  // 0. Bypass proxy completely for API endpoints, Next.js internals, and static assets
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next()
   }
 

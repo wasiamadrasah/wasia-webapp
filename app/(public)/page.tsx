@@ -1341,7 +1341,7 @@ export default function HomePage() {
               const monthBn = bnMonths[parsedDate.getMonth()]
               const yearBn = toBn(parsedDate.getFullYear())
               const snippet = stripHtml(item.content)
-              const featuredImg = item.image_url || item.featured_image || null
+              const featuredImg = item.image_url || ('featured_image' in item ? (item as any).featured_image : null) || null
 
               return (
                 <Link

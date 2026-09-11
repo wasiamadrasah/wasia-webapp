@@ -40,7 +40,7 @@ export default async function NewNoticePage() {
         <div className="lg:col-span-8 space-y-6">
           <div className="rounded-xl border border-border bg-white p-6 shadow-2xs space-y-5">
             <div className="flex items-center gap-2 border-b border-border pb-4">
-              <FileText className="h-5 w-5 text-[#4F46E5]" />
+              <FileText className="h-5 w-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">Notice Details</h2>
             </div>
 
@@ -71,7 +71,7 @@ export default async function NewNoticePage() {
         <div className="lg:col-span-4 space-y-6">
           <div className="rounded-xl border border-border bg-white p-6 shadow-2xs space-y-5">
             <div className="flex items-center gap-2 border-b border-border pb-4">
-              <Settings className="h-5 w-5 text-[#4F46E5]" />
+              <Settings className="h-5 w-5 text-primary" />
               <h2 className="text-base font-bold text-foreground">Publishing Settings</h2>
             </div>
 

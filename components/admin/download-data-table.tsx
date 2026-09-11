@@ -40,6 +40,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -341,30 +342,14 @@ export function DownloadDataTable({
       cell: ({ row }) => {
         const download = row.original
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontalIcon className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => setEditingDownloadId(download.id)}>
-                  <SquarePenIcon />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => {
-                  setPendingDelete(download.id)
-                }}>
-                  <Trash2Icon />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-end">
+            <AdminActionsDropdown
+              onEdit={() => setEditingDownloadId(download.id)}
+              editLabel="Edit Download"
+              onDelete={() => setPendingDelete(download.id)}
+              deleteLabel="Delete"
+            />
+          </div>
         )
       },
     },

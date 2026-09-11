@@ -9,8 +9,8 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE] dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/60",
-        primary: "bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE] dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/60",
+        default: "bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/30",
+        primary: "bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/30",
         secondary: "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0] dark:bg-slate-800/70 dark:text-slate-300 dark:border-slate-700/60",
         neutral: "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0] dark:bg-slate-800/70 dark:text-slate-300 dark:border-slate-700/60",
         success: "bg-[#DCFCE7] text-[#166534] border-[#86EFAC] dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60",
@@ -19,7 +19,7 @@ const badgeVariants = cva(
         info: "bg-[#E0F2FE] text-[#075985] border-[#7DD3FC] dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800/60",
         outline: "bg-transparent text-foreground border-border",
         ghost: "bg-transparent text-foreground border-transparent",
-        link: "text-primary dark:text-indigo-400 underline-offset-4 hover:underline border-transparent p-0",
+        link: "text-primary underline-offset-4 hover:underline border-transparent p-0",
       },
     },
     defaultVariants: {

@@ -20,13 +20,13 @@ export default async function EditSessionPage({
   const action = updateSessionAction.bind(null, id)
 
   return (
-    <div className="max-w-lg">
-      <div className="mb-6">
+    <div className="max-w-lg space-y-6">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">Edit Session</h1>
         <p className="text-muted-foreground mt-1">{session.name}</p>
       </div>
 
-      <form action={action} className="space-y-6 rounded-xl border p-6">
+      <form action={action} className="space-y-6 rounded-xl border p-6 bg-card shadow-sm">
         <div className="space-y-2">
           <Label htmlFor="name">
             Session Name <span className="text-red-500">*</span>
@@ -65,7 +65,7 @@ export default async function EditSessionPage({
           <Label htmlFor="is_active">Active Session</Label>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4 border-t">
           <Button type="submit">Save Changes</Button>
           <Button asChild variant="outline">
             <Link href="/admin/academics/sessions">Cancel</Link>

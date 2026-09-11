@@ -45,14 +45,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -159,43 +152,24 @@ export function AcademicSimpleTable<T extends SimpleRow>({
       cell: ({ row }) => {
         const item = row.original
         return (
-          <div className="flex items-center justify-end gap-2 text-right">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              disabled={toggling === item.id}
-              onClick={async () => {
-                setToggling(item.id)
-                try {
-                  await toggleAction(item.id, item.is_active)
-                  router.refresh()
-                } finally {
-                  setToggling(null)
-                }
+          <div className="flex items-center justify-end text-right">
+            <AdminActionsDropdown
+              editHref={`${basePath}/${item.id}/edit`}
+              toggleActive={{
+                isActive: item.is_active,
+                isLoading: toggling === item.id,
+                onToggle: async () => {
+                  setToggling(item.id)
+                  try {
+                    await toggleAction(item.id, item.is_active)
+                    router.refresh()
+                  } finally {
+                    setToggling(null)
+                  }
+                },
               }}
-            >
-              {item.is_active ? "Deactivate" : "Activate"}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="size-8 p-0">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={`${basePath}/${item.id}/edit`}>
-                    <Pencil className="size-4 mr-2" /> Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => setPendingDelete(item.id)}>
-                  <Trash2 className="size-4 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              onDelete={() => setPendingDelete(item.id)}
+            />
           </div>
         )
       },

@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table"
 import {
   CheckCircle2, Circle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  ChevronDown, MoreHorizontal, Pencil, Plus, Trash2, Power,
+  ChevronDown, MoreHorizontal, Pencil, Plus, Trash2,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import {
   DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -74,45 +75,27 @@ export function SubjectsTable({ data }: Props) {
         const s = row.original
         return (
           <div className="flex items-center justify-end text-right">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="size-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-950/30">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="size-4 text-blue-700 dark:text-blue-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={`/admin/academics/subjects/${s.id}/edit`}>
-                    <Pencil className="size-4 mr-2 text-muted-foreground" />Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={async () => {
-                    setToggling(s.id)
-                    try {
-                      await toggleSubjectActiveAction(s.id, s.is_active)
-                      router.refresh()
-                      toast.success(`Subject ${s.is_active ? 'deactivated' : 'activated'} successfully`)
-                    } catch (err: any) {
-                      toast.error(err.message || "Failed to toggle status")
-                    } finally {
-                      setToggling(null)
-                    }
-                  }}
-                  disabled={toggling === s.id}
-                >
-                  <Power className="size-4 mr-2 text-muted-foreground" />
-                  {s.is_active ? "Deactivate" : "Activate"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={() => setPendingDelete(s.id)}>
-                  <Trash2 className="size-4 mr-2" />Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AdminActionsDropdown
+              editHref={`/admin/academics/subjects/${s.id}/edit`}
+              editLabel="Edit Subject"
+              toggleActive={{
+                isActive: s.is_active,
+                isLoading: toggling === s.id,
+                onToggle: async () => {
+                  setToggling(s.id)
+                  try {
+                    await toggleSubjectActiveAction(s.id, s.is_active)
+                    router.refresh()
+                    toast.success(`Subject ${s.is_active ? 'deactivated' : 'activated'} successfully`)
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to toggle status")
+                  } finally {
+                    setToggling(null)
+                  }
+                },
+              }}
+              onDelete={() => setPendingDelete(s.id)}
+            />
           </div>
         )
       },

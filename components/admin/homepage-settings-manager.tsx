@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Archive, BookOpen, Eye, GalleryHorizontal, Image as ImageIcon, LayoutDashboard, MoreHorizontal, Pencil, Plus, Send, Sparkles, Trash2Icon, Users, BarChart3, Link as LinkIcon, ExternalLink, SquarePen } from "lucide-react"
+import { Archive, BookOpen, Eye, GalleryHorizontal, Image as ImageIcon, LayoutDashboard, MoreHorizontal, Pencil, Plus, Send, Sparkles, Trash2Icon, Users, BarChart3, Link as LinkIcon, ExternalLink, SquarePen, CheckCircle2, AlertCircle } from "lucide-react"
+import { PageHeader } from "@/components/digicampus/page-header"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 
 import {
   createHomepageQuickInfoItemAction,
@@ -374,6 +376,8 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
   const [addingLinkToSection, setAddingLinkToSection] = useState<FooterLinkSectionRecord | null>(null)
   const [editingLink, setEditingLink] = useState<{ sectionId: string; link: FooterLinkRecord } | null>(null)
   const [deletingLink, setDeletingLink] = useState<FooterLinkRecord | null>(null)
+  const [editingProgram, setEditingProgram] = useState<AcademicProgramRecord | null>(null)
+  const [editingClub, setEditingClub] = useState<HomepageExtracurricularRecord | null>(null)
 
   const tabItems = useMemo(
     () => [
@@ -458,78 +462,100 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
   }
 
   return (
-    <div className="w-full space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Homepage Settings</h1>
-        <p className="text-muted-foreground">
-          Configure homepage sections with tab-based navigation. Switch tabs instantly without page refresh.
-        </p>
-      </div>
+    <div className="w-full max-w-full space-y-6">
+      {/* ── Standard DigiCampus Page Header ── */}
+      <PageHeader
+        title="Homepage Settings"
+        description="Configure public portal homepage sections, banners, leadership messages, and academic programs."
+        action={
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="h-10 rounded-lg border-border text-foreground hover:bg-muted/50 gap-1.5 font-medium text-xs cursor-pointer">
+              <Link href="/" target="_blank" rel="noreferrer">
+                <ExternalLink className="size-3.5 text-muted-foreground" />
+                <span>View Live Site</span>
+              </Link>
+            </Button>
+          </div>
+        }
+      />
 
+      {/* ── Feedback Message Banner ── */}
       {message ? (
-        <div className={`rounded-xl border px-4 py-3 text-sm ${status === "success" ? "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200" : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"}`}>
-          {message}
+        <div
+          className={`flex items-center gap-2 rounded-xl border p-4 text-sm font-medium shadow-2xs animate-in fade-in-50 duration-200 ${
+            status === "success"
+              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-400"
+          }`}
+        >
+          {status === "success" ? (
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <AlertCircle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+          )}
+          <span>{message}</span>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="rounded-xl border bg-card p-3 lg:sticky lg:top-4 lg:h-fit">
-          <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sections</p>
-          <nav className="space-y-1">
-            {tabItems.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              const count = tabCounts[tab.id]
+      <div className="flex flex-col md:flex-row gap-6 lg:gap-8 items-start">
+        {/* Column 1: Vertical Navigation Menu (System Settings Style) */}
+        <div className="w-full md:w-56 lg:w-64 shrink-0">
+          <div className="flex flex-col rounded-xl border border-border/80 bg-card overflow-hidden divide-y divide-border/70 shadow-xs">
+            {tabItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              const count = tabCounts[item.id]
               return (
                 <button
-                  key={tab.id}
+                  key={item.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition ${
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-sm transition-all cursor-pointer ${
                     isActive
-                      ? "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-100"
-                      : "border-transparent hover:border-muted-foreground/20 hover:bg-muted/40"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      : "hover:bg-muted/60 text-foreground font-medium bg-card hover:text-primary"
                   }`}
                 >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <Icon className={`mt-0.5 size-4 shrink-0 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground"}`} />
-                    <span className="space-y-0.5 truncate">
-                      <span className="block text-sm font-medium leading-tight">{tab.label}</span>
-                      <span className="block text-xs text-muted-foreground truncate">{tab.description}</span>
-                    </span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className={`size-4.5 shrink-0 ${isActive ? "text-primary-foreground" : "text-primary"}`} />
+                    <span className="truncate">{item.label}</span>
                   </div>
-                  {count !== undefined ? (
-                    <Badge
-                      variant={isActive ? "primary" : "secondary"}
-                      className="ml-2 shrink-0 font-mono text-xs px-2 py-0.5"
+                  {count !== undefined && (
+                    <span
+                      className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold shrink-0 ${
+                        isActive
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                     >
                       {count}
-                    </Badge>
-                  ) : null}
+                    </span>
+                  )}
                 </button>
               )
             })}
-          </nav>
-        </aside>
+          </div>
+        </div>
 
-        <div className="space-y-6">
+        {/* Column 2: Content Area */}
+        <div className="flex-1 min-w-0 space-y-6">
           {activeTab === "overview" ? (
-            <section className="space-y-4 rounded-xl border bg-card p-5">
+            <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-xl font-semibold">Overview</h2>
+                  <h2 className="text-xl font-bold text-foreground">Overview</h2>
                   <p className="text-sm text-muted-foreground">Live summary of homepage sections and publish status.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button asChild>
+                  <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs">
                     <Link href="/" target="_blank" rel="noreferrer">
-                      <Eye className="size-4" />
+                      <Eye className="size-3.5 mr-1" />
                       Open Homepage
                     </Link>
                   </Button>
-                  <Button asChild variant="outline">
+                  <Button asChild size="sm" variant="outline" className="text-xs font-semibold">
                     <Link href="/admin/photo-gallery">
-                      <GalleryHorizontal className="size-4" />
+                      <GalleryHorizontal className="size-3.5 mr-1" />
                       Open Photo Gallery
                     </Link>
                   </Button>
@@ -537,82 +563,114 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-cyan-50 dark:border-sky-900/60 dark:from-sky-950/40 dark:to-cyan-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Hero Slides</p>
-                    <ImageIcon className="size-4 text-sky-600" />
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hero Slides</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <ImageIcon className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-sky-900 dark:text-sky-100">{activeHeroSlidesCount} / {heroSlides.length}</p>
-                  <p className="text-xs text-sky-800/80 dark:text-sky-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeHeroSlidesCount} / {heroSlides.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 dark:border-blue-900/60 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Quick Info</p>
-                    <Sparkles className="size-4 text-blue-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Info</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Sparkles className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">{activeQuickInfoCount} / {quickInfoItems.length}</p>
-                  <p className="text-xs text-blue-800/80 dark:text-blue-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeQuickInfoCount} / {quickInfoItems.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:border-violet-900/60 dark:from-violet-950/40 dark:to-fuchsia-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">Leadership Cards</p>
-                    <Users className="size-4 text-violet-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Leadership</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Users className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-violet-900 dark:text-violet-100">{activeLeadershipCount} / {leadershipCards.length}</p>
-                  <p className="text-xs text-violet-800/80 dark:text-violet-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeLeadershipCount} / {leadershipCards.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:border-amber-900/60 dark:from-amber-950/40 dark:to-orange-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Photo Gallery</p>
-                    <GalleryHorizontal className="size-4 text-amber-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Photo Gallery</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <GalleryHorizontal className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">{publishedGalleryCount} / {galleryPhotos.length}</p>
-                  <p className="text-xs text-amber-800/80 dark:text-amber-300/70">Published / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{publishedGalleryCount} / {galleryPhotos.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Published / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-blue-900/60 dark:from-blue-950/40 dark:to-indigo-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Academic Programs</p>
-                    <BookOpen className="size-4 text-blue-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Academic Programs</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <BookOpen className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">{activeProgramCount} / {academicPrograms.length}</p>
-                  <p className="text-xs text-blue-800/80 dark:text-blue-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeProgramCount} / {academicPrograms.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50 dark:border-rose-900/60 dark:from-rose-950/40 dark:to-pink-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">Stats</p>
-                    <BarChart3 className="size-4 text-rose-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Statistics</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <BarChart3 className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-rose-900 dark:text-rose-100">{activeStatCount} / {homeStats.length}</p>
-                  <p className="text-xs text-rose-800/80 dark:text-rose-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeStatCount} / {homeStats.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-teal-50 dark:border-cyan-900/60 dark:from-cyan-950/40 dark:to-teal-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Footer Sections</p>
-                    <LayoutDashboard className="size-4 text-cyan-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Footer Sections</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <LayoutDashboard className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-cyan-900 dark:text-cyan-100">{activeFooterSectionCount} / {footerSections.length}</p>
-                  <p className="text-xs text-cyan-800/80 dark:text-cyan-300/70">Active / Total</p>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeFooterSectionCount} / {footerSections.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-lime-200 bg-gradient-to-br from-lime-50 to-green-50 dark:border-lime-900/60 dark:from-lime-950/40 dark:to-green-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-lime-700 dark:text-lime-300">Footer Links</p>
-                    <LinkIcon className="size-4 text-lime-600" />
+
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Extracurriculars</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Sparkles className="size-4" />
+                    </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-lime-900 dark:text-lime-100">{activeFooterLinkCount}</p>
-                  <p className="text-xs text-lime-800/80 dark:text-lime-300/70">Active links across all sections</p>
-                </div>
-                <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50 dark:border-blue-900/60 dark:from-blue-950/40 dark:to-sky-950/30 p-4">
-                  <div className="flex items-start justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Extracurriculars</p>
-                    <Sparkles className="size-4 text-blue-600" />
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-black text-foreground">{activeExtracurricularCount} / {extracurriculars.length}</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground">Active / Total</span>
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-blue-900 dark:text-blue-100">{activeExtracurricularCount} / {extracurriculars.length}</p>
-                  <p className="text-xs text-blue-800/80 dark:text-blue-300/70">Active / Total</p>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
-                Homepage photo gallery cards now read from the same data source as the public homepage feed.
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs font-medium text-foreground flex items-center gap-2">
+                <Sparkles className="size-4 text-primary shrink-0" />
+                <span>Homepage photo gallery cards now read directly from the live public media database.</span>
               </div>
             </section>
           ) : null}
@@ -627,7 +685,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
 
                 <Button
                   onClick={() => setIsAddHeroOpen(true)}
-                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                  className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-sm px-4"
                 >
                   <Plus className="size-4" />
                   <span>Add New Hero Photo</span>
@@ -656,7 +714,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                               target="_blank"
                               rel="noreferrer"
                               title="Open image in new tab"
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] bg-[#EEF2FF] hover:bg-[#E0E7FF] dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 border border-[#C7D2FE] dark:border-indigo-800/60 rounded-md px-2.5 py-1 transition-colors"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/15 border border-primary/20 rounded-md px-2.5 py-1 transition-colors"
                             >
                               <ExternalLink className="size-3.5" />
                               <span>View</span>
@@ -692,7 +750,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                 onClick={() => setEditingHeroSlide(item)}
                                 className="cursor-pointer gap-2 text-sm"
                               >
-                                <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                <SquarePen className="h-4 w-4 text-primary" />
                                 <span>Edit Slide</span>
                               </DropdownMenuItem>
                               {item.is_active ? (
@@ -778,7 +836,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                         Save Hero Slide
                       </Button>
                     </DialogFooter>
@@ -827,7 +885,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                   href={editingHeroSlide.image_url}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-medium text-[#4F46E5] hover:underline"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                                 >
                                   <ExternalLink className="size-3" />
                                   <span>View full image</span>
@@ -860,7 +918,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -904,7 +962,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
 
                 <Button
                   onClick={() => setIsAddQuickInfoOpen(true)}
-                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                  className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-sm px-4"
                 >
                   <Plus className="size-4" />
                   <span>Add Quick Info</span>
@@ -933,7 +991,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                               target="_blank"
                               rel="noreferrer"
                               title="Open link in new tab"
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] bg-[#EEF2FF] hover:bg-[#E0E7FF] dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 border border-[#C7D2FE] dark:border-indigo-800/60 rounded-md px-2.5 py-1 transition-colors"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/15 border border-primary/20 rounded-md px-2.5 py-1 transition-colors"
                             >
                               <ExternalLink className="size-3.5" />
                               <span>{item.link_url}</span>
@@ -969,7 +1027,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                 onClick={() => setEditingQuickInfo(item)}
                                 className="cursor-pointer gap-2 text-sm"
                               >
-                                <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                <SquarePen className="h-4 w-4 text-primary" />
                                 <span>Edit Item</span>
                               </DropdownMenuItem>
                               {item.is_active ? (
@@ -1063,7 +1121,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                         Save Quick Info
                       </Button>
                     </DialogFooter>
@@ -1122,7 +1180,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -1166,7 +1224,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
 
                 <Button
                   onClick={() => setIsAddLeadershipOpen(true)}
-                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                  className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-sm px-4"
                 >
                   <Plus className="size-4" />
                   <span>Add New Leadership Card</span>
@@ -1229,7 +1287,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                   onClick={() => setEditingLeadership(item)}
                                   className="cursor-pointer gap-2 text-sm"
                                 >
-                                  <SquarePen className="h-4 w-4 text-[#4F46E5]" />
+                                  <SquarePen className="h-4 w-4 text-primary" />
                                   <span>Edit Card</span>
                                 </DropdownMenuItem>
                                 {item.is_active ? (
@@ -1351,7 +1409,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                         Save Leadership Card
                       </Button>
                     </DialogFooter>
@@ -1438,7 +1496,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -1500,69 +1558,102 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
           ) : null}
 
           {activeTab === "gallery" ? (
-            <section className="space-y-4 rounded-xl border bg-card p-5">
+            <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-xl font-semibold">Photo Gallery Section</h2>
+                  <h2 className="text-xl font-bold text-foreground">Photo Gallery Section</h2>
                   <p className="text-sm text-muted-foreground">
-                    Uses the same photo gallery records shown on the public homepage.
+                    Direct feed of campus photo gallery records displayed on the public homepage.
                   </p>
                 </div>
-                <Button asChild>
+                <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs cursor-pointer">
                   <Link href="/admin/photo-gallery">
-                    <Plus className="size-4" />
+                    <Plus className="size-3.5 mr-1" />
                     Manage Photo Gallery
                   </Link>
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="rounded-lg border bg-card p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Photos</p>
-                  <p className="mt-2 text-2xl font-bold">{galleryPhotos.length}</p>
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Photos</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <GalleryHorizontal className="size-4" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-black text-foreground">{galleryPhotos.length}</p>
                 </div>
-                <div className="rounded-lg border bg-card p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Published Photos</p>
-                  <p className="mt-2 text-2xl font-bold">{galleryPhotos.filter((item) => item.published !== false).length}</p>
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Published Photos</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <Eye className="size-4" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-black text-foreground">{galleryPhotos.filter((item) => item.published !== false).length}</p>
                 </div>
-                <div className="rounded-lg border bg-card p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Categories</p>
-                  <p className="mt-2 text-2xl font-bold">{new Set(galleryPhotos.map((item) => item.category)).size}</p>
+                <div className="rounded-xl border border-border bg-card p-4.5 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Categories</p>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <BookOpen className="size-4" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-black text-foreground">{new Set(galleryPhotos.map((item) => item.category)).size}</p>
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[920px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+              <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-2xs">
+                <table className="w-full min-w-[500px] text-sm">
+                  <thead className="bg-muted/50 text-left border-b border-border text-xs font-semibold text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 font-medium">ID</th>
-                      <th className="px-3 py-2 font-medium">Title</th>
-                      <th className="px-3 py-2 font-medium">Category</th>
-                      <th className="px-3 py-2 font-medium">Date</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium">Preview</th>
+                      <th className="px-4 py-3">Photo & Title</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Preview</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border/60">
                     {galleryPhotos.slice(0, 20).map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-mono text-xs">{item.id}</td>
-                        <td className="px-3 py-2">{item.title}</td>
-                        <td className="px-3 py-2 capitalize">{item.category}</td>
-                        <td className="px-3 py-2">{item.photo_date ? new Date(item.photo_date).toLocaleDateString() : "-"}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={item.published !== false ? "success" : "secondary"}>{item.published !== false ? "Published" : "Draft"}</Badge>
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="relative size-10 rounded-lg overflow-hidden border border-border shrink-0 bg-muted">
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-foreground text-sm truncate max-w-sm">{item.title}</p>
+                              {item.description ? (
+                                <p className="text-xs text-muted-foreground truncate max-w-sm">{item.description}</p>
+                              ) : null}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-3 py-2 max-w-[220px] truncate">
-                          <a href={item.image_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 dark:text-blue-300">
-                            Open Image
+                        <td className="px-4 py-3">
+                          <Badge variant={item.published !== false ? "success" : "secondary"}>
+                            {item.published !== false ? "Published" : "Draft"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <a
+                            href={item.image_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          >
+                            <ExternalLink className="size-3.5" />
+                            <span>View</span>
                           </a>
                         </td>
                       </tr>
                     ))}
                     {galleryPhotos.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={3} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No photo gallery items found. Add photos from the Photo Gallery admin page.
                         </td>
                       </tr>
@@ -1574,209 +1665,198 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
           ) : null}
 
           {activeTab === "programs" ? (
-            <section className="space-y-4 rounded-xl border bg-card p-5">
+            <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-xl font-semibold">Academic Programs</h2>
-                  <p className="text-sm text-muted-foreground">Manage program cards, icons and order.</p>
+                  <h2 className="text-xl font-bold text-foreground">Academic Programs</h2>
+                  <p className="text-sm text-muted-foreground">Manage academic departments, syllabus links, and homepage highlights.</p>
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button>
-                      <Plus className="size-4" />
-                      Add Program
+                    <Button
+                      size="sm"
+                      className="h-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-xs shadow-xs cursor-pointer px-3.5"
+                    >
+                      <Plus className="size-3.5" />
+                      <span>Add Program</span>
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <Sparkles className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Academic Program</AlertDialogTitle>
-                      <AlertDialogDescription>Create a new academic program card.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <form action={createAcademicProgramAction} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="prog-name" className="text-sm font-medium text-foreground">Program Name</label>
-                        <input id="prog-name" name="program_name" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Science" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="prog-slug" className="text-sm font-medium text-foreground">Program Slug</label>
-                        <input id="prog-slug" name="program_slug" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="science" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="prog-desc" className="text-sm font-medium text-foreground">Description</label>
-                        <textarea id="prog-desc" name="description" rows={3} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" placeholder="Program description..." />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                  <AlertDialogContent className="sm:max-w-xl">
+                    <form action={createAcademicProgramAction} className="space-y-0">
+                      <AlertDialogHeader>
+                        <AlertDialogMedia className="bg-primary/10 text-primary">
+                          <BookOpen className="size-5" />
+                        </AlertDialogMedia>
+                        <AlertDialogTitle>Add Academic Program</AlertDialogTitle>
+                        <AlertDialogDescription>Create a new academic department or program card.</AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="grid gap-4 px-6 py-4 max-h-[70vh] overflow-y-auto">
                         <div className="space-y-2">
-                          <label htmlFor="prog-icon" className="text-sm font-medium text-foreground">Icon</label>
-                          <Select defaultValue="book-open" name="icon_key">
-                            <SelectTrigger id="prog-icon" className="!h-11">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {iconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <Label htmlFor="prog-name" className="text-sm font-bold text-foreground">
+                            Program Name <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="prog-name"
+                            name="program_name"
+                            required
+                            className="h-10 text-sm border-border"
+                            placeholder="e.g. Science, Commerce, Hifz-ul-Quran"
+                          />
                         </div>
+
                         <div className="space-y-2">
-                          <label htmlFor="prog-order" className="text-sm font-medium text-foreground">Display Order</label>
-                          <input id="prog-order" type="number" name="display_order" defaultValue={academicPrograms.length + 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
+                          <Label htmlFor="prog-slug" className="text-sm font-bold text-foreground">
+                            Program Slug <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="prog-slug"
+                            name="program_slug"
+                            required
+                            className="h-10 text-sm border-border"
+                            placeholder="e.g. science, commerce, hifz"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="prog-desc" className="text-sm font-bold text-foreground">
+                            Description
+                          </Label>
+                          <textarea
+                            id="prog-desc"
+                            name="description"
+                            rows={3}
+                            className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="Brief description of the academic program..."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="prog-icon" className="text-sm font-bold text-foreground">
+                              Icon
+                            </Label>
+                            <Select defaultValue="book-open" name="icon_key">
+                              <SelectTrigger id="prog-icon" className="h-10 text-sm border-border">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {iconOptions.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="prog-order" className="text-sm font-bold text-foreground">
+                              Display Order
+                            </Label>
+                            <Input
+                              id="prog-order"
+                              type="number"
+                              name="display_order"
+                              defaultValue={academicPrograms.length + 1}
+                              className="h-10 text-sm border-border"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="prog-url" className="text-sm font-bold text-foreground">
+                            Link URL (Optional)
+                          </Label>
+                          <Input
+                            id="prog-url"
+                            name="link_url"
+                            type="url"
+                            className="h-10 text-sm border-border"
+                            placeholder="https://... (Optional)"
+                          />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label htmlFor="prog-url" className="text-sm font-medium text-foreground">Link URL</label>
-                        <input id="prog-url" name="link_url" type="url" className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="#" />
-                      </div>
+
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Program</Button>
+                        <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                          Save Program
+                        </Button>
                       </AlertDialogFooter>
                     </form>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[900px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+
+              <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-2xs">
+                <table className="w-full min-w-[500px] text-sm">
+                  <thead className="bg-muted/50 text-left border-b border-border text-xs font-semibold text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 font-medium">Name</th>
-                      <th className="px-3 py-2 font-medium">Slug</th>
-                      <th className="px-3 py-2 font-medium">Description</th>
-                      <th className="px-3 py-2 font-medium">Icon</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3">Program Name</th>
+                      <th className="px-4 py-3">Order</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border/60">
                     {academicPrograms.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-medium">{item.program_name}</td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">{item.program_slug}</td>
-                        <td className="px-3 py-2 max-w-[200px] truncate text-sm">{item.description}</td>
-                        <td className="px-3 py-2 text-sm">{item.icon_key}</td>
-                        <td className="px-3 py-2">{item.display_order}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-foreground">{item.program_name}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs font-medium">{item.display_order}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={item.is_active ? "success" : "secondary"}>
+                            {item.is_active ? "Active" : "Inactive"}
+                          </Badge>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`prog-edit-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia><Pencil className="size-5" /></AlertDialogMedia>
-                                <AlertDialogTitle>Edit Program</AlertDialogTitle>
-                                <AlertDialogDescription>Update program details.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={updateAcademicProgramAction} className="space-y-4">
-                                <input type="hidden" name="id" value={item.id} />
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-prog-name-${item.id}`} className="text-sm font-medium text-foreground">Program Name</label>
-                                  <input id={`edit-prog-name-${item.id}`} name="program_name" defaultValue={item.program_name} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-prog-desc-${item.id}`} className="text-sm font-medium text-foreground">Description</label>
-                                  <textarea id={`edit-prog-desc-${item.id}`} name="description" defaultValue={item.description || ""} rows={3} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-prog-icon-${item.id}`} className="text-sm font-medium text-foreground">Icon</label>
-                                    <Select defaultValue={item.icon_key} name="icon_key">
-                                      <SelectTrigger id={`edit-prog-icon-${item.id}`} className="!h-11">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectGroup>
-                                          {iconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-prog-order-${item.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                    <input id={`edit-prog-order-${item.id}`} type="number" name="display_order" defaultValue={item.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-prog-url-${item.id}`} className="text-sm font-medium text-foreground">Link URL</label>
-                                  <input id={`edit-prog-url-${item.id}`} name="link_url" type="url" defaultValue={item.link_url || ""} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <form id={`prog-archive-${item.id}`} action={setAcademicProgramStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={item.id} />
-                            <input type="hidden" name="status" value="archived" />
-                          </form>
-                          <form id={`prog-publish-${item.id}`} action={setAcademicProgramStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={item.id} />
-                            <input type="hidden" name="status" value="published" />
-                          </form>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`prog-delete-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive"><Trash2Icon /></AlertDialogMedia>
-                                <AlertDialogTitle>Delete Program?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently delete this program.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={deleteAcademicProgramAction}>
-                                <input type="hidden" name="id" value={item.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => document.getElementById(`prog-edit-${item.id}`)?.click()}>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              {item.is_active ? (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`prog-archive-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`prog-publish-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Send className="mr-2 size-4" />
-                                  Publish
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem className="text-red-600" onClick={() => document.getElementById(`prog-delete-${item.id}`)?.click()}>
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end">
+                            <AdminActionsDropdown
+                              onEdit={() => setEditingProgram(item)}
+                              editLabel="Edit"
+                              toggleActive={{
+                                isActive: item.is_active,
+                                activeLabel: "Archive",
+                                inactiveLabel: "Publish",
+                                activeIcon: <Archive className="h-4 w-4 text-muted-foreground" />,
+                                inactiveIcon: <Send className="h-4 w-4 text-emerald-600" />,
+                                onToggle: () => {
+                                  const form = document.getElementById(
+                                    item.is_active ? `prog-archive-${item.id}` : `prog-publish-${item.id}`
+                                  ) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                },
+                              }}
+                              onDelete={() => {
+                                if (confirm(`Permanently delete academic program "${item.program_name}"?`)) {
+                                  const form = document.getElementById(`prog-del-${item.id}`) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                }
+                              }}
+                              deleteLabel="Delete"
+                            />
+
+                            {/* Hidden action forms */}
+                            <form id={`prog-archive-${item.id}`} action={setAcademicProgramStatusAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                              <input type="hidden" name="status" value="archived" />
+                            </form>
+                            <form id={`prog-publish-${item.id}`} action={setAcademicProgramStatusAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                              <input type="hidden" name="status" value="published" />
+                            </form>
+                            <form id={`prog-del-${item.id}`} action={deleteAcademicProgramAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                            </form>
+                          </div>
                         </td>
                       </tr>
                     ))}
                     {academicPrograms.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No academic programs found. Add your first program.
                         </td>
                       </tr>
@@ -1784,6 +1864,121 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   </tbody>
                 </table>
               </div>
+
+              {/* Edit Program Dialog */}
+              {editingProgram && (
+                <AlertDialog open={true} onOpenChange={(open) => !open && setEditingProgram(null)}>
+                  <AlertDialogContent className="sm:max-w-xl">
+                    <form action={updateAcademicProgramAction} className="space-y-0" onSubmit={() => setEditingProgram(null)}>
+                      <input type="hidden" name="id" value={editingProgram.id} />
+                      <AlertDialogHeader>
+                        <AlertDialogMedia className="bg-primary/10 text-primary">
+                          <Pencil className="size-5" />
+                        </AlertDialogMedia>
+                        <AlertDialogTitle>Edit Academic Program</AlertDialogTitle>
+                        <AlertDialogDescription>Update program information, icon, and ordering.</AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="grid gap-4 px-6 py-4 max-h-[70vh] overflow-y-auto text-left">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-prog-name" className="text-sm font-bold text-foreground">
+                            Program Name <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="edit-prog-name"
+                            name="program_name"
+                            defaultValue={editingProgram.program_name}
+                            required
+                            className="h-10 text-sm border-border"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-prog-slug" className="text-sm font-bold text-foreground">
+                            Program Slug <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="edit-prog-slug"
+                            name="program_slug"
+                            defaultValue={editingProgram.program_slug}
+                            required
+                            className="h-10 text-sm border-border"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-prog-desc" className="text-sm font-bold text-foreground">
+                            Description
+                          </Label>
+                          <textarea
+                            id="edit-prog-desc"
+                            name="description"
+                            defaultValue={editingProgram.description || ""}
+                            rows={3}
+                            className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-prog-icon" className="text-sm font-bold text-foreground">
+                              Icon
+                            </Label>
+                            <Select defaultValue={editingProgram.icon_key} name="icon_key">
+                              <SelectTrigger id="edit-prog-icon" className="h-10 text-sm border-border">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {iconOptions.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-prog-order" className="text-sm font-bold text-foreground">
+                              Display Order
+                            </Label>
+                            <Input
+                              id="edit-prog-order"
+                              type="number"
+                              name="display_order"
+                              defaultValue={editingProgram.display_order}
+                              className="h-10 text-sm border-border"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-prog-url" className="text-sm font-bold text-foreground">
+                            Link URL (Optional)
+                          </Label>
+                          <Input
+                            id="edit-prog-url"
+                            name="link_url"
+                            type="url"
+                            defaultValue={editingProgram.link_url || ""}
+                            className="h-10 text-sm border-border"
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setEditingProgram(null)}>Cancel</AlertDialogCancel>
+                        <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                          Update Program
+                        </Button>
+                      </AlertDialogFooter>
+                    </form>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </section>
           ) : null}
 
@@ -1796,7 +1991,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                 </div>
                 <Button
                   onClick={() => setIsAddStatOpen(true)}
-                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                  className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-sm px-4"
                 >
                   <Plus className="size-4" />
                   <span>Add Statistic</span>
@@ -1957,7 +2152,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                         Save Statistic
                       </Button>
                     </DialogFooter>
@@ -2025,7 +2220,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -2068,7 +2263,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                 </div>
                 <Button
                   onClick={() => setIsAddSectionOpen(true)}
-                  className="h-10 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 font-semibold text-sm px-4"
+                  className="h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-semibold text-sm px-4"
                 >
                   <Plus className="size-4" />
                   <span>Add Section</span>
@@ -2095,7 +2290,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         <Button
                           size="sm"
                           onClick={() => setAddingLinkToSection(section)}
-                          className="h-8 rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1 font-semibold text-xs px-3"
+                          className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 gap-1 font-semibold text-xs px-3"
                         >
                           <Plus className="size-3.5" />
                           <span>Add Link</span>
@@ -2183,7 +2378,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                                     href={link.link_url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-[#4F46E5] hover:underline"
+                                    className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-primary hover:underline"
                                   >
                                     <LinkIcon className="size-3 shrink-0" />
                                     <span className="truncate max-w-[280px]">{link.link_url}</span>
@@ -2307,7 +2502,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                           Cancel
                         </Button>
                       </DialogClose>
-                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                      <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                         Save Section
                       </Button>
                     </DialogFooter>
@@ -2352,7 +2547,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -2428,7 +2623,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Link
                         </Button>
                       </DialogFooter>
@@ -2479,7 +2674,7 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                         >
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]">
+                        <Button type="submit" className="h-10 rounded-lg px-5 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90">
                           Save Changes
                         </Button>
                       </DialogFooter>
@@ -2514,227 +2709,205 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
           ) : null}
 
           {activeTab === "extracurriculars" ? (
-            <section className="space-y-4 rounded-xl border bg-card p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold">Extracurricular Clubs</h2>
+                  <h2 className="text-xl font-bold tracking-tight text-foreground">Extracurricular Clubs</h2>
                   <p className="text-sm text-muted-foreground">Manage co-curricular activities, display order, and upload logos.</p>
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button>
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-xs">
                       <Plus className="size-4" />
                       Add Club
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-2xl sm:max-w-2xl">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia>
-                        <Sparkles className="size-5" />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>Add Extracurricular Club</AlertDialogTitle>
-                      <AlertDialogDescription>Create a new extracurricular club card.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <form action={createHomepageExtracurricularAction} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="club-name" className="text-sm font-medium text-foreground">Club Name</label>
-                        <input id="club-name" name="name" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="Scouts" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="club-slug" className="text-sm font-medium text-foreground">Club Slug</label>
-                        <input id="club-slug" name="slug" required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" placeholder="scouts" />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="club-desc" className="text-sm font-medium text-foreground">Description</label>
-                        <textarea id="club-desc" name="description" rows={3} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" placeholder="Club description..." />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                  <AlertDialogContent className="sm:max-w-xl">
+                    <form action={createHomepageExtracurricularAction} className="space-y-0">
+                      <AlertDialogHeader>
+                        <AlertDialogMedia className="bg-primary/10 text-primary">
+                          <Sparkles className="size-5" />
+                        </AlertDialogMedia>
+                        <AlertDialogTitle>Add Extracurricular Club</AlertDialogTitle>
+                        <AlertDialogDescription>Create a new extracurricular club card.</AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="grid gap-4 px-6 py-4 max-h-[70vh] overflow-y-auto text-left">
                         <div className="space-y-2">
-                          <label htmlFor="club-icon" className="text-sm font-medium text-foreground">Lucide Icon</label>
-                          <Select defaultValue="sparkles" name="icon_key">
-                            <SelectTrigger id="club-icon" className="!h-11">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {extracurricularIconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <Label htmlFor="club-name" className="text-sm font-bold text-foreground">
+                            Club Name <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="club-name"
+                            name="name"
+                            required
+                            className="h-10 text-sm border-border"
+                            placeholder="e.g. Scouts & Rover Club"
+                          />
                         </div>
+
                         <div className="space-y-2">
-                          <label htmlFor="club-order" className="text-sm font-medium text-foreground">Display Order</label>
-                          <input id="club-order" type="number" name="display_order" defaultValue={extracurriculars.length + 1} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
+                          <Label htmlFor="club-slug" className="text-sm font-bold text-foreground">
+                            Club Slug <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="club-slug"
+                            name="slug"
+                            required
+                            className="h-10 text-sm border-border"
+                            placeholder="e.g. scouts-club"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="club-desc" className="text-sm font-bold text-foreground">
+                            Description
+                          </Label>
+                          <textarea
+                            id="club-desc"
+                            name="description"
+                            rows={3}
+                            className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="Brief description of the club..."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="club-icon" className="text-sm font-bold text-foreground">
+                              Lucide Icon
+                            </Label>
+                            <Select defaultValue="sparkles" name="icon_key">
+                              <SelectTrigger id="club-icon" className="h-10 text-sm border-border">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {extracurricularIconOptions.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="club-order" className="text-sm font-bold text-foreground">
+                              Display Order
+                            </Label>
+                            <Input
+                              id="club-order"
+                              type="number"
+                              name="display_order"
+                              defaultValue={extracurriculars.length + 1}
+                              className="h-10 text-sm border-border"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="club-logo-file" className="text-sm font-bold text-foreground">
+                            Club Logo File
+                          </Label>
+                          <input
+                            id="club-logo-file"
+                            name="logo_file"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                          />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label htmlFor="club-logo-file" className="text-sm font-medium text-foreground">Club Logo File</label>
-                        <input id="club-logo-file" name="logo_file" type="file" accept="image/jpeg,image/png,image/webp" className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                      </div>
+
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit">Save Club</Button>
+                        <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                          Save Club
+                        </Button>
                       </AlertDialogFooter>
                     </form>
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
 
-              <div className="overflow-x-auto rounded-md border">
-                <table className="w-full min-w-[900px] text-sm">
-                  <thead className="bg-muted/40 text-left">
+              <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-2xs">
+                <table className="w-full min-w-[500px] text-sm">
+                  <thead className="bg-muted/50 text-left border-b border-border text-xs font-semibold text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 font-medium">Name</th>
-                      <th className="px-3 py-2 font-medium">Slug</th>
-                      <th className="px-3 py-2 font-medium">Description</th>
-                      <th className="px-3 py-2 font-medium">Icon</th>
-                      <th className="px-3 py-2 font-medium">Logo</th>
-                      <th className="px-3 py-2 font-medium">Order</th>
-                      <th className="px-3 py-2 font-medium">Status</th>
-                      <th className="px-3 py-2 font-medium text-right">Action</th>
+                      <th className="px-4 py-3">Club Name</th>
+                      <th className="px-4 py-3">Logo</th>
+                      <th className="px-4 py-3">Order</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border/60">
                     {extracurriculars.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="px-3 py-2 font-medium">{item.name}</td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">{item.slug}</td>
-                        <td className="px-3 py-2 max-w-[200px] truncate text-sm">{item.description || "-"}</td>
-                        <td className="px-3 py-2 text-sm">{item.icon_key}</td>
-                        <td className="px-3 py-2 text-sm">
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-foreground">{item.name}</td>
+                        <td className="px-4 py-3 text-sm">
                           {item.logo_url ? (
-                            <a href={item.logo_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 dark:text-blue-300">
+                            <a href={item.logo_url} target="_blank" rel="noreferrer" className="text-primary underline hover:text-primary/80 text-xs font-medium">
                               View Logo
                             </a>
                           ) : (
-                            <span className="text-muted-foreground">None</span>
+                            <span className="text-muted-foreground text-xs">None</span>
                           )}
                         </td>
-                        <td className="px-3 py-2">{item.display_order}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={item.is_active ? "success" : "secondary"}>{item.is_active ? "Active" : "Inactive"}</Badge>
+                        <td className="px-4 py-3 text-muted-foreground text-xs font-medium">{item.display_order}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={item.is_active ? "success" : "secondary"}>
+                            {item.is_active ? "Active" : "Inactive"}
+                          </Badge>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`club-edit-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-w-2xl">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia><Pencil className="size-5" /></AlertDialogMedia>
-                                <AlertDialogTitle>Edit Extracurricular Club</AlertDialogTitle>
-                                <AlertDialogDescription>Update club details and upload a new logo if needed.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={updateHomepageExtracurricularAction} className="space-y-4">
-                                <input type="hidden" name="id" value={item.id} />
-                                <input type="hidden" name="existing_logo_url" value={item.logo_url || ""} />
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-club-name-${item.id}`} className="text-sm font-medium text-foreground">Club Name</label>
-                                  <input id={`edit-club-name-${item.id}`} name="name" defaultValue={item.name} required className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-club-desc-${item.id}`} className="text-sm font-medium text-foreground">Description</label>
-                                  <textarea id={`edit-club-desc-${item.id}`} name="description" defaultValue={item.description || ""} rows={3} className="w-full rounded-xl border border-input bg-background text-foreground px-4 py-3 outline-none focus:border-blue-500" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-club-icon-${item.id}`} className="text-sm font-medium text-foreground">Lucide Icon</label>
-                                    <Select defaultValue={item.icon_key} name="icon_key">
-                                      <SelectTrigger id={`edit-club-icon-${item.id}`} className="!h-11">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectGroup>
-                                          {extracurricularIconOptions.map((opt) => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                        </SelectGroup>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <label htmlFor={`edit-club-order-${item.id}`} className="text-sm font-medium text-foreground">Display Order</label>
-                                    <input id={`edit-club-order-${item.id}`} type="number" name="display_order" defaultValue={item.display_order} className="h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 outline-none focus:border-primary" />
-                                  </div>
-                                </div>
-                                <div className="space-y-2">
-                                  <label htmlFor={`edit-club-logo-${item.id}`} className="text-sm font-medium text-foreground">Replace Logo File</label>
-                                  <input id={`edit-club-logo-${item.id}`} name="logo_file" type="file" accept="image/jpeg,image/png,image/webp" className="block h-11 w-full rounded-xl border border-input bg-background text-foreground px-4 py-2 outline-none focus:border-primary" />
-                                  {item.logo_url && (
-                                    <p className="text-xs text-muted-foreground mt-1">Current logo: <a href={item.logo_url} target="_blank" rel="noreferrer" className="text-blue-600 underline">View</a></p>
-                                  )}
-                                </div>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <Button type="submit">Save Changes</Button>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end">
+                            <AdminActionsDropdown
+                              onEdit={() => setEditingClub(item)}
+                              editLabel="Edit"
+                              toggleActive={{
+                                isActive: item.is_active,
+                                activeLabel: "Archive",
+                                inactiveLabel: "Publish",
+                                activeIcon: <Archive className="h-4 w-4 text-muted-foreground" />,
+                                inactiveIcon: <Send className="h-4 w-4 text-emerald-600" />,
+                                onToggle: () => {
+                                  const form = document.getElementById(
+                                    item.is_active ? `club-archive-${item.id}` : `club-publish-${item.id}`
+                                  ) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                },
+                              }}
+                              onDelete={() => {
+                                if (confirm(`Permanently delete extracurricular club "${item.name}"?`)) {
+                                  const form = document.getElementById(`club-del-${item.id}`) as HTMLFormElement | null
+                                  form?.requestSubmit()
+                                }
+                              }}
+                              deleteLabel="Delete"
+                            />
 
-                          <form id={`club-archive-${item.id}`} action={setHomepageExtracurricularStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={item.id} />
-                            <input type="hidden" name="status" value="archived" />
-                          </form>
-                          <form id={`club-publish-${item.id}`} action={setHomepageExtracurricularStatusAction} className="hidden">
-                            <input type="hidden" name="id" value={item.id} />
-                            <input type="hidden" name="status" value="published" />
-                          </form>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button id={`club-delete-${item.id}`} type="button" className="hidden" />
-                            </AlertDialogTrigger>
-                            <AlertDialogContent size="sm">
-                              <AlertDialogHeader>
-                                <AlertDialogMedia className="bg-destructive/10 text-destructive"><Trash2Icon /></AlertDialogMedia>
-                                <AlertDialogTitle>Delete Club?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently delete the club "{item.name}".</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <form action={deleteHomepageExtracurricularAction}>
-                                <input type="hidden" name="id" value={item.id} />
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-                                  <AlertDialogAction type="submit" variant="destructive">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </form>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => document.getElementById(`club-edit-${item.id}`)?.click()}>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              {item.is_active ? (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`club-archive-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Archive className="mr-2 size-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => (document.getElementById(`club-publish-${item.id}`) as HTMLFormElement)?.requestSubmit()}>
-                                  <Send className="mr-2 size-4" />
-                                  Publish
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem className="text-red-600" onClick={() => document.getElementById(`club-delete-${item.id}`)?.click()}>
-                                <Trash2Icon className="mr-2 size-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                            {/* Hidden action forms */}
+                            <form id={`club-archive-${item.id}`} action={setHomepageExtracurricularStatusAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                              <input type="hidden" name="status" value="archived" />
+                            </form>
+                            <form id={`club-publish-${item.id}`} action={setHomepageExtracurricularStatusAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                              <input type="hidden" name="status" value="published" />
+                            </form>
+                            <form id={`club-del-${item.id}`} action={deleteHomepageExtracurricularAction} className="hidden">
+                              <input type="hidden" name="id" value={item.id} />
+                            </form>
+                          </div>
                         </td>
                       </tr>
                     ))}
                     {extracurriculars.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
                           No extracurricular clubs found. Add your first club.
                         </td>
                       </tr>
@@ -2742,6 +2915,126 @@ export function HomepageSettingsManager({ heroSlides, quickInfoItems, leadership
                   </tbody>
                 </table>
               </div>
+
+              {/* Edit Club Dialog */}
+              {editingClub && (
+                <AlertDialog open={true} onOpenChange={(open) => !open && setEditingClub(null)}>
+                  <AlertDialogContent className="sm:max-w-xl">
+                    <form action={updateHomepageExtracurricularAction} className="space-y-0" onSubmit={() => setEditingClub(null)}>
+                      <input type="hidden" name="id" value={editingClub.id} />
+                      <input type="hidden" name="existing_logo_url" value={editingClub.logo_url || ""} />
+                      <AlertDialogHeader>
+                        <AlertDialogMedia className="bg-primary/10 text-primary">
+                          <Pencil className="size-5" />
+                        </AlertDialogMedia>
+                        <AlertDialogTitle>Edit Extracurricular Club</AlertDialogTitle>
+                        <AlertDialogDescription>Update club details and upload a new logo if needed.</AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="grid gap-4 px-6 py-4 max-h-[70vh] overflow-y-auto text-left">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-club-name" className="text-sm font-bold text-foreground">
+                            Club Name <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="edit-club-name"
+                            name="name"
+                            defaultValue={editingClub.name}
+                            required
+                            className="h-10 text-sm border-border"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-club-slug" className="text-sm font-bold text-foreground">
+                            Club Slug <span className="text-rose-500">*</span>
+                          </Label>
+                          <Input
+                            id="edit-club-slug"
+                            name="slug"
+                            defaultValue={editingClub.slug}
+                            required
+                            className="h-10 text-sm border-border"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-club-desc" className="text-sm font-bold text-foreground">
+                            Description
+                          </Label>
+                          <textarea
+                            id="edit-club-desc"
+                            name="description"
+                            defaultValue={editingClub.description || ""}
+                            rows={3}
+                            className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-club-icon" className="text-sm font-bold text-foreground">
+                              Lucide Icon
+                            </Label>
+                            <Select defaultValue={editingClub.icon_key} name="icon_key">
+                              <SelectTrigger id="edit-club-icon" className="h-10 text-sm border-border">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {extracurricularIconOptions.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-club-order" className="text-sm font-bold text-foreground">
+                              Display Order
+                            </Label>
+                            <Input
+                              id="edit-club-order"
+                              type="number"
+                              name="display_order"
+                              defaultValue={editingClub.display_order}
+                              className="h-10 text-sm border-border"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-club-logo" className="text-sm font-bold text-foreground">
+                            Replace Logo File
+                          </Label>
+                          <input
+                            id="edit-club-logo"
+                            name="logo_file"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20 cursor-pointer"
+                          />
+                          {editingClub.logo_url && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Current logo: <a href={editingClub.logo_url} target="_blank" rel="noreferrer" className="text-primary underline">View</a>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <AlertDialogFooter>
+                        <AlertDialogCancel type="button" onClick={() => setEditingClub(null)}>Cancel</AlertDialogCancel>
+                        <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                          Save Changes
+                        </Button>
+                      </AlertDialogFooter>
+                    </form>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </section>
           ) : null}
         </div>

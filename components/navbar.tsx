@@ -113,7 +113,7 @@ export function Navbar() {
       {/* Main User Avatar & Account Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full ring-2 ring-transparent transition hover:ring-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]">
+          <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full ring-2 ring-transparent transition hover:ring-primary/40 focus:ring-2 focus:ring-primary">
             <Avatar className="h-8 w-8 rounded-full border border-border">
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">

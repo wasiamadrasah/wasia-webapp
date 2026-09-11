@@ -12,6 +12,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { Outfit } from "next/font/google"
+import { AdminSystemThemeProvider } from "@/components/admin/admin-system-theme-provider"
 
 const outfit = Outfit({ subsets: ["latin"] })
 
@@ -70,8 +71,11 @@ export default async function AdminLayout({
 
   return (
     <div 
-      className={`admin-theme h-screen overflow-hidden flex flex-col bg-background text-foreground ${outfit.className}`}
-      style={{ "--font-sans": outfit.style.fontFamily } as React.CSSProperties}
+      className="admin-theme h-screen overflow-hidden flex flex-col bg-background text-foreground"
+      style={{
+        "--font-sans": "var(--admin-font-family, 'Outfit', sans-serif)",
+        fontFamily: "var(--admin-font-family, 'Outfit', sans-serif)",
+      } as React.CSSProperties}
     >
       <TooltipProvider>
         <SidebarProvider suppressHydrationWarning>

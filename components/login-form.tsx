@@ -135,7 +135,7 @@ export function LoginForm({
         <section className="flex items-center p-6 sm:p-10 bg-white">
           <div className="w-full space-y-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#4F46E5]">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Admin Authentication</span>
               </div>
@@ -168,7 +168,7 @@ export function LoginForm({
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   required
-                  className="h-10 w-full rounded-lg border border-[#CBD5E1] bg-white px-3.5 text-sm text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5]"
+                  className="h-10 w-full rounded-lg border border-[#CBD5E1] bg-white px-3.5 text-sm text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export function LoginForm({
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     required
-                    className="h-10 w-full rounded-lg border border-[#CBD5E1] bg-white px-3.5 pr-11 text-sm text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5]"
+                    className="h-10 w-full rounded-lg border border-[#CBD5E1] bg-white px-3.5 pr-11 text-sm text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                   <button
                     type="button"
@@ -213,17 +213,17 @@ export function LoginForm({
                     value={userInputCode}
                     onChange={(e) => setUserInputCode(e.target.value.replace(/\D/g, ""))}
                     required
-                    className="h-10 min-w-0 rounded-lg border border-[#CBD5E1] bg-white px-3.5 text-sm font-mono text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-[#4F46E5] focus:ring-1 focus:ring-[#4F46E5]"
+                    className="h-10 min-w-0 rounded-lg border border-[#CBD5E1] bg-white px-3.5 text-sm font-mono text-[#0F172A] outline-none transition-all placeholder:text-[#94A3B8] focus:border-primary focus:ring-1 focus:ring-primary"
                   />
-                  <div className="flex h-10 w-full items-center justify-between rounded-lg border border-[#C7D2FE] bg-[#EEF2FF] px-3 font-mono text-base font-bold tracking-widest text-[#4F46E5] select-none sm:w-36">
-                    <span className="line-through decoration-[#818CF8]/70 decoration-2 skew-x-12 select-none">
+                  <div className="flex h-10 w-full items-center justify-between rounded-lg border border-primary/20 bg-primary/10 px-3 font-mono text-base font-bold tracking-widest text-primary select-none sm:w-36">
+                    <span className="line-through decoration-primary/70 decoration-2 skew-x-12 select-none">
                       {securityCode}
                     </span>
                     <button
                       type="button"
                       onClick={loadNewCaptcha}
                       disabled={isRefreshing}
-                      className="grid h-7 w-7 place-items-center rounded-md text-[#4F46E5] hover:bg-white hover:shadow-2xs active:scale-90 transition-all disabled:opacity-50"
+                      className="grid h-7 w-7 place-items-center rounded-md text-primary hover:bg-white hover:shadow-2xs active:scale-90 transition-all disabled:opacity-50"
                       title="Get new code"
                       aria-label="Get new verification code"
                     >
@@ -237,7 +237,7 @@ export function LoginForm({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="mt-2 h-10 w-full rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-2 h-10 w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <span>{isLoading ? "Onboarding..." : "Onboard"}</span>
                 {!isLoading && <ArrowRight className="h-4 w-4" />}
@@ -245,7 +245,7 @@ export function LoginForm({
 
               <div className="pt-2 text-center text-xs text-[#64748B]">
                 Need public site access?{" "}
-                <Link href="/" className="font-semibold text-[#4F46E5] hover:underline">
+                <Link href="/" className="font-semibold text-primary hover:underline">
                   Go to homepage
                 </Link>
               </div>

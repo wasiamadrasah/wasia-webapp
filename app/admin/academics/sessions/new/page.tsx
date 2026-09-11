@@ -7,13 +7,13 @@ import { Switch } from "@/components/ui/switch"
 
 export default function NewSessionPage() {
   return (
-    <div className="max-w-lg">
-      <div className="mb-6">
+    <div className="max-w-lg space-y-6">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">New Session</h1>
         <p className="text-muted-foreground mt-1">Create a new academic session (year).</p>
       </div>
 
-      <form action={createSessionAction} className="space-y-6 rounded-xl border p-6">
+      <form action={createSessionAction} className="space-y-6 rounded-xl border p-6 bg-card shadow-sm">
         <div className="space-y-2">
           <Label htmlFor="name">
             Session Name <span className="text-red-500">*</span>
@@ -33,11 +33,11 @@ export default function NewSessionPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Switch id="is_active" name="is_active" value="true" />
+          <Switch id="is_active" name="is_active" value="true" defaultChecked />
           <Label htmlFor="is_active">Set as Active Session</Label>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4 border-t">
           <Button type="submit">Create Session</Button>
           <Button asChild variant="outline">
             <Link href="/admin/academics/sessions">Cancel</Link>

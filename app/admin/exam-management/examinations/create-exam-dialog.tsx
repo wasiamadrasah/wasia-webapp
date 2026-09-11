@@ -65,7 +65,7 @@ export function CreateExamDialog({
       <AlertDialogContent className="sm:max-w-[425px]">
         <form onSubmit={onSubmit}>
           <AlertDialogHeader>
-            <AlertDialogMedia className="bg-[#EEF2FF] text-[#4F46E5] dark:bg-primary/10 dark:text-primary">
+            <AlertDialogMedia className="bg-primary/10 text-primary">
               <GraduationCap className="h-5 w-5" />
             </AlertDialogMedia>
             <AlertDialogTitle>Add New Exam</AlertDialogTitle>

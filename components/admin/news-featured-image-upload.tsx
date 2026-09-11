@@ -83,7 +83,7 @@ export function NewsFeaturedImageUpload({
                 htmlFor="featured-image-upload-change"
                 className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 text-foreground hover:bg-white font-semibold text-xs transition-colors shadow-sm"
               >
-                <UploadCloud className="h-3.5 w-3.5 text-[#4F46E5]" />
+                <UploadCloud className="h-3.5 w-3.5 text-primary" />
                 <span>Replace</span>
               </label>
               <Button
@@ -116,12 +116,12 @@ export function NewsFeaturedImageUpload({
         <div className="relative w-full">
           <label
             htmlFor="featured-image-upload"
-            className={`group relative flex flex-col items-center justify-center w-full min-h-[160px] rounded-xl border-2 border-dashed border-[#CBD5E1] bg-muted/40 p-6 text-center transition-all cursor-pointer hover:border-[#4F46E5] hover:bg-[#EEF2FF]/40 ${
+            className={`group relative flex flex-col items-center justify-center w-full min-h-[160px] rounded-xl border-2 border-dashed border-border bg-muted/40 p-6 text-center transition-all cursor-pointer hover:border-primary hover:bg-primary/5 ${
               uploading ? "opacity-60 pointer-events-none" : ""
             }`}
           >
             <div className="flex flex-col items-center justify-center space-y-2">
-              <div className="rounded-full bg-[#EEF2FF] p-3 text-[#4F46E5] group-hover:bg-[#4F46E5] group-hover:text-white transition-colors">
+              <div className="rounded-full bg-primary/10 p-3 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 {uploading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
@@ -129,7 +129,7 @@ export function NewsFeaturedImageUpload({
                 )}
               </div>
               <div className="space-y-0.5">
-                <p className="text-sm font-bold text-foreground group-hover:text-[#4F46E5] transition-colors">
+                <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                   {uploading ? "Uploading image..." : "Click to upload featured image"}
                 </p>
                 <p className="text-xs text-muted-foreground">

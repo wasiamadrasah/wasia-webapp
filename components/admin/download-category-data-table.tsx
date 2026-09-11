@@ -37,6 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import {
   Drawer,
   DrawerClose,
@@ -262,47 +263,29 @@ export function DownloadCategoryDataTable({
         }
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontalIcon className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <form
-                  action={async (formData) => {
-                    formData.append("category", category.name)
-                    formData.append("status", category.status === "published" ? "archived" : "published")
-                    await setDownloadCategoryStatusAction(formData)
-                  }}
-                >
-                  <DropdownMenuItem asChild>
-                    <button type="submit" className="w-full">
-                      <SendIcon />
-                      {category.status === "published" ? "Archive" : "Publish"}
-                    </button>
-                  </DropdownMenuItem>
-                </form>
-                <form
-                  action={async (formData) => {
-                    formData.append("category", category.name)
-                    await deleteDownloadCategoryAction(formData)
-                  }}
-                >
-                  <DropdownMenuItem asChild variant="destructive">
-                    <button type="submit" className="w-full text-red-600">
-                      <Trash2Icon />
-                      Delete
-                    </button>
-                  </DropdownMenuItem>
-                </form>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-end">
+            <AdminActionsDropdown
+              toggleActive={{
+                isActive: category.status === "published",
+                activeLabel: "Archive",
+                inactiveLabel: "Publish",
+                onToggle: async () => {
+                  const formData = new FormData()
+                  formData.append("category", category.name)
+                  formData.append("status", category.status === "published" ? "archived" : "published")
+                  await setDownloadCategoryStatusAction(formData)
+                },
+              }}
+              onDelete={async () => {
+                if (confirm(`Permanently delete category "${category.name}"?`)) {
+                  const formData = new FormData()
+                  formData.append("category", category.name)
+                  await deleteDownloadCategoryAction(formData)
+                }
+              }}
+              deleteLabel="Delete"
+            />
+          </div>
         )
       },
     },

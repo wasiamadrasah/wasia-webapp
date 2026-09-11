@@ -121,7 +121,7 @@ function NoticeViewer({ notice, basePath = "/admin/notices" }: { notice: NoticeT
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
-        <button type="button" className="text-left font-bold text-sm text-foreground hover:text-[#4F46E5] transition-colors truncate max-w-xs md:max-w-md block">
+        <button type="button" className="text-left font-bold text-sm text-foreground hover:text-primary transition-colors truncate max-w-xs md:max-w-md block">
           {notice.title}
         </button>
       </DrawerTrigger>
@@ -173,7 +173,7 @@ function NoticeViewer({ notice, basePath = "/admin/notices" }: { notice: NoticeT
                 href={notice.attachmentUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#4F46E5] hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
                 <PaperclipIcon className="h-4 w-4" />
                 <span>Open Attachment File</span>
@@ -182,7 +182,7 @@ function NoticeViewer({ notice, basePath = "/admin/notices" }: { notice: NoticeT
           ) : null}
         </div>
         <DrawerFooter className="border-t border-border bg-muted/40 px-6 py-3.5 flex flex-row items-center justify-end gap-2.5">
-          <Button asChild className="h-10 rounded-lg bg-[#4F46E5] text-sm font-semibold text-white hover:bg-[#4338CA]">
+          <Button asChild className="h-10 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90">
             <Link href={`${basePath}/${notice.id}/edit`}>Edit Notice</Link>
           </Button>
           <DrawerClose asChild>
@@ -262,7 +262,7 @@ export function NoticeDataTable({
       accessorKey: "category",
       header: "Category",
       cell: ({ row }) => (
-        <Badge variant="outline" className="rounded-full bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE] font-semibold text-xs px-2.5 py-0.5 capitalize">
+        <Badge variant="outline" className="rounded-full bg-primary/10 text-primary border-primary/20 font-semibold text-xs px-2.5 py-0.5 capitalize">
           {row.original.category}
         </Badge>
       ),
@@ -324,14 +324,14 @@ export function NoticeDataTable({
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
                 <Link href={`${basePath}/${notice.id}/edit`}>
-                  <SquarePenIcon className="h-4 w-4 text-[#4F46E5]" />
+                  <SquarePenIcon className="h-4 w-4 text-primary" />
                   <span>Edit Notice</span>
                 </Link>
               </DropdownMenuItem>
               {notice.attachmentUrl ? (
                 <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
                   <a href={notice.attachmentUrl} target="_blank" rel="noreferrer">
-                    <PaperclipIcon className="h-4 w-4 text-[#2563EB]" />
+                    <PaperclipIcon className="h-4 w-4 text-primary" />
                     <span>Attachment</span>
                   </a>
                 </DropdownMenuItem>
@@ -427,7 +427,7 @@ export function NoticeDataTable({
             </Button>
           ) : null}
 
-          <Button asChild size="sm" className="h-10 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA] gap-1.5 px-4 rounded-lg">
+          <Button asChild size="sm" className="h-10 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 px-4 rounded-lg">
             <Link href={`${basePath}/new`}>
               <Plus className="h-4 w-4" />
               <span>{addLabel}</span>
@@ -500,7 +500,7 @@ export function NoticeDataTable({
                 </div>
 
                 <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
-                  <Badge variant="outline" className="rounded-full bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE] font-semibold text-xs px-2.5 py-0.5 capitalize">
+                  <Badge variant="outline" className="rounded-full bg-primary/10 text-primary border-primary/20 font-semibold text-xs px-2.5 py-0.5 capitalize">
                     {notice.category}
                   </Badge>
 
@@ -510,7 +510,7 @@ export function NoticeDataTable({
                       <span>{notice.views}</span>
                     </span>
                     {notice.attachmentUrl && (
-                      <a href={notice.attachmentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[#2563EB] font-semibold">
+                      <a href={notice.attachmentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-primary font-semibold">
                         <PaperclipIcon className="h-3.5 w-3.5" />
                         <span>Attachment</span>
                       </a>
@@ -524,7 +524,7 @@ export function NoticeDataTable({
                     variant="outline"
                     size="sm"
                     asChild
-                    className="h-8 gap-1.5 text-xs font-semibold text-[#4F46E5] border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF]"
+                    className="h-8 gap-1.5 text-xs font-semibold text-primary border-primary/20 bg-primary/10 hover:bg-primary/20"
                   >
                     <Link href={`${basePath}/${notice.id}/edit`}>
                       <SquarePenIcon className="h-3.5 w-3.5" />

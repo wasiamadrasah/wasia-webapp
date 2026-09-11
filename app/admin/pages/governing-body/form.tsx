@@ -203,7 +203,7 @@ export function GoverningBodyMemberForm({
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
-                className="h-9 gap-1.5 text-sm font-semibold text-[#4F46E5] border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF]"
+                className="h-9 gap-1.5 text-sm font-semibold text-primary border-primary/30 bg-primary/10 hover:bg-primary/20"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span>Change</span>
@@ -229,11 +229,11 @@ export function GoverningBodyMemberForm({
             onDrop={handleDrop}
             className={`group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer ${
               isDragging
-                ? "border-[#4F46E5] bg-[#EEF2FF]"
-                : "border-[#CBD5E1] bg-muted/40 hover:border-[#4F46E5] hover:bg-[#EEF2FF]/50"
+                ? "border-primary bg-primary/10"
+                : "border-border bg-muted/40 hover:border-primary hover:bg-primary/5"
             }`}
           >
-            <div className="rounded-full bg-[#EEF2FF] p-3 text-[#4F46E5] mb-2 group-hover:scale-105 transition-transform">
+            <div className="rounded-full bg-primary/10 p-3 text-primary mb-2 group-hover:scale-105 transition-transform">
               <UploadCloud className="h-6 w-6" />
             </div>
             <p className="text-sm font-bold text-foreground">
@@ -342,7 +342,7 @@ export function GoverningBodyMemberForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 rounded-lg px-4 text-sm font-semibold bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+          className="h-10 rounded-lg px-4 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isLoading ? "Saving..." : "Save Member"}
         </Button>

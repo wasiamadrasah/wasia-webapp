@@ -232,7 +232,7 @@ export function ActivityLogsDataTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-44">
                       <DropdownMenuItem onClick={() => handleViewDetails(log)} className="cursor-pointer gap-2 text-sm">
-                        <Eye className="h-4 w-4 text-[#4F46E5]" />
+                        <Eye className="h-4 w-4 text-primary" />
                         <span>View Details</span>
                       </DropdownMenuItem>
                       {log.ip_address && (
@@ -244,7 +244,7 @@ export function ActivityLogsDataTable({
                             }}
                             className="cursor-pointer gap-2 text-sm"
                           >
-                            <Globe className="h-4 w-4 text-[#2563EB]" />
+                            <Globe className="h-4 w-4 text-primary" />
                             <span>Check IP Info</span>
                           </DropdownMenuItem>
                         </>
@@ -290,7 +290,7 @@ export function ActivityLogsDataTable({
                 variant="outline"
                 size="sm"
                 onClick={() => handleViewDetails(log)}
-                className="h-8 gap-1.5 text-xs font-semibold text-[#4F46E5] border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF]"
+                className="h-8 gap-1.5 text-xs font-semibold text-primary border-primary/20 bg-primary/10 hover:bg-primary/20"
               >
                 <Eye className="h-3.5 w-3.5" />
                 <span>View Details</span>

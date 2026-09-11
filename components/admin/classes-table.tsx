@@ -44,14 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -117,43 +110,25 @@ export function ClassesTable({ data }: Props) {
       cell: ({ row }) => {
         const cls = row.original
         return (
-          <div className="flex items-center justify-end gap-2 text-right">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              disabled={toggling === cls.id}
-              onClick={async () => {
-                setToggling(cls.id)
-                try {
-                  await toggleClassActiveAction(cls.id, cls.is_active)
-                  router.refresh()
-                } finally {
-                  setToggling(null)
-                }
+          <div className="flex items-center justify-end text-right">
+            <AdminActionsDropdown
+              editHref={`/admin/academics/classes/${cls.id}/edit`}
+              editLabel="Edit Class"
+              toggleActive={{
+                isActive: cls.is_active,
+                isLoading: toggling === cls.id,
+                onToggle: async () => {
+                  setToggling(cls.id)
+                  try {
+                    await toggleClassActiveAction(cls.id, cls.is_active)
+                    router.refresh()
+                  } finally {
+                    setToggling(null)
+                  }
+                },
               }}
-            >
-              {cls.is_active ? "Deactivate" : "Activate"}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="size-8 p-0">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={`/admin/academics/classes/${cls.id}/edit`}>
-                    <Pencil className="size-4 mr-2" /> Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => setPendingDelete(cls.id)}>
-                  <Trash2 className="size-4 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              onDelete={() => setPendingDelete(cls.id)}
+            />
           </div>
         )
       },

@@ -17,6 +17,7 @@ import {
   IconUserStar,
   IconFileText,
   IconBell,
+  IconUserCheck,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -296,6 +297,11 @@ const data = {
       ],
     },
     {
+      title: "Users",
+      url: "/admin/users",
+      icon: IconUserCheck,
+    },
+    {
       title: "Settings",
       url: "/admin/iconfig",
       icon: IconSettings,
@@ -307,6 +313,10 @@ const data = {
         {
           title: "Institute Settings",
           url: "/admin/iconfig",
+        },
+        {
+          title: "System Setting",
+          url: "/admin/settings/system",
         },
         {
           title: "ID Generation",
@@ -423,7 +433,7 @@ export function AppSidebar({
             <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
               DigiCampus
             </span>
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/80 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/60">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
               v2.0
             </span>
           </div>
