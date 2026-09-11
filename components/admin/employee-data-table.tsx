@@ -34,6 +34,7 @@ import {
   Filter,
   Copy,
   Check,
+  KeyRound,
 } from "lucide-react"
 
 import {
@@ -43,6 +44,7 @@ import {
   setEmployeeLoginAccessAction,
   setEmployeeStatusAction,
 } from "@/app/admin/actions"
+import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -205,110 +207,7 @@ function EmployeeLoginToggle({
   )
 }
 
-function ResetEmployeePasswordAction({ employeeId }: { employeeId: string }) {
-  const [open, setOpen] = React.useState(false)
-  const formRef = React.useRef<HTMLFormElement>(null)
 
-  return (
-    <>
-      <form ref={formRef} action={resetEmployeePasswordAction}>
-        <input type="hidden" name="employee_id" value={employeeId} />
-      </form>
-
-      <DropdownMenuItem
-        onSelect={(event) => {
-          event.preventDefault()
-          setOpen(true)
-        }}
-        className="cursor-pointer gap-2 text-sm"
-      >
-        <ShieldCheck className="h-4 w-4 text-primary" />
-        <span>Reset Password</span>
-      </DropdownMenuItem>
-
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogMedia className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-              <ShieldCheck />
-            </AlertDialogMedia>
-            <AlertDialogTitle>Reset employee password?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will generate a new secure password, reset the current password, and email it to the employee.
-              The employee will be advised to change it immediately after login.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                formRef.current?.requestSubmit()
-              }}
-            >
-              Confirm Reset
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}
-
-function DeleteEmployeeAction({
-  employeeId,
-  employeeName,
-}: {
-  employeeId: string
-  employeeName: string
-}) {
-  const [open, setOpen] = React.useState(false)
-  const formRef = React.useRef<HTMLFormElement>(null)
-
-  return (
-    <>
-      <form ref={formRef} action={deleteEmployeeByFormAction}>
-        <input type="hidden" name="employee_id" value={employeeId} />
-      </form>
-
-      <DropdownMenuItem
-        onSelect={(event) => {
-          event.preventDefault()
-          setOpen(true)
-        }}
-        className="cursor-pointer gap-2 text-sm text-rose-600 focus:text-rose-600"
-      >
-        <Trash2Icon className="h-4 w-4 text-rose-600" />
-        <span>Delete</span>
-      </DropdownMenuItem>
-
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogMedia className="bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300">
-              <Trash2Icon />
-            </AlertDialogMedia>
-            <AlertDialogTitle>Delete employee record?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <span className="font-semibold text-foreground">{employeeName}</span>?
-              This will permanently remove the employee profile and linked credentials.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rose-600 text-white hover:bg-rose-700"
-              onClick={() => {
-                formRef.current?.requestSubmit()
-              }}
-            >
-              Delete Record
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}
 
 function AddEmployeeDialog() {
   const [open, setOpen] = React.useState(false)
@@ -647,35 +546,40 @@ export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
 
         return (
           <div className="flex items-center justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
-                <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontalIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
-                    <Link href={`/admin/employees/${employee.id}`}>
-                      <UserRound className="h-4 w-4 text-primary" />
-                      <span>View Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer gap-2 text-sm">
-                    <Link href={`/admin/employees/${employee.id}/edit`}>
-                      <User className="h-4 w-4 text-blue-600" />
-                      <span>Edit Details</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <ResetEmployeePasswordAction employeeId={employee.id} />
-                  <DropdownMenuSeparator />
-                  <DeleteEmployeeAction employeeId={employee.id} employeeName={employee.name} />
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AdminActionsDropdown
+              viewHref={`/admin/employees/${employee.id}`}
+              viewLabel="View Profile"
+              editHref={`/admin/employees/${employee.id}/edit`}
+              editLabel="Edit Details"
+              customActions={[
+                {
+                  key: "reset-password",
+                  label: "Reset Password",
+                  icon: <KeyRound className="size-4 text-amber-600" />,
+                  onClick: () => {
+                    const form = document.getElementById(`reset-pw-${employee.id}`) as HTMLFormElement | null
+                    form?.requestSubmit()
+                  },
+                },
+              ]}
+              deleteDialog={{
+                title: "Delete employee record?",
+                description: `Are you sure you want to delete ${employee.name}? This will permanently remove the employee profile and linked credentials.`,
+                confirmLabel: "Delete Record",
+                onConfirm: async () => {
+                  const form = document.getElementById(`del-emp-${employee.id}`) as HTMLFormElement | null
+                  form?.requestSubmit()
+                },
+              }}
+            />
+
+            {/* Hidden Forms for Actions */}
+            <form id={`reset-pw-${employee.id}`} action={resetEmployeePasswordAction} className="hidden">
+              <input type="hidden" name="employee_id" value={employee.id} />
+            </form>
+            <form id={`del-emp-${employee.id}`} action={deleteEmployeeByFormAction} className="hidden">
+              <input type="hidden" name="employee_id" value={employee.id} />
+            </form>
           </div>
         )
       },
