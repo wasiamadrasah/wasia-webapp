@@ -364,7 +364,7 @@ export function EventForm({
                       id="image_url" 
                       name="image_url" 
                       type="url" 
-                      placeholder="https://pub-7bfa9c25642f441f8b9103ee0ba819af.r2.dev/events/banner.jpg" 
+                      placeholder="https://media.wasiamadrasah.edu.bd/events/banner.jpg" 
                       defaultValue={initialData?.image_url ?? ''} 
                       className="h-11 rounded-lg pl-10 border-slate-200"
                     />
@@ -963,11 +963,11 @@ export function EventForm({
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="thumbnail_image_url" className="text-sm font-semibold text-slate-700">Thumbnail Image URL</Label>
-                  <Input id="thumbnail_image_url" name="thumbnail_image_url" type="url" placeholder="https://pub-7bfa9c25642f441f8b9103ee0ba819af.r2.dev/events/thumb.jpg" defaultValue={initialData?.thumbnail_image_url ?? ''} className="h-11 rounded-lg border-slate-200" />
+                  <Input id="thumbnail_image_url" name="thumbnail_image_url" type="url" placeholder="https://media.wasiamadrasah.edu.bd/events/thumb.jpg" defaultValue={initialData?.thumbnail_image_url ?? ''} className="h-11 rounded-lg border-slate-200" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="event_logo_url" className="text-sm font-semibold text-slate-700">Event Logo URL</Label>
-                  <Input id="event_logo_url" name="event_logo_url" type="url" placeholder="https://pub-7bfa9c25642f441f8b9103ee0ba819af.r2.dev/events/logo.png" defaultValue={initialData?.event_logo_url ?? ''} className="h-11 rounded-lg border-slate-200" />
+                  <Input id="event_logo_url" name="event_logo_url" type="url" placeholder="https://media.wasiamadrasah.edu.bd/events/logo.png" defaultValue={initialData?.event_logo_url ?? ''} className="h-11 rounded-lg border-slate-200" />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="gallery_images" className="text-sm font-semibold text-slate-700">Gallery Images (comma-separated URLs)</Label>

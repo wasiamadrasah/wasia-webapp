@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -16,10 +15,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import {
-  BookOpen,
+  Building2,
   CheckCircle2,
   ChevronDown,
   Circle,
+  DoorOpen,
   LayoutGrid,
   Pencil,
   Plus,
@@ -27,13 +27,12 @@ import {
   Trash2,
 } from "lucide-react"
 
-import type { SubjectRecord } from "@/lib/db"
+import type { AcademicBuildingRecord, AcademicClassroomRecord } from "@/lib/db"
 import {
-  createSubjectAction,
-  createSubjectDirectAction,
-  updateSubjectDirectAction,
-  toggleSubjectActiveAction,
-  deleteSubjectAction,
+  createBuildingDirectAction,
+  updateBuildingDirectAction,
+  toggleBuildingActiveAction,
+  deleteBuildingDirectAction,
 } from "@/app/admin/academics/actions"
 import { AdminActionsDropdown } from "@/components/admin/admin-actions-dropdown"
 import { Badge } from "@/components/ui/badge"
@@ -67,6 +66,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -86,51 +86,45 @@ import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
 type Props = {
-  data: SubjectRecord[]
+  data: AcademicBuildingRecord[]
+  classrooms: AcademicClassroomRecord[]
 }
 
-function AddSubjectDialog() {
+function AddBuildingDialog() {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isActive, setIsActive] = React.useState(true)
   const [name, setName] = React.useState("")
-  const [nameBn, setNameBn] = React.useState("")
-  const [code, setCode] = React.useState("")
+  const [description, setDescription] = React.useState("")
 
   const resetForm = () => {
     setName("")
-    setNameBn("")
-    setCode("")
+    setDescription("")
     setIsActive(true)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim()) {
-      toast.error("Subject name is required.")
-      return
-    }
-    if (!code.trim()) {
-      toast.error("Subject code is required.")
+      toast.error("Building name is required.")
       return
     }
 
     setIsSubmitting(true)
     const formData = new FormData()
     formData.append("name", name.trim())
-    if (nameBn.trim()) formData.append("name_bn", nameBn.trim())
-    formData.append("code", code.trim().toUpperCase())
+    if (description.trim()) formData.append("description", description.trim())
     formData.append("is_active", isActive ? "true" : "false")
 
     try {
-      await createSubjectDirectAction(formData)
-      toast.success(`Subject "${name}" created successfully`)
+      await createBuildingDirectAction(formData)
+      toast.success(`Building "${name}" created successfully`)
       setOpen(false)
       resetForm()
       router.refresh()
     } catch (err: any) {
-      toast.error(err.message || "Failed to create subject")
+      toast.error(err.message || "Failed to create building")
     } finally {
       setIsSubmitting(false)
     }
@@ -147,7 +141,7 @@ function AddSubjectDialog() {
       <DialogTrigger asChild>
         <Button className="h-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-2xs gap-2">
           <Plus className="h-4 w-4" />
-          <span>Add Subject</span>
+          <span>Add Building</span>
         </Button>
       </DialogTrigger>
 
@@ -155,12 +149,12 @@ function AddSubjectDialog() {
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-              <BookOpen className="size-5" />
+              <Building2 className="size-5" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <DialogTitle>Add New Subject</DialogTitle>
+              <DialogTitle>Add New Building</DialogTitle>
               <DialogDescription>
-                Create a new subject template for classes and exam configurations.
+                Register a new academic building or campus facility.
               </DialogDescription>
             </div>
           </div>
@@ -169,63 +163,46 @@ function AddSubjectDialog() {
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="modal_subject_name" className="text-sm font-bold text-foreground">
-                Subject Name (English) <span className="text-rose-500">*</span>
+              <Label htmlFor="building_name" className="text-sm font-bold text-foreground">
+                Building Name <span className="text-rose-500">*</span>
               </Label>
               <Input
-                id="modal_subject_name"
+                id="building_name"
                 name="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Mathematics"
+                placeholder="e.g. Science Block, Main Academic Building"
                 className="h-10 border-input bg-background"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="modal_subject_name_bn" className="text-sm font-bold text-foreground">
-                Subject Name (Bangla)
+              <Label htmlFor="building_desc" className="text-sm font-bold text-foreground">
+                Description / Location Note
               </Label>
-              <Input
-                id="modal_subject_name_bn"
-                name="name_bn"
-                value={nameBn}
-                onChange={(e) => setNameBn(e.target.value)}
-                placeholder="যেমন: গণিত"
-                className="h-10 border-input bg-background font-bensen"
+              <Textarea
+                id="building_desc"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe physical location or general usage..."
+                rows={3}
+                className="border-input bg-background text-sm"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="modal_subject_code" className="text-sm font-bold text-foreground">
-                Subject Code <span className="text-rose-500">*</span>
-              </Label>
-              <Input
-                id="modal_subject_code"
-                name="code"
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. MATH"
-                className="h-10 border-input bg-background font-mono font-bold uppercase tracking-wider text-sm"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Will be auto-uppercased on save.
-              </p>
             </div>
 
             <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3 pt-3.5">
               <div className="space-y-0.5">
-                <Label htmlFor="modal_is_active_toggle" className="text-sm font-semibold text-foreground cursor-pointer">
+                <Label htmlFor="building_is_active_toggle" className="text-sm font-semibold text-foreground cursor-pointer">
                   Active Status
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Allow this subject to be assigned to classes.
+                  Allow classrooms to be created under this building.
                 </p>
               </div>
               <Switch
-                id="modal_is_active_toggle"
+                id="building_is_active_toggle"
                 checked={isActive}
                 onCheckedChange={setIsActive}
               />
@@ -243,7 +220,7 @@ function AddSubjectDialog() {
               disabled={isSubmitting}
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
-              {isSubmitting ? "Creating..." : "Create Subject"}
+              {isSubmitting ? "Creating..." : "Create Building"}
             </Button>
           </DialogFooter>
         </form>
@@ -252,12 +229,12 @@ function AddSubjectDialog() {
   )
 }
 
-function EditSubjectDialog({
-  subject,
+function EditBuildingDialog({
+  building,
   open,
   onOpenChange,
 }: {
-  subject: SubjectRecord | null
+  building: AcademicBuildingRecord | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -265,45 +242,38 @@ function EditSubjectDialog({
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isActive, setIsActive] = React.useState(true)
   const [name, setName] = React.useState("")
-  const [nameBn, setNameBn] = React.useState("")
-  const [code, setCode] = React.useState("")
+  const [description, setDescription] = React.useState("")
 
   React.useEffect(() => {
-    if (subject) {
-      setName(subject.name || "")
-      setNameBn(subject.name_bn || "")
-      setCode(subject.code || "")
-      setIsActive(Boolean(subject.is_active))
+    if (building) {
+      setName(building.name || "")
+      setDescription(building.description || "")
+      setIsActive(Boolean(building.is_active))
     }
-  }, [subject])
+  }, [building])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!subject) return
+    if (!building) return
 
     if (!name.trim()) {
-      toast.error("Subject name is required.")
-      return
-    }
-    if (!code.trim()) {
-      toast.error("Subject code is required.")
+      toast.error("Building name is required.")
       return
     }
 
     setIsSubmitting(true)
     const formData = new FormData()
     formData.append("name", name.trim())
-    if (nameBn.trim()) formData.append("name_bn", nameBn.trim())
-    formData.append("code", code.trim().toUpperCase())
+    if (description.trim()) formData.append("description", description.trim())
     formData.append("is_active", isActive ? "true" : "false")
 
     try {
-      await updateSubjectDirectAction(subject.id, formData)
-      toast.success(`Subject "${name}" updated successfully`)
+      await updateBuildingDirectAction(building.id, formData)
+      toast.success(`Building "${name}" updated successfully`)
       onOpenChange(false)
       router.refresh()
     } catch (err: any) {
-      toast.error(err.message || "Failed to update subject")
+      toast.error(err.message || "Failed to update building")
     } finally {
       setIsSubmitting(false)
     }
@@ -318,9 +288,9 @@ function EditSubjectDialog({
               <Pencil className="size-5" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <DialogTitle>Edit Subject</DialogTitle>
+              <DialogTitle>Edit Building</DialogTitle>
               <DialogDescription>
-                Update subject information and status.
+                Update building name, description, and status.
               </DialogDescription>
             </div>
           </div>
@@ -329,63 +299,46 @@ function EditSubjectDialog({
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="edit_modal_subject_name" className="text-sm font-bold text-foreground">
-                Subject Name (English) <span className="text-rose-500">*</span>
+              <Label htmlFor="edit_building_name" className="text-sm font-bold text-foreground">
+                Building Name <span className="text-rose-500">*</span>
               </Label>
               <Input
-                id="edit_modal_subject_name"
+                id="edit_building_name"
                 name="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Mathematics"
+                placeholder="e.g. Science Block"
                 className="h-10 border-input bg-background"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="edit_modal_subject_name_bn" className="text-sm font-bold text-foreground">
-                Subject Name (Bangla)
+              <Label htmlFor="edit_building_desc" className="text-sm font-bold text-foreground">
+                Description / Location Note
               </Label>
-              <Input
-                id="edit_modal_subject_name_bn"
-                name="name_bn"
-                value={nameBn}
-                onChange={(e) => setNameBn(e.target.value)}
-                placeholder="যেমন: গণিত"
-                className="h-10 border-input bg-background font-bensen"
+              <Textarea
+                id="edit_building_desc"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe physical location or general usage..."
+                rows={3}
+                className="border-input bg-background text-sm"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="edit_modal_subject_code" className="text-sm font-bold text-foreground">
-                Subject Code <span className="text-rose-500">*</span>
-              </Label>
-              <Input
-                id="edit_modal_subject_code"
-                name="code"
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. MATH"
-                className="h-10 border-input bg-background font-mono font-bold uppercase tracking-wider text-sm"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Will be auto-uppercased on save.
-              </p>
             </div>
 
             <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3 pt-3.5">
               <div className="space-y-0.5">
-                <Label htmlFor="edit_modal_is_active_toggle" className="text-sm font-semibold text-foreground cursor-pointer">
+                <Label htmlFor="edit_building_is_active_toggle" className="text-sm font-semibold text-foreground cursor-pointer">
                   Active Status
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Allow this subject to be assigned to classes.
+                  Allow classrooms under this building.
                 </p>
               </div>
               <Switch
-                id="edit_modal_is_active_toggle"
+                id="edit_building_is_active_toggle"
                 checked={isActive}
                 onCheckedChange={setIsActive}
               />
@@ -412,9 +365,9 @@ function EditSubjectDialog({
   )
 }
 
-export function SubjectsTable({ data }: Props) {
+export function BuildingsTable({ data, classrooms }: Props) {
   const router = useRouter()
-  const [editingSubject, setEditingSubject] = React.useState<SubjectRecord | null>(null)
+  const [editingBuilding, setEditingBuilding] = React.useState<AcademicBuildingRecord | null>(null)
   const [pendingDelete, setPendingDelete] = React.useState<string | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [toggling, setToggling] = React.useState<string | null>(null)
@@ -426,7 +379,16 @@ export function SubjectsTable({ data }: Props) {
     pageSize: 15,
   })
 
-  const columns = React.useMemo<ColumnDef<SubjectRecord>[]>(
+  // Map building ID to classroom count
+  const classroomCountMap = React.useMemo(() => {
+    const map = new Map<string, number>()
+    classrooms.forEach((c) => {
+      map.set(c.building_id, (map.get(c.building_id) || 0) + 1)
+    })
+    return map
+  }, [classrooms])
+
+  const columns = React.useMemo<ColumnDef<AcademicBuildingRecord>[]>(
     () => [
       {
         id: "serial",
@@ -443,48 +405,57 @@ export function SubjectsTable({ data }: Props) {
       },
       {
         accessorKey: "name",
-        header: "Subject Name (English)",
+        header: "Building Name",
         cell: ({ row }) => (
-          <span className="font-semibold text-foreground text-sm">
-            {row.original.name}
-          </span>
+          <div className="flex items-center gap-2 py-0.5">
+            <div className="flex size-7 items-center justify-center rounded-md bg-muted text-muted-foreground shrink-0">
+              <Building2 className="size-3.5" />
+            </div>
+            <span className="font-bold text-foreground text-sm">
+              {row.original.name}
+            </span>
+          </div>
         ),
         meta: {
           className: "min-w-[180px] px-3",
         },
       },
       {
-        accessorKey: "name_bn",
-        header: "Subject Name (Bangla)",
+        accessorKey: "description",
+        header: "Description",
         cell: ({ row }) => (
-          <span className="text-muted-foreground font-medium text-sm font-bensen">
-            {row.original.name_bn || "—"}
+          <span className="text-muted-foreground text-xs line-clamp-1">
+            {row.original.description || "—"}
           </span>
         ),
         meta: {
-          className: "min-w-[160px] px-3",
+          className: "min-w-[200px] px-3",
         },
       },
       {
-        accessorKey: "code",
-        header: "Code",
-        cell: ({ row }) => (
-          <span className="font-mono text-xs bg-muted/60 px-2 py-0.5 rounded border border-border/60 text-foreground font-bold">
-            {row.original.code}
-          </span>
-        ),
+        id: "classrooms_count",
+        header: "Classrooms",
+        cell: ({ row }) => {
+          const count = classroomCountMap.get(row.original.id) || 0
+          return (
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <DoorOpen className="size-3.5 text-primary" />
+              <span>{count} Room{count !== 1 ? "s" : ""}</span>
+            </div>
+          )
+        },
         meta: {
-          className: "w-28 px-3",
+          className: "w-32 px-3",
         },
       },
       {
         accessorKey: "is_active",
         header: () => <div className="text-center">Status</div>,
         cell: ({ row }) => {
-          const s = row.original
+          const b = row.original
           return (
             <div className="flex justify-center">
-              {s.is_active ? (
+              {b.is_active ? (
                 <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60 gap-1 font-semibold text-xs">
                   <CheckCircle2 className="size-3" />
                   Active
@@ -506,22 +477,22 @@ export function SubjectsTable({ data }: Props) {
         id: "actions",
         header: () => <div className="text-right pr-2">Actions</div>,
         cell: ({ row }) => {
-          const s = row.original
+          const b = row.original
           return (
             <div className="flex items-center justify-end text-right pr-1">
               <AdminActionsDropdown
-                onEdit={() => setEditingSubject(s)}
-                editLabel="Edit Subject"
+                onEdit={() => setEditingBuilding(b)}
+                editLabel="Edit Building"
                 toggleActive={{
-                  isActive: s.is_active,
-                  isLoading: toggling === s.id,
+                  isActive: b.is_active,
+                  isLoading: toggling === b.id,
                   onToggle: async () => {
-                    setToggling(s.id)
+                    setToggling(b.id)
                     try {
-                      await toggleSubjectActiveAction(s.id, s.is_active)
+                      await toggleBuildingActiveAction(b.id, b.is_active)
                       router.refresh()
                       toast.success(
-                        `Subject ${s.is_active ? "deactivated" : "activated"} successfully`
+                        `Building ${b.is_active ? "deactivated" : "activated"} successfully`
                       )
                     } catch (err: any) {
                       toast.error(err.message || "Failed to toggle status")
@@ -530,7 +501,7 @@ export function SubjectsTable({ data }: Props) {
                     }
                   },
                 }}
-                onDelete={() => setPendingDelete(s.id)}
+                onDelete={() => setPendingDelete(b.id)}
               />
             </div>
           )
@@ -542,7 +513,7 @@ export function SubjectsTable({ data }: Props) {
         enableHiding: false,
       },
     ],
-    [toggling, pagination, router]
+    [classroomCountMap, toggling, pagination, router]
   )
 
   const table = useReactTable({
@@ -571,7 +542,7 @@ export function SubjectsTable({ data }: Props) {
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Filter subjects..."
+            placeholder="Filter buildings..."
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
             className="h-10 pl-9 border-input bg-background text-sm w-full"
@@ -610,7 +581,7 @@ export function SubjectsTable({ data }: Props) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <AddSubjectDialog />
+          <AddBuildingDialog />
         </div>
       </div>
 
@@ -663,7 +634,7 @@ export function SubjectsTable({ data }: Props) {
                   colSpan={columns.length}
                   className="h-24 text-center text-sm font-medium text-muted-foreground"
                 >
-                  No subjects found.
+                  No buildings found.
                 </TableCell>
               </TableRow>
             )}
@@ -675,44 +646,45 @@ export function SubjectsTable({ data }: Props) {
       <div className="block md:hidden space-y-3">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => {
-            const subject = row.original
+            const building = row.original
+            const roomCount = classroomCountMap.get(building.id) || 0
             return (
               <div
-                key={subject.id}
+                key={building.id}
                 className="rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-foreground">{subject.name}</p>
-                    {subject.name_bn && (
-                      <p className="text-xs text-muted-foreground font-bensen font-normal">
-                        {subject.name_bn}
+                    <p className="text-sm font-bold text-foreground">{building.name}</p>
+                    {building.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {building.description}
                       </p>
                     )}
                   </div>
-                  <span className="font-mono text-xs bg-muted/60 px-2 py-0.5 rounded border border-border/60 text-foreground font-bold">
-                    {subject.code}
-                  </span>
+                  <Badge
+                    variant="outline"
+                    className={
+                      building.is_active
+                        ? "rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 font-semibold text-xs px-2.5 py-0.5 shrink-0"
+                        : "rounded-full bg-muted text-muted-foreground border-border font-semibold text-xs px-2.5 py-0.5 shrink-0"
+                    }
+                  >
+                    {building.is_active ? "Active" : "Inactive"}
+                  </Badge>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    {subject.is_active ? (
-                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60 text-xs font-semibold">
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground text-xs font-semibold">
-                        Inactive
-                      </Badge>
-                    )}
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <DoorOpen className="size-3.5 text-primary" />
+                    <span>{roomCount} Room{roomCount !== 1 ? "s" : ""}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setEditingSubject(subject)}
+                      onClick={() => setEditingBuilding(building)}
                       className="h-8 px-2.5 text-xs font-semibold gap-1"
                     >
                       <Pencil className="size-3" />
@@ -721,7 +693,7 @@ export function SubjectsTable({ data }: Props) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPendingDelete(subject.id)}
+                      onClick={() => setPendingDelete(building.id)}
                       className="h-8 px-2 text-destructive hover:bg-destructive/10 border-destructive/30"
                     >
                       <Trash2 className="size-3.5" />
@@ -733,7 +705,7 @@ export function SubjectsTable({ data }: Props) {
           })
         ) : (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            No subjects found.
+            No buildings found.
           </div>
         )}
       </div>
@@ -741,12 +713,12 @@ export function SubjectsTable({ data }: Props) {
       {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
         <div className="hidden text-sm font-medium text-muted-foreground sm:block">
-          Showing <strong className="text-foreground">{table.getFilteredRowModel().rows.length}</strong> subject(s)
+          Showing <strong className="text-foreground">{table.getFilteredRowModel().rows.length}</strong> building(s)
         </div>
 
         <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-6">
           <div className="flex items-center gap-2">
-            <Label htmlFor="rows-per-page" className="text-sm font-medium text-muted-foreground">
+            <Label htmlFor="b-rows-per-page" className="text-sm font-medium text-muted-foreground">
               Rows per page
             </Label>
             <Select
@@ -755,7 +727,7 @@ export function SubjectsTable({ data }: Props) {
                 table.setPageSize(Number(value))
               }}
             >
-              <SelectTrigger size="sm" className="w-24 h-9 text-sm border-border" id="rows-per-page">
+              <SelectTrigger size="sm" className="w-24 h-9 text-sm border-border" id="b-rows-per-page">
                 <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
@@ -795,12 +767,12 @@ export function SubjectsTable({ data }: Props) {
         </div>
       </div>
 
-      {/* Edit Subject Modal */}
-      <EditSubjectDialog
-        subject={editingSubject}
-        open={Boolean(editingSubject)}
+      {/* Edit Building Modal */}
+      <EditBuildingDialog
+        building={editingBuilding}
+        open={Boolean(editingBuilding)}
         onOpenChange={(open) => {
-          if (!open) setEditingSubject(null)
+          if (!open) setEditingBuilding(null)
         }}
       />
 
@@ -813,9 +785,9 @@ export function SubjectsTable({ data }: Props) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this subject?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this building?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. Will fail if the subject is assigned to any class configuration.
+              This action cannot be undone. Will fail if any classrooms are currently located in this building.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -827,12 +799,12 @@ export function SubjectsTable({ data }: Props) {
                 setIsDeleting(true)
                 try {
                   if (pendingDelete) {
-                    const res = await deleteSubjectAction(pendingDelete)
+                    const res = await deleteBuildingDirectAction(pendingDelete)
                     if (res.success) {
-                      toast.success("Subject deleted successfully")
+                      toast.success("Building deleted successfully")
                       router.refresh()
                     } else {
-                      toast.error(res.error || "Failed to delete subject")
+                      toast.error(res.error || "Failed to delete building")
                     }
                   }
                 } catch (err: any) {

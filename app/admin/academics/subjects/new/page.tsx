@@ -77,7 +77,7 @@ export default function NewSubjectPage() {
         </FieldGroup>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Create Subject</Button>
+          <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">Create Subject</Button>
           <Button type="button" variant="outline" asChild>
             <Link href="/admin/academics/subjects">Cancel</Link>
           </Button>

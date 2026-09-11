@@ -50,7 +50,20 @@ export default async function AdminLayout({
 
   // Allow login page without authentication
   if (pathname === "/admin/login" || pathname === "/login") {
-    return <>{children}</>
+    return (
+      <AdminSystemThemeProvider>
+        <div 
+          className="admin-theme min-h-screen bg-muted/40 text-foreground flex flex-col justify-center"
+          style={{
+            "--font-sans": "var(--admin-font-family, 'Outfit', sans-serif)",
+            fontFamily: "var(--admin-font-family, 'Outfit', sans-serif)",
+          } as React.CSSProperties}
+        >
+          {children}
+          <Toaster position="top-right" richColors closeButton />
+        </div>
+      </AdminSystemThemeProvider>
+    )
   }
 
   // Check authentication for other admin routes
@@ -70,28 +83,30 @@ export default async function AdminLayout({
   }
 
   return (
-    <div 
-      className="admin-theme h-screen overflow-hidden flex flex-col bg-background text-foreground"
-      style={{
-        "--font-sans": "var(--admin-font-family, 'Outfit', sans-serif)",
-        fontFamily: "var(--admin-font-family, 'Outfit', sans-serif)",
-      } as React.CSSProperties}
-    >
-      <TooltipProvider>
-        <SidebarProvider suppressHydrationWarning>
-          <AppSidebar userSession={session?.user} suppressHydrationWarning />
-          <SidebarInset>
-            <SiteHeader logoUrl={logoUrl} />
-            <main id="admin-main-scroll" data-admin-scroll="true" className="w-full flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7">
-              <Suspense fallback={null}>
-                <AdminStatusSonner />
-              </Suspense>
-              <PageTransition>{children}</PageTransition>
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-      </TooltipProvider>
-      <Toaster position="top-right" richColors closeButton />
-    </div>
+    <AdminSystemThemeProvider>
+      <div 
+        className="admin-theme h-screen overflow-hidden flex flex-col bg-background text-foreground"
+        style={{
+          "--font-sans": "var(--admin-font-family, 'Outfit', sans-serif)",
+          fontFamily: "var(--admin-font-family, 'Outfit', sans-serif)",
+        } as React.CSSProperties}
+      >
+        <TooltipProvider>
+          <SidebarProvider suppressHydrationWarning>
+            <AppSidebar userSession={session?.user} suppressHydrationWarning />
+            <SidebarInset>
+              <SiteHeader logoUrl={logoUrl} />
+              <main id="admin-main-scroll" data-admin-scroll="true" className="w-full flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7">
+                <Suspense fallback={null}>
+                  <AdminStatusSonner />
+                </Suspense>
+                <PageTransition>{children}</PageTransition>
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+        </TooltipProvider>
+        <Toaster position="top-right" richColors closeButton />
+      </div>
+    </AdminSystemThemeProvider>
   )
 }

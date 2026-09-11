@@ -124,6 +124,19 @@ function DetailRow({
   )
 }
 
+function getResolvedPhotoUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return null
+  if (trimmed.includes(".r2.dev/")) {
+    const path = trimmed.split(".r2.dev/")[1]
+    if (path) {
+      return `https://media.wasiamadrasah.edu.bd/${path}`
+    }
+  }
+  return trimmed
+}
+
 export function EmployeeDetailView({
   employee,
   academics,
@@ -135,6 +148,7 @@ export function EmployeeDetailView({
 }: EmployeeDetailViewProps) {
   const [resetPasswordOpen, setResetPasswordOpen] = React.useState(false)
   const resetFormRef = React.useRef<HTMLFormElement>(null)
+  const resolvedPhoto = getResolvedPhotoUrl(employee.profile_photo)
 
   const presentAddress = addresses.find((a) => a.address_type === "present" || a.address_type === "Present")
   const permanentAddress = addresses.find((a) => a.address_type === "permanent" || a.address_type === "Permanent")
@@ -201,9 +215,9 @@ export function EmployeeDetailView({
             {/* Header Photo + Name */}
             <div className="p-6 pb-5 flex flex-col items-center text-center space-y-3">
               <div className="relative size-28 rounded-xl overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center">
-                {employee.profile_photo ? (
+                {resolvedPhoto ? (
                   <Image
-                    src={employee.profile_photo}
+                    src={resolvedPhoto}
                     alt={employee.full_name_en || "Employee photo"}
                     fill
                     className="object-cover"

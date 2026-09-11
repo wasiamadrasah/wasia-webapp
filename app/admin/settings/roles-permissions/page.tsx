@@ -60,8 +60,34 @@ export default function RolesPermissionsPage() {
   }, [])
 
   React.useEffect(() => {
-    loadRoles()
-  }, [loadRoles])
+    let active = true
+    const init = async () => {
+      try {
+        const res = await getRolesWithPermissions()
+        if (active) {
+          if (res.success && res.data) {
+            setRoles(res.data)
+          } else if (res.error) {
+            toast.error(res.error)
+          }
+        }
+      } catch (err: unknown) {
+        if (active) {
+          const msg = err instanceof Error ? err.message : "Error connecting to database."
+          toast.error(msg)
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    init()
+    return () => {
+      active = false
+    }
+  }, [])
 
   // Handle Save / Update Role in DB
   const handleSaveRole = async (e: React.FormEvent) => {

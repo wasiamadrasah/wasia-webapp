@@ -72,6 +72,10 @@ export function AdminDataTable<TData, TValue = unknown>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState<string>("")
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: defaultPageSize,
+  })
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set())
 
   // Initialize TanStack React Table
@@ -84,6 +88,7 @@ export function AdminDataTable<TData, TValue = unknown>({
       rowSelection,
       columnFilters,
       globalFilter,
+      pagination,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -91,6 +96,7 @@ export function AdminDataTable<TData, TValue = unknown>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -100,11 +106,7 @@ export function AdminDataTable<TData, TValue = unknown>({
     getRowId: getRowId ? (row) => getRowId(row) : undefined,
     manualPagination,
     pageCount,
-    initialState: {
-      pagination: {
-        pageSize: defaultPageSize,
-      },
-    },
+    autoResetPageIndex: false,
   })
 
   const toggleRowExpansion = (rowId: string, e?: React.MouseEvent) => {

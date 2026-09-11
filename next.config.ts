@@ -13,11 +13,19 @@ const remotePatterns = [
     : []),
   {
     protocol: "https" as const,
+    hostname: "media.wasiamadrasah.edu.bd",
+  },
+  {
+    protocol: "https" as const,
     hostname: "images.unsplash.com",
   },
   {
     protocol: "https" as const,
     hostname: "pub-7bfa9c25642f441f8b9103ee0ba819af.r2.dev",
+  },
+  {
+    protocol: "https" as const,
+    hostname: "pub-a9563106eee34f548fa87cebf5a862b8.r2.dev",
   },
   {
     protocol: "https" as const,
@@ -87,13 +95,13 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // Images: R2 CDN (wildcard + custom domain), Unsplash, DiceBear avatars, data URIs
-              `img-src 'self' data: blob: https://*.r2.dev https://images.unsplash.com https://api.dicebear.com${r2PublicHostname ? ` https://${r2PublicHostname}` : ""}`,
+              `img-src 'self' data: blob: https://*.r2.dev https://media.wasiamadrasah.edu.bd https://images.unsplash.com https://api.dicebear.com${r2PublicHostname ? ` https://${r2PublicHostname}` : ""}`,
               // Fonts from Google
               "font-src 'self' https://fonts.gstatic.com",
               // API calls: Supabase project + DiceBear SVG CDN
               `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.dicebear.com`,
               // Media from R2 CDN and custom domain
-              `media-src 'self' https://*.r2.dev${r2PublicHostname ? ` https://${r2PublicHostname}` : ""}`,
+              `media-src 'self' https://*.r2.dev https://media.wasiamadrasah.edu.bd${r2PublicHostname ? ` https://${r2PublicHostname}` : ""}`,
               // Allow Google Maps embeds in iframes
               "frame-src 'self' https://www.google.com https://maps.google.com",
               // Deny our site being framed by others (different from frame-src)

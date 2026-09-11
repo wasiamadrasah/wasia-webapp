@@ -617,10 +617,48 @@ export async function getAdminDashboardMetrics() {
 
 function sortTeachersList(list: StaffListRecord[]): StaffListRecord[] {
   const getPriority = (designation: string | null) => {
-    const desc = (designation || "").toLowerCase().trim()
-    if (desc === "headmaster" || desc === "head master") return 1
-    if (desc === "assistant headmaster" || desc === "assistant head master" || desc === "assistent headmaster") return 2
-    return 3
+    const d = (designation || "").toLowerCase().trim()
+    if (!d) return 5
+
+    // 1. Rank 1: Principal / Oddhokkho / Headmaster / Muhtamim
+    const isPrincipal =
+      (d.includes("অধ্যক্ষ") && !d.includes("উপাধ্যক্ষ") && !d.includes("সহকারী")) ||
+      (d.includes("principal") && !d.includes("vice") && !d.includes("assistant")) ||
+      ((d === "headmaster" || d === "head master" || d === "প্রধান শিক্ষক") && !d.includes("assistant") && !d.includes("সহকারী")) ||
+      ((d.includes("মুহতামিম") || d.includes("মুহতামীম")) && !d.includes("নায়েবে") && !d.includes("নায়েবে"))
+
+    if (isPrincipal) return 1
+
+    // 2. Rank 2: Vice-Principal / Upaddhokko / Assistant Headmaster
+    const isVicePrincipal =
+      d.includes("উপাধ্যক্ষ") ||
+      d.includes("vice principal") ||
+      d.includes("vice-principal") ||
+      d.includes("vice_principal") ||
+      d.includes("assistant headmaster") ||
+      d.includes("assistant head master") ||
+      d.includes("assistant head") ||
+      d.includes("সহকারী প্রধান শিক্ষক") ||
+      d.includes("সহকারী প্রধান") ||
+      d.includes("নায়েবে মুহতামিম") ||
+      d.includes("নায়েবে মুহতামিম") ||
+      d.includes("সহকারী অধ্যক্ষ")
+
+    if (isVicePrincipal) return 2
+
+    // 3. Rank 3: Ibtedayi Head / ইবি প্রধান / Department Head
+    const isIbHead =
+      d.includes("ইবি প্রধান") ||
+      d.includes("ইবতেদায়ি প্রধান") ||
+      d.includes("ইবতেদায়ী প্রধান") ||
+      d.includes("ইবতেদায়ি প্রধান")
+
+    if (isIbHead) return 3
+
+    // 4. Rank 4: Senior Teacher
+    if (d.includes("senior") || d.includes("সিনিয়র") || d.includes("সিনিয়র")) return 4
+
+    return 5
   }
 
   return [...list].sort((a, b) => {
@@ -633,11 +671,15 @@ function sortTeachersList(list: StaffListRecord[]): StaffListRecord[] {
     const invalidA = Number.isNaN(dateA)
     const invalidB = Number.isNaN(dateB)
 
-    if (invalidA && invalidB) return 0
-    if (invalidA) return 1
-    if (invalidB) return -1
+    if (!invalidA && !invalidB && dateA !== dateB) {
+      return dateA - dateB
+    }
+    if (invalidA && !invalidB) return 1
+    if (!invalidA && invalidB) return -1
 
-    return dateA - dateB
+    const nameA = a.full_name_en || ""
+    const nameB = b.full_name_en || ""
+    return nameA.localeCompare(nameB)
   })
 }
 

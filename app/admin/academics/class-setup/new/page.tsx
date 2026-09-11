@@ -9,6 +9,7 @@ import {
   getAcademicClassrooms,
 } from "@/lib/db"
 import { ClassConfigForm } from "@/components/admin/class-config-form"
+import { PageHeader } from "@/components/digicampus/page-header"
 
 export default async function NewClassConfigPage() {
   const [sessions, versions, shifts, classes, sections, groups, teachersData, classrooms] =
@@ -25,17 +26,15 @@ export default async function NewClassConfigPage() {
 
   const teachers = teachersData.map((t) => ({
     id: t.id,
-    name: t.full_name_en || "Unnamed",
+    name: t.full_name_en || "Unnamed Teacher",
   }))
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">New Class Configuration</h1>
-        <p className="text-muted-foreground mt-1">
-          Define a unique academic class combination.
-        </p>
-      </div>
+    <div className="max-w-3xl space-y-6">
+      <PageHeader
+        title="New Class Configuration"
+        description="Define a unique academic class combination (Session + Version + Shift + Class + Section + Group)."
+      />
       <ClassConfigForm
         sessions={sessions}
         versions={versions}

@@ -11,6 +11,7 @@ import {
   getAcademicClassrooms,
 } from "@/lib/db"
 import { ClassConfigForm } from "@/components/admin/class-config-form"
+import { PageHeader } from "@/components/digicampus/page-header"
 
 export default async function EditClassConfigPage({
   params,
@@ -59,11 +60,11 @@ export default async function EditClassConfigPage({
     .join(" › ")
 
   return (
-    <div className="max-w-2xl space-y-6 pb-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Edit Class Configuration</h1>
-        <p className="text-muted-foreground mt-1">{configLabel}</p>
-      </div>
+    <div className="max-w-3xl space-y-6 pb-10">
+      <PageHeader
+        title="Edit Class Configuration"
+        description={`Update setup parameters and teacher assignment for "${configLabel}".`}
+      />
 
       <ClassConfigForm
         sessions={sessions}

@@ -16,6 +16,19 @@ type ProfilePhotoUploadProps = {
   className?: string
 }
 
+function getResolvedPhotoUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return null
+  if (trimmed.includes(".r2.dev/")) {
+    const path = trimmed.split(".r2.dev/")[1]
+    if (path) {
+      return `https://media.wasiamadrasah.edu.bd/${path}`
+    }
+  }
+  return trimmed
+}
+
 export function ProfilePhotoUpload({
   currentPhotoUrl,
   onPhotoUrlChange,
@@ -26,11 +39,11 @@ export function ProfilePhotoUpload({
   className = "",
 }: ProfilePhotoUploadProps) {
   const [uploading, setUploading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl || null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(() => getResolvedPhotoUrl(currentPhotoUrl))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setPreviewUrl(currentPhotoUrl || null)
+    setPreviewUrl(getResolvedPhotoUrl(currentPhotoUrl))
   }, [currentPhotoUrl])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -89,6 +89,51 @@ async function withoutInactiveAccounts(
   return staffs.filter((staff) => !inactiveIds.has(staff.id))
 }
 
+function getStaffRank(rawDesignation: string | null | undefined): number {
+  if (!rawDesignation) return 99
+  const d = rawDesignation.toLowerCase().trim()
+
+  // 1. Rank 1: Principal / Oddhokkho / Headmaster / Muhtamim
+  const isPrincipal =
+    (d.includes("অধ্যক্ষ") && !d.includes("উপাধ্যক্ষ") && !d.includes("সহকারী")) ||
+    (d.includes("principal") && !d.includes("vice") && !d.includes("assistant")) ||
+    ((d === "headmaster" || d === "head master" || d === "প্রধান শিক্ষক") && !d.includes("assistant") && !d.includes("সহকারী")) ||
+    ((d.includes("মুহতামিম") || d.includes("মুহতামীম")) && !d.includes("নায়েবে") && !d.includes("নায়েবে"))
+
+  if (isPrincipal) return 1
+
+  // 2. Rank 2: Vice-Principal / Upaddhokko / Assistant Headmaster
+  const isVicePrincipal =
+    d.includes("উপাধ্যক্ষ") ||
+    d.includes("vice principal") ||
+    d.includes("vice-principal") ||
+    d.includes("vice_principal") ||
+    d.includes("assistant headmaster") ||
+    d.includes("assistant head master") ||
+    d.includes("assistant head") ||
+    d.includes("সহকারী প্রধান শিক্ষক") ||
+    d.includes("সহকারী প্রধান") ||
+    d.includes("নায়েবে মুহতামিম") ||
+    d.includes("নায়েবে মুহতামিম") ||
+    d.includes("সহকারী অধ্যক্ষ")
+
+  if (isVicePrincipal) return 2
+
+  // 3. Rank 3: Ibtedayi Head / ইবি প্রধান / Department Head
+  const isIbHead =
+    d.includes("ইবি প্রধান") ||
+    d.includes("ইবতেদায়ি প্রধান") ||
+    d.includes("ইবতেদায়ী প্রধান") ||
+    d.includes("ইবতেদায়ি প্রধান")
+
+  if (isIbHead) return 3
+
+  // 4. Rank 4: Senior Staff/Teacher
+  if (d.includes("senior") || d.includes("সিনিয়র") || d.includes("সিনিয়র")) return 4
+
+  return 5
+}
+
 export default async function StaffsPage({ searchParams }: StaffsPageProps) {
   const supabase = createSupabaseAdminClient()
   const [params, instituteSettings] = await Promise.all([
@@ -124,29 +169,29 @@ export default async function StaffsPage({ searchParams }: StaffsPageProps) {
   const rawStaffs = ((fallbackResult?.data ?? primaryResult.data) ?? []) as StaffCard[]
   const staffs = await withoutInactiveAccounts(supabase, rawStaffs)
 
-  // Sort: headmaster/principal first, then by joining date
+  // Sort: 1st Principal/Oddhokkho/Head, 2nd Vice Principal/Upaddhokko/Assistant Head, then joining date
   staffs.sort((a, b) => {
-    const aDesignation = (a.designation || "").toLowerCase()
-    const bDesignation = (b.designation || "").toLowerCase()
+    const rankA = getStaffRank(a.designation)
+    const rankB = getStaffRank(b.designation)
 
-    const isAHeadmaster =
-      aDesignation.includes("headmaster") ||
-      aDesignation.includes("principal") ||
-      aDesignation.includes("অধ্যক্ষ") ||
-      aDesignation.includes("উপাধ্যক্ষ")
-    const isBHeadmaster =
-      bDesignation.includes("headmaster") ||
-      bDesignation.includes("principal") ||
-      bDesignation.includes("অধ্যক্ষ") ||
-      bDesignation.includes("উপাধ্যক্ষ")
-
-    if (isAHeadmaster && !isBHeadmaster) return -1
-    if (!isAHeadmaster && isBHeadmaster) return 1
+    if (rankA !== rankB) {
+      return rankA - rankB
+    }
 
     const aDate = a.joining_date ? new Date(a.joining_date).getTime() : Infinity
     const bDate = b.joining_date ? new Date(b.joining_date).getTime() : Infinity
+    const invalidA = Number.isNaN(aDate)
+    const invalidB = Number.isNaN(bDate)
 
-    return aDate - bDate
+    if (!invalidA && !invalidB && aDate !== bDate) {
+      return aDate - bDate
+    }
+    if (invalidA && !invalidB) return 1
+    if (!invalidA && invalidB) return -1
+
+    const nameA = a.full_name_en || ""
+    const nameB = b.full_name_en || ""
+    return nameA.localeCompare(nameB)
   })
 
   const content =

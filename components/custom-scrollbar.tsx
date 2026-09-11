@@ -228,16 +228,29 @@ export function CustomScrollbar() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const hostname = window.location.hostname || '';
     const isAdmission =
       pathname?.startsWith('/admission-portal') ||
       pathname?.startsWith('/admission') ||
-      window.location.hostname.startsWith('admission.');
+      hostname.startsWith('admission.');
+
+    const isAdmin =
+      pathname?.startsWith('/admin') ||
+      hostname.startsWith('console.') ||
+      hostname.startsWith('workspace.') ||
+      hostname.startsWith('admin.') ||
+      Boolean(document.querySelector('.admin-theme, [data-admin-theme="true"]'));
 
     if (scrollbarRef.current) {
       if (isAdmission) {
         scrollbarRef.current.classList.add('admission-scrollbar');
+        scrollbarRef.current.classList.remove('admin-scrollbar');
+      } else if (isAdmin) {
+        scrollbarRef.current.classList.add('admin-scrollbar');
+        scrollbarRef.current.classList.remove('admission-scrollbar');
       } else {
         scrollbarRef.current.classList.remove('admission-scrollbar');
+        scrollbarRef.current.classList.remove('admin-scrollbar');
       }
     }
   }, [pathname]);

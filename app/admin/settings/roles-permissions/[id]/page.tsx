@@ -37,24 +37,34 @@ export default function RolePermissionMatrixPage() {
 
   // Load role data and assigned permissions from DB
   React.useEffect(() => {
+    let active = true
     async function loadData() {
       if (!idOrSlug) return
       setIsLoading(true)
       try {
         const res = await getRoleById(idOrSlug)
-        if (res.success && res.data) {
-          setRole(res.data)
-          setActivePermissions(new Set(res.data.permissions || []))
-        } else {
-          toast.error(res.error || "Role not found.")
+        if (active) {
+          if (res.success && res.data) {
+            setRole(res.data)
+            setActivePermissions(new Set(res.data.permissions || []))
+          } else {
+            toast.error(res.error || "Role not found.")
+          }
         }
-      } catch (err: unknown) {
-        toast.error("Error loading permissions.")
+      } catch {
+        if (active) {
+          toast.error("Error loading permissions.")
+        }
       } finally {
-        setIsLoading(false)
+        if (active) {
+          setIsLoading(false)
+        }
       }
     }
     loadData()
+    return () => {
+      active = false
+    }
   }, [idOrSlug])
 
   // Helper to check if a specific permission is granted

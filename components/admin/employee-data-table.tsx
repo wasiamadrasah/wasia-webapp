@@ -35,6 +35,10 @@ import {
   Copy,
   Check,
   KeyRound,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react"
 
 import {
@@ -209,10 +213,211 @@ function EmployeeLoginToggle({
 
 
 
+function getResolvedPhotoUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return null
+
+  // If it's an old pub-*.r2.dev URL, map to the custom domain
+  if (trimmed.includes(".r2.dev/")) {
+    const path = trimmed.split(".r2.dev/")[1]
+    if (path) {
+      return `https://media.wasiamadrasah.edu.bd/${path}`
+    }
+  }
+  return trimmed
+}
+
+function EmployeeAvatar({
+  photoUrl,
+  name,
+  className,
+  onClick,
+}: {
+  photoUrl: string | null | undefined
+  name: string
+  className?: string
+  onClick?: () => void
+}) {
+  const [resolvedSrc, setResolvedSrc] = React.useState<string | null>(() => getResolvedPhotoUrl(photoUrl))
+  const [hasError, setHasError] = React.useState(false)
+
+  React.useEffect(() => {
+    setResolvedSrc(getResolvedPhotoUrl(photoUrl))
+    setHasError(false)
+  }, [photoUrl])
+
+  const handleError = () => {
+    // If the custom domain failed and was different from original, try original URL once
+    if (photoUrl && resolvedSrc !== photoUrl && !hasError) {
+      setResolvedSrc(photoUrl)
+    } else {
+      setHasError(true)
+    }
+  }
+
+  const initial = (name || "E").trim().charAt(0).toUpperCase()
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={photoUrl ? "Click to preview photo" : "No photo uploaded"}
+      className={cn(
+        "rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300 shrink-0 transition-all hover:scale-110 active:scale-95 hover:ring-2 hover:ring-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        onClick ? "cursor-pointer" : "cursor-default",
+        className
+      )}
+    >
+      {resolvedSrc && !hasError ? (
+        <img
+          src={resolvedSrc}
+          alt={name}
+          onError={handleError}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span>{initial}</span>
+      )}
+    </button>
+  )
+}
+
+function EmployeePhotoPreviewModal({
+  employee,
+  open,
+  onOpenChange,
+}: {
+  employee: EmployeeTableRow | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  if (!employee) return null
+
+  const resolvedPhoto = getResolvedPhotoUrl(employee.profilePhoto)
+  const isTeacher = employee.category === "teacher"
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="sm" className="sm:max-w-md p-0 overflow-hidden border-border bg-card">
+        <DialogHeader className="p-5 pb-3 border-b border-border bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                <span>{employee.name}</span>
+                {employee.nameBn && (
+                  <span className="text-xs font-normal text-muted-foreground font-bensen">({employee.nameBn})</span>
+                )}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                {employee.designation || (isTeacher ? "Teacher" : "Staff")} • {isTeacher ? "Teaching" : "Administrative"}
+              </DialogDescription>
+            </div>
+            <Badge
+              variant="outline"
+              className={
+                isTeacher
+                  ? "rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 font-semibold text-xs px-2.5 py-0.5"
+                  : "rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60 font-semibold text-xs px-2.5 py-0.5"
+              }
+            >
+              {isTeacher ? "Teaching" : "Administrative"}
+            </Badge>
+          </div>
+        </DialogHeader>
+
+        <div className="p-6 flex flex-col items-center justify-center space-y-4 bg-muted/10">
+          <div className="relative size-60 sm:size-64 rounded-2xl overflow-hidden border-2 border-border shadow-md bg-background flex items-center justify-center">
+            {resolvedPhoto ? (
+              <img
+                src={resolvedPhoto}
+                alt={employee.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  if (employee.profilePhoto && e.currentTarget.src !== employee.profilePhoto) {
+                    e.currentTarget.src = employee.profilePhoto
+                  }
+                }}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-muted-foreground gap-2 p-6 text-center">
+                <UserRound className="size-16 text-muted-foreground/40" />
+                <span className="text-xs font-medium">No profile photo uploaded</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <CopyableIdBadge employeeId={employee.employeeId} />
+            {employee.phone && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground font-mono bg-muted/60 px-2 py-0.5 rounded-md border border-border/80">
+                <Phone className="size-3" />
+                {employee.phone}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="p-4 border-t border-border bg-card flex sm:justify-between items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="text-xs font-medium">
+              <Link href={`/admin/employees/${employee.id}`}>
+                View Profile
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="text-xs font-medium">
+              <Link href={`/admin/employees/${employee.id}/edit`}>
+                Edit Details
+              </Link>
+            </Button>
+          </div>
+          <DialogClose asChild>
+            <Button size="sm" variant="default" className="text-xs font-semibold">
+              Close
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function generateRandomEmployeePassword(length = 8) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  let result = ""
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
+
 function AddEmployeeDialog() {
   const [open, setOpen] = React.useState(false)
   const [category, setCategory] = React.useState<"teacher" | "staff">("teacher")
+  const [password, setPassword] = React.useState("")
+  const [showPassword, setShowPassword] = React.useState(true)
+  const [copiedPassword, setCopiedPassword] = React.useState(false)
   const formRef = React.useRef<HTMLFormElement>(null)
+
+  // Generate fresh random 8-character (A-Z and 0-9) password whenever modal opens
+  React.useEffect(() => {
+    if (open) {
+      setPassword(generateRandomEmployeePassword(8))
+      setCopiedPassword(false)
+    }
+  }, [open])
+
+  const handleRegeneratePassword = () => {
+    setPassword(generateRandomEmployeePassword(8))
+    setCopiedPassword(false)
+  }
+
+  const handleCopyPassword = () => {
+    if (!password) return
+    navigator.clipboard.writeText(password)
+    setCopiedPassword(true)
+    setTimeout(() => setCopiedPassword(false), 1500)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -324,20 +529,53 @@ function AddEmployeeDialog() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="employee_password" className="text-sm font-bold text-foreground">
-                Temporary Password
-              </Label>
-              <Input
-                id="employee_password"
-                type="password"
-                name="password"
-                defaultValue="Wasia@2026"
-                placeholder="Enter login password"
-                className="h-10 border-input bg-background font-mono"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Default initial password is Wasia@2026.
-              </p>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="employee_password" className="text-sm font-bold text-foreground">
+                  Login Password <span className="text-rose-500">*</span>
+                </Label>
+                <button
+                  type="button"
+                  onClick={handleRegeneratePassword}
+                  className="text-[11px] font-semibold text-primary hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className="size-3" />
+                  Generate New
+                </button>
+              </div>
+              <div className="relative flex items-center">
+                <Input
+                  id="employee_password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.toUpperCase())}
+                  required
+                  placeholder="Enter password"
+                  className="h-10 pr-20 border-input bg-background font-mono font-bold tracking-wider text-sm uppercase"
+                />
+                <div className="absolute right-1.5 flex items-center gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopyPassword}
+                    title="Copy password"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {copiedPassword ? <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="size-3.5" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? "Hide password" : "Show password"}
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -358,6 +596,7 @@ function AddEmployeeDialog() {
 }
 
 export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
+  const [previewEmployee, setPreviewEmployee] = React.useState<EmployeeTableRow | null>(null)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -417,21 +656,15 @@ export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
       id: "photo",
       header: () => <span className="block text-center">Photo</span>,
       cell: ({ row }) => {
-        const photo = row.original.profilePhoto
-        const name = row.original.name
+        const employee = row.original
         return (
           <div className="flex items-center justify-center">
-            <div className="h-8 w-8 rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300 shrink-0">
-              {photo ? (
-                <img
-                  src={photo}
-                  alt={name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                name.charAt(0)
-              )}
-            </div>
+            <EmployeeAvatar
+              photoUrl={employee.profilePhoto}
+              name={employee.name}
+              className="size-8 text-[11px]"
+              onClick={() => setPreviewEmployee(employee)}
+            />
           </div>
         )
       },
@@ -748,17 +981,12 @@ export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
               <div key={employee.id} className="rounded-lg border border-border bg-card p-4 space-y-3 shadow-2xs">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-center text-xs font-bold uppercase text-indigo-700 dark:text-indigo-300">
-                      {employee.profilePhoto ? (
-                        <img
-                          src={employee.profilePhoto}
-                          alt={employee.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        employee.name.charAt(0)
-                      )}
-                    </div>
+                    <EmployeeAvatar
+                      photoUrl={employee.profilePhoto}
+                      name={employee.name}
+                      className="size-10 text-xs"
+                      onClick={() => setPreviewEmployee(employee)}
+                    />
                     <div className="min-w-0 space-y-1">
                       <p className="text-sm font-bold text-foreground truncate flex items-center gap-1.5">
                         {employee.name}
@@ -887,6 +1115,12 @@ export function EmployeeDataTable({ data }: { data: EmployeeTableRow[] }) {
           </div>
         </div>
       </div>
+
+      <EmployeePhotoPreviewModal
+        employee={previewEmployee}
+        open={Boolean(previewEmployee)}
+        onOpenChange={(open) => !open && setPreviewEmployee(null)}
+      />
     </div>
   )
 }

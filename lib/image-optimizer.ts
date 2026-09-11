@@ -38,8 +38,13 @@ export function getOptimizedImageUrl(
     return "/placeholder.svg";
   }
 
-  // Check if it's an R2 URL (pub-*.r2.dev)
-  if (!imageUrl.includes("r2.dev")) {
+  // Check if it's an R2 URL (pub-*.r2.dev, media.wasiamadrasah.edu.bd, etc.)
+  const isR2Url =
+    imageUrl.includes("r2.dev") ||
+    imageUrl.includes("media.wasiamadrasah.edu.bd") ||
+    imageUrl.includes("wasiamadrasah.edu.bd");
+
+  if (!isR2Url) {
     return imageUrl;
   }
 

@@ -1,33 +1,14 @@
 import Link from "next/link"
+import { ArrowLeft, AlertCircle, Plus } from "lucide-react"
 import { getAcademicBuildings } from "@/lib/db"
 import { createClassroomAction } from "@/app/admin/academics/actions"
+import { FormSelect } from "@/components/admin/form-select"
+import { FLOOR_OPTIONS } from "@/components/admin/classrooms-table"
+import { PageHeader } from "@/components/digicampus/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { AlertCircle, Plus } from "lucide-react"
-
-const selectClass =
-  "h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-
-const floorOptions = [
-  { value: 0, label: "Ground Floor" },
-  { value: 1, label: "1st Floor" },
-  { value: 2, label: "2nd Floor" },
-  { value: 3, label: "3rd Floor" },
-  { value: 4, label: "4th Floor" },
-  { value: 5, label: "5th Floor" },
-  { value: 6, label: "6th Floor" },
-  { value: 7, label: "7th Floor" },
-  { value: 8, label: "8th Floor" },
-  { value: 9, label: "9th Floor" },
-  { value: 10, label: "10th Floor" },
-  { value: 11, label: "11th Floor" },
-  { value: 12, label: "12th Floor" },
-  { value: 13, label: "13th Floor" },
-  { value: 14, label: "14th Floor" },
-  { value: 15, label: "15th Floor" },
-]
 
 export default async function NewClassroomPage({
   searchParams,
@@ -38,121 +19,131 @@ export default async function NewClassroomPage({
   const buildings = await getAcademicBuildings()
   const activeBuildings = buildings.filter((b) => b.is_active)
 
-  return (
-    <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">New Classroom</h1>
-        <p className="text-muted-foreground mt-1">
-          Add a new classroom to an existing building.
-        </p>
-      </div>
+  const buildingOptions = activeBuildings.map((b) => ({
+    value: b.id,
+    label: b.name,
+  }))
 
-      {params.message ? (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm ${
-            params.status === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
+  return (
+    <div className="w-full max-w-2xl space-y-6">
+      <PageHeader
+        title="Add Classroom"
+        description="Register a new classroom under an active building."
+        action={
+          <Button asChild variant="outline" className="h-10 border-border bg-card text-foreground hover:bg-muted/40 text-sm font-medium gap-2">
+            <Link href="/admin/academics/classroom-management?tab=classrooms">
+              <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+              <span>Back to Rooms</span>
+            </Link>
+          </Button>
+        }
+      />
+
+      {params.status === "error" && params.message ? (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 dark:bg-rose-950/40 dark:border-rose-800 px-4 py-3 text-sm text-rose-800 dark:text-rose-300 font-medium">
           {params.message}
         </div>
       ) : null}
 
       {activeBuildings.length === 0 ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-800 space-y-4">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800/60 p-6 text-amber-800 dark:text-amber-300 space-y-4">
           <div className="flex gap-3 items-start">
-            <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
+            <AlertCircle className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-amber-900">No Active Buildings Configured</h3>
-              <p className="text-sm mt-1 text-amber-800">
+              <h3 className="font-bold text-amber-900 dark:text-amber-200">No Active Buildings Configured</h3>
+              <p className="text-sm mt-1 text-amber-800 dark:text-amber-300">
                 You must have at least one active building in the school system before you can register classrooms.
               </p>
             </div>
           </div>
           <div className="flex gap-3">
-            <Button asChild size="sm" className="bg-amber-600 hover:bg-amber-700 text-white border-none">
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
               <Link href="/admin/academics/classroom-management/buildings/new" className="flex items-center gap-1.5">
                 <Plus className="size-4" /> Add Building
               </Link>
             </Button>
-            <Button asChild size="sm" variant="outline" className="border-amber-200 hover:bg-amber-100/50">
+            <Button asChild size="sm" variant="outline">
               <Link href="/admin/academics/classroom-management?tab=buildings">Back to Dashboard</Link>
             </Button>
           </div>
         </div>
       ) : (
-        <form action={createClassroomAction} className="space-y-6 rounded-xl border p-6 bg-card shadow-sm">
-          <div className="space-y-2">
-            <Label htmlFor="building_id">
-              Building <span className="text-red-500">*</span>
-            </Label>
-            <select
-              id="building_id"
-              name="building_id"
-              required
-              defaultValue=""
-              className={selectClass}
-            >
-              <option value="" disabled>Select Building</option>
-              {activeBuildings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+        <form action={createClassroomAction} className="space-y-6 rounded-xl border border-border p-6 bg-card shadow-2xs">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="building_id" className="text-sm font-bold text-foreground">
+                Building <span className="text-rose-500">*</span>
+              </Label>
+              <FormSelect
+                id="building_id"
+                name="building_id"
+                placeholder="Select Building"
+                options={buildingOptions}
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-sm font-bold text-foreground">
+                Classroom Name / Room Number <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g. Room 101, Science Lab, Seminar Room"
+                required
+                className="h-10 border-input bg-background"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="floor" className="text-sm font-bold text-foreground">
+                  Floor <span className="text-rose-500">*</span>
+                </Label>
+                <FormSelect
+                  id="floor"
+                  name="floor"
+                  defaultValue="0"
+                  placeholder="Select Floor"
+                  options={FLOOR_OPTIONS}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="capacity" className="text-sm font-bold text-foreground">
+                  Student Capacity <span className="text-rose-500">*</span>
+                </Label>
+                <Input
+                  id="capacity"
+                  name="capacity"
+                  type="number"
+                  min="1"
+                  defaultValue="40"
+                  required
+                  className="h-10 border-input bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3.5 mt-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="is_active" className="text-sm font-semibold text-foreground cursor-pointer">
+                  Active Classroom
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Allow this classroom to be allocated for class combinations.
+                </p>
+              </div>
+              <Switch id="is_active" name="is_active" value="true" defaultChecked />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">
-              Classroom Name <span className="text-red-500">*</span>
-            </Label>
-            <Input id="name" name="name" placeholder="e.g. Room 101, Lab A, Seminar Room" required />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="floor">
-              Floor <span className="text-red-500">*</span>
-            </Label>
-            <select
-              id="floor"
-              name="floor"
-              required
-              defaultValue=""
-              className={selectClass}
-            >
-              <option value="" disabled>Select Floor</option>
-              {floorOptions.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="capacity">
-              Capacity (Number of Students) <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="capacity"
-              name="capacity"
-              type="number"
-              min="1"
-              defaultValue="40"
-              required
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Switch id="is_active" name="is_active" value="true" defaultChecked />
-            <Label htmlFor="is_active">Active Classroom</Label>
-          </div>
-
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex items-center gap-3 pt-4 border-t border-border">
             <Button
               type="submit"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5"
             >
               Create Classroom
             </Button>

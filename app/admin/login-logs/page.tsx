@@ -31,7 +31,7 @@ interface ActivityLog {
 
 const ITEMS_PER_PAGE = 20
 
-export default function ActivityLogsPage() {
+export default function LoginLogsPage() {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -52,10 +52,10 @@ export default function ActivityLogsPage() {
           setActivities(result.data)
           setTotalCount(result.total)
         } else {
-          setError(result.message || "Failed to fetch activity logs")
+          setError(result.message || "Failed to fetch login logs")
         }
       } catch (err) {
-        setError("An error occurred while fetching activity logs")
+        setError("An error occurred while fetching login logs")
         console.error(err)
       } finally {
         setLoading(false)
@@ -70,7 +70,7 @@ export default function ActivityLogsPage() {
   return (
     <div className="w-full max-w-none space-y-6">
       <PageHeader
-        title="Activity Logs"
+        title="Login Logs"
         description="Monitor login activities, security events, and session history across all administrator accounts."
         action={
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-xs">

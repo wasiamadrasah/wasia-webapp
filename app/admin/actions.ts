@@ -679,6 +679,16 @@ function normalizeHumanName(value: string) {
 }
 
 const ALPHANUMERIC_LOWER = "abcdefghijklmnopqrstuvwxyz0123456789";
+const EMPLOYEE_PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function generateRandomEmployeePassword(length = 8) {
+  let value = "";
+  for (let i = 0; i < length; i += 1) {
+    const index = randomInt(0, EMPLOYEE_PASSWORD_CHARS.length);
+    value += EMPLOYEE_PASSWORD_CHARS[index];
+  }
+  return value;
+}
 
 function generateTemporaryPassword(length = 6) {
   while (true) {
@@ -1844,7 +1854,7 @@ export async function createEmployeeAction(formData: FormData) {
 
   try {
     const supabase = createSupabaseAdminClient();
-    const password = (formData.get("password") as string | null)?.trim() ?? "";
+    const password = (formData.get("password") as string | null)?.trim() || generateRandomEmployeePassword(8);
     const email = (formData.get("email") as string | null)?.trim() || null;
     const type = ((formData.get("type") as string | null)?.trim().toLowerCase() === "staff" ? "staff" : "teacher");
 
@@ -1859,6 +1869,7 @@ export async function createEmployeeAction(formData: FormData) {
       designation: (formData.get("designation") as string) || null,
       type: type,
       status: "active",
+      profile_photo: (formData.get("profile_photo") as string | null)?.trim() || null,
       ...(autoEmployeeId ? { employee_id: autoEmployeeId } : {}),
     };
 
@@ -2327,7 +2338,7 @@ export async function resetEmployeePasswordAction(formData: FormData) {
       throw new Error("Employee email is missing.");
     }
 
-    const temporaryPassword = generateTemporaryPassword(6);
+    const temporaryPassword = generateRandomEmployeePassword(8);
     const passwordHash = await hash(temporaryPassword, 12);
 
     const accountPayload: StaffAccountPayload = {

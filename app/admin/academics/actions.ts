@@ -666,6 +666,37 @@ export async function deleteGroupAction(id: string) {
 
 // ─── SUBJECTS ─────────────────────────────────────────────────────────────────
 
+export async function createSubjectDirectAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  const name_bn = toNullableString(formData.get("name_bn"));
+  const code = toNullableString(formData.get("code"));
+  if (!name) throw new Error("Subject name is required.");
+  if (!code) throw new Error("Subject code is required.");
+
+  const { data, error } = await supabase
+    .from("subjects")
+    .insert({
+      name,
+      name_bn,
+      code: code.toUpperCase(),
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error(`Subject code "${code}" already exists.`);
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/subjects");
+  return { success: true, data };
+}
+
 export async function createSubjectAction(formData: FormData) {
   const adminId = await requireAdminSession();
   checkAdminRateLimit(adminId);
@@ -697,6 +728,36 @@ export async function createSubjectAction(formData: FormData) {
     const msg = resolveErrorMessage(error, "Failed to create subject");
     redirect(`/admin/academics/subjects?status=error&message=${encodeURIComponent(msg)}`);
   }
+}
+
+export async function updateSubjectDirectAction(id: string, formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  const name_bn = toNullableString(formData.get("name_bn"));
+  const code = toNullableString(formData.get("code"));
+  if (!name) throw new Error("Subject name is required.");
+  if (!code) throw new Error("Subject code is required.");
+
+  const { error } = await supabase
+    .from("subjects")
+    .update({
+      name,
+      name_bn,
+      code: code.toUpperCase(),
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error(`Subject code "${code}" already exists.`);
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/subjects");
+  return { success: true };
 }
 
 export async function updateSubjectAction(id: string, formData: FormData) {
@@ -1082,6 +1143,33 @@ export async function removeSubjectTeacherAction(id: string, configId: string) {
 
 // ─── ACADEMIC BUILDINGS ────────────────────────────────────────────────────────
 
+export async function createBuildingDirectAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  if (!name) throw new Error("Building name is required.");
+
+  const { data, error } = await supabase
+    .from("academic_buildings")
+    .insert({
+      name,
+      description: toNullableString(formData.get("description")),
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error("A building with this name already exists.");
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true, data };
+}
+
 export async function createBuildingAction(formData: FormData) {
   const adminId = await requireAdminSession();
   checkAdminRateLimit(adminId);
@@ -1109,6 +1197,32 @@ export async function createBuildingAction(formData: FormData) {
     const msg = resolveErrorMessage(error, "Failed to create building");
     redirect(`/admin/academics/classroom-management/buildings/new?status=error&message=${encodeURIComponent(msg)}`);
   }
+}
+
+export async function updateBuildingDirectAction(id: string, formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  if (!name) throw new Error("Building name is required.");
+
+  const { error } = await supabase
+    .from("academic_buildings")
+    .update({
+      name,
+      description: toNullableString(formData.get("description")),
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error("A building with this name already exists.");
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true };
 }
 
 export async function updateBuildingAction(id: string, formData: FormData) {
@@ -1152,6 +1266,29 @@ export async function toggleBuildingActiveAction(id: string, currentlyActive: bo
   revalidateAcademicPaths("/admin/academics/classroom-management");
 }
 
+export async function deleteBuildingDirectAction(id: string) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const { count } = await supabase
+    .from("academic_classrooms")
+    .select("id", { count: "exact", head: true })
+    .eq("building_id", id);
+
+  if ((count ?? 0) > 0) {
+    return { success: false, error: `Cannot delete: ${count} classroom(s) are in this building.` };
+  }
+
+  const { error } = await supabase.from("academic_buildings").delete().eq("id", id);
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true };
+}
+
 export async function deleteBuildingAction(id: string) {
   const adminId = await requireAdminSession();
   checkAdminRateLimit(adminId);
@@ -1178,6 +1315,42 @@ export async function deleteBuildingAction(id: string) {
 }
 
 // ─── ACADEMIC CLASSROOMS ──────────────────────────────────────────────────────
+
+export async function createClassroomDirectAction(formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  const buildingId = toNullableString(formData.get("building_id"));
+  const floor = toNullableNumber(formData.get("floor"));
+  const capacity = toNullableNumber(formData.get("capacity"));
+
+  if (!name) throw new Error("Classroom name is required.");
+  if (!buildingId) throw new Error("Building selection is required.");
+  if (floor === null) throw new Error("Floor is required.");
+  if (capacity === null) throw new Error("Capacity is required.");
+
+  const { data, error } = await supabase
+    .from("academic_classrooms")
+    .insert({
+      building_id: buildingId,
+      name,
+      floor,
+      capacity,
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error("A classroom with this name already exists in this building.");
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true, data };
+}
 
 export async function createClassroomAction(formData: FormData) {
   const adminId = await requireAdminSession();
@@ -1215,6 +1388,41 @@ export async function createClassroomAction(formData: FormData) {
     const msg = resolveErrorMessage(error, "Failed to create classroom");
     redirect(`/admin/academics/classroom-management/classrooms/new?status=error&message=${encodeURIComponent(msg)}`);
   }
+}
+
+export async function updateClassroomDirectAction(id: string, formData: FormData) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const name = toNullableString(formData.get("name"));
+  const buildingId = toNullableString(formData.get("building_id"));
+  const floor = toNullableNumber(formData.get("floor"));
+  const capacity = toNullableNumber(formData.get("capacity"));
+
+  if (!name) throw new Error("Classroom name is required.");
+  if (!buildingId) throw new Error("Building selection is required.");
+  if (floor === null) throw new Error("Floor is required.");
+  if (capacity === null) throw new Error("Capacity is required.");
+
+  const { error } = await supabase
+    .from("academic_classrooms")
+    .update({
+      building_id: buildingId,
+      name,
+      floor,
+      capacity,
+      is_active: toNullableBoolean(formData.get("is_active")) ?? true,
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (isDuplicateKeyError(error)) throw new Error("A classroom with this name already exists in this building.");
+    throw error;
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true };
 }
 
 export async function updateClassroomAction(id: string, formData: FormData) {
@@ -1265,6 +1473,20 @@ export async function toggleClassroomActiveAction(id: string, currentlyActive: b
   const { error } = await supabase.from("academic_classrooms").update({ is_active: !currentlyActive }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidateAcademicPaths("/admin/academics/classroom-management");
+}
+
+export async function deleteClassroomDirectAction(id: string) {
+  const adminId = await requireAdminSession();
+  checkAdminRateLimit(adminId);
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("academic_classrooms").delete().eq("id", id);
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidateAcademicPaths("/admin/academics/classroom-management");
+  return { success: true };
 }
 
 export async function deleteClassroomAction(id: string) {

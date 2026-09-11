@@ -1,28 +1,20 @@
 import { getAcademicBuildings, getAcademicClassrooms } from "@/lib/db"
-import { AcademicSimpleTable, type ExtraColumnSpec } from "@/components/admin/academic-simple-table"
+import { BuildingsTable } from "@/components/admin/buildings-table"
+import { ClassroomsTable } from "@/components/admin/classrooms-table"
+import { PageHeader } from "@/components/digicampus/page-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  toggleBuildingActiveAction,
-  deleteBuildingAction,
-  toggleClassroomActiveAction,
-  deleteClassroomAction,
-} from "@/app/admin/academics/actions"
+import { Building2, DoorOpen } from "lucide-react"
 
-function formatFloor(floor: number) {
-  if (floor === 0) return "Ground Floor"
-  const j = floor % 10
-  const k = floor % 100
-  if (j === 1 && k !== 11) return `${floor}st Floor`
-  if (j === 2 && k !== 12) return `${floor}nd Floor`
-  if (j === 3 && k !== 13) return `${floor}rd Floor`
-  return `${floor}th Floor`
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
+type ClassroomManagementPageProps = {
+  searchParams?: Promise<{ tab?: string }>
 }
 
 export default async function ClassroomManagementPage({
   searchParams,
-}: {
-  searchParams?: Promise<{ tab?: string; status?: string; message?: string }>
-}) {
+}: ClassroomManagementPageProps) {
   const params = (await searchParams) ?? {}
   const activeTab = params.tab === "classrooms" ? "classrooms" : "buildings"
 
@@ -31,85 +23,37 @@ export default async function ClassroomManagementPage({
     getAcademicClassrooms(),
   ])
 
-  const formattedClassrooms = classrooms.map((room) => ({
-    ...room,
-    floor_text: formatFloor(room.floor),
-  }))
-
-  const buildingColumns: ExtraColumnSpec[] = [
-    {
-      header: "Description",
-      key: "description",
-    },
-  ]
-
-  const classroomColumns: ExtraColumnSpec[] = [
-    {
-      header: "Building",
-      key: "building_name",
-    },
-    {
-      header: "Floor",
-      key: "floor_text",
-    },
-    {
-      header: "Capacity",
-      key: "capacity",
-      renderType: "capacity",
-    },
-  ]
-
   return (
-    <div className="w-full space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Classroom Management</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage physical school facilities including academic buildings, floors, and classroom capacities.
-        </p>
-      </div>
-
-      {params.message ? (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm ${
-            params.status === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {params.message}
-        </div>
-      ) : null}
+    <div className="w-full max-w-full space-y-6">
+      <PageHeader
+        title="Classroom Management"
+        description="Manage campus facilities including academic buildings, floors, and classroom capacities."
+      />
 
       <Tabs defaultValue={activeTab} className="w-full space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="buildings">Buildings</TabsTrigger>
-          <TabsTrigger value="classrooms">Classrooms</TabsTrigger>
+        <TabsList className="grid w-full max-w-xs grid-cols-2 h-10 p-1 bg-muted/60 border border-border/80">
+          <TabsTrigger
+            value="buildings"
+            className="flex items-center gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+          >
+            <Building2 className="size-3.5" />
+            <span>Buildings ({buildings.length})</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="classrooms"
+            className="flex items-center gap-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs"
+          >
+            <DoorOpen className="size-3.5" />
+            <span>Rooms ({classrooms.length})</span>
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="buildings" className="space-y-4">
-          <AcademicSimpleTable
-            data={buildings}
-            basePath="/admin/academics/classroom-management/buildings"
-            addLabel="Add Building"
-            filterPlaceholder="Filter buildings..."
-            extraColumns={buildingColumns}
-            toggleAction={toggleBuildingActiveAction}
-            deleteAction={deleteBuildingAction}
-            deleteWarning="This will permanently delete this building. This action cannot be undone and will fail if classrooms are assigned to it."
-          />
+        <TabsContent value="buildings" className="space-y-4 focus-visible:outline-none">
+          <BuildingsTable data={buildings} classrooms={classrooms} />
         </TabsContent>
 
-        <TabsContent value="classrooms" className="space-y-4">
-          <AcademicSimpleTable
-            data={formattedClassrooms}
-            basePath="/admin/academics/classroom-management/classrooms"
-            addLabel="Add Classroom"
-            filterPlaceholder="Filter classrooms..."
-            extraColumns={classroomColumns}
-            toggleAction={toggleClassroomActiveAction}
-            deleteAction={deleteClassroomAction}
-            deleteWarning="This will permanently delete this classroom. This action cannot be undone."
-          />
+        <TabsContent value="classrooms" className="space-y-4 focus-visible:outline-none">
+          <ClassroomsTable data={classrooms} buildings={buildings} />
         </TabsContent>
       </Tabs>
     </div>

@@ -381,6 +381,24 @@ export function AdminSystemThemeProvider({ children }: { children: React.ReactNo
       [data-admin-theme="true"] *:not([class*="font-mono"]):not([class*="font-serif"]) {
         font-family: inherit;
       }
+
+      /* Custom Scrollbar Theme Sync */
+      .admin-scrollbar .custom-scrollbar-thumb,
+      body:has(.admin-theme) .custom-scrollbar-thumb,
+      body:has([data-admin-theme="true"]) .custom-scrollbar-thumb {
+        background: ${colorObj.primary} !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+      }
+      .admin-scrollbar .custom-scrollbar-thumb:hover,
+      body:has(.admin-theme) .custom-scrollbar-thumb:hover,
+      body:has([data-admin-theme="true"]) .custom-scrollbar-thumb:hover {
+        background: ${colorObj.primaryHover} !important;
+      }
+      .admin-scrollbar .custom-scrollbar-thumb:active,
+      body:has(.admin-theme) .custom-scrollbar-thumb:active,
+      body:has([data-admin-theme="true"]) .custom-scrollbar-thumb:active {
+        background: ${colorObj.primaryDark} !important;
+      }
     `
 
     // Apply Sidebar Theme Variant attribute

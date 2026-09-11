@@ -5,8 +5,23 @@ type ProfilePhotoDisplayProps = {
   altText?: string
 }
 
+function getResolvedPhotoUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return null
+  if (trimmed.includes(".r2.dev/")) {
+    const path = trimmed.split(".r2.dev/")[1]
+    if (path) {
+      return `https://media.wasiamadrasah.edu.bd/${path}`
+    }
+  }
+  return trimmed
+}
+
 export function ProfilePhotoDisplay({ photoUrl, altText = "Profile photo" }: ProfilePhotoDisplayProps) {
-  if (!photoUrl || photoUrl.trim() === "") {
+  const resolvedPhoto = getResolvedPhotoUrl(photoUrl)
+
+  if (!resolvedPhoto) {
     return (
       <div className="rounded-xl border border-border bg-muted/40 p-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Profile Photo</p>
@@ -22,7 +37,7 @@ export function ProfilePhotoDisplay({ photoUrl, altText = "Profile photo" }: Pro
       <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Profile Photo</p>
       <div className="relative mt-2 h-32 w-32 overflow-hidden rounded-xl border-2 border-border bg-background shadow-2xs">
         <Image
-          src={photoUrl}
+          src={resolvedPhoto}
           alt={altText}
           fill
           unoptimized

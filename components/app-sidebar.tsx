@@ -363,8 +363,8 @@ const data = {
           url: "/admin/settings/languages",
         },
         {
-          title: "Activity Logs",
-          url: "/admin/activity-logs",
+          title: "Login Logs",
+          url: "/admin/login-logs",
         },
       ],
     },

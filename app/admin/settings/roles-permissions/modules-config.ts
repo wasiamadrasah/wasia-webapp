@@ -102,9 +102,17 @@ export const SYSTEM_PERMISSION_MODULES: SystemPermissionModule[] = [
     ],
   },
   {
+    category: "User Management",
+    features: [
+      { id: "users_management", name: "Users Directory", actions: ["view", "add", "edit", "delete"] },
+      { id: "users_roles", name: "Role Promotion & Assignment", actions: ["view", "add", "edit", "delete"] },
+    ],
+  },
+  {
     category: "System Settings",
     features: [
       { id: "settings_account", name: "Account Settings", actions: ["view", "edit"] },
+      { id: "settings_system", name: "System Theme & Appearance", actions: ["view", "edit"] },
       { id: "settings_institute", name: "Institute Settings", actions: ["view", "edit"] },
       { id: "settings_id_generation", name: "ID Generation Setting", actions: ["view", "edit"] },
       { id: "settings_online_admission", name: "Online Admission Setting", actions: ["view", "edit"] },
@@ -117,7 +125,7 @@ export const SYSTEM_PERMISSION_MODULES: SystemPermissionModule[] = [
       { id: "settings_roles_permissions", name: "Roles & Permissions", actions: ["view", "add", "edit", "delete"] },
       { id: "settings_backup_restore", name: "Backup & Restore", actions: ["view", "add", "delete"] },
       { id: "settings_languages", name: "Languages", actions: ["view", "add", "edit", "delete"] },
-      { id: "settings_activity_logs", name: "Activity Logs", actions: ["view", "delete"] },
+      { id: "settings_login_logs", name: "Login Logs", actions: ["view", "delete"] },
     ],
   },
 ]
