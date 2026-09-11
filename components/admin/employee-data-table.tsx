@@ -324,16 +324,23 @@ function AddEmployeeDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent size="md" className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-foreground">Add New Employee</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            Create an employee account for teaching or administrative personnel. The system will auto-generate an Employee ID.
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+              <UserRound className="size-5" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <DialogTitle>Add New Employee</DialogTitle>
+              <DialogDescription>
+                Create an employee account for teaching or administrative personnel.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form ref={formRef} action={createEmployeeAction} className="space-y-4 pt-2">
-          <div className="space-y-3.5">
+        <form ref={formRef} action={createEmployeeAction}>
+          <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="employee_category" className="text-sm font-bold text-foreground">
                 Employee Category <span className="text-rose-500">*</span>
@@ -386,7 +393,7 @@ function AddEmployeeDialog() {
                 id="employee_designation"
                 name="designation"
                 required
-                placeholder={category === "teacher" ? "e.g. সহকারী শিক্ষক / Assistant Teacher" : "e.g. প্রধান হিসাবরক্ষক / Accountant"}
+                placeholder={category === "teacher" ? "e.g. Assistant Teacher" : "e.g. Accountant"}
                 className="h-10 border-input bg-background"
               />
             </div>
@@ -419,7 +426,7 @@ function AddEmployeeDialog() {
 
             <div className="space-y-1.5">
               <Label htmlFor="employee_password" className="text-sm font-bold text-foreground">
-                Password
+                Temporary Password
               </Label>
               <Input
                 id="employee_password"
@@ -427,19 +434,22 @@ function AddEmployeeDialog() {
                 name="password"
                 defaultValue="Wasia@2026"
                 placeholder="Enter login password"
-                className="h-10 border-input bg-background"
+                className="h-10 border-input bg-background font-mono"
               />
+              <p className="text-[11px] text-muted-foreground">
+                Default initial password is Wasia@2026.
+              </p>
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="h-9 px-4 text-sm font-medium border-border">
+              <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm">
-              Submit
+            <Button type="submit" className="font-semibold">
+              Save Employee
             </Button>
           </DialogFooter>
         </form>
